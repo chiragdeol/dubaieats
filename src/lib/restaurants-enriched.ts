@@ -95,6 +95,25 @@ export const enrichedRestaurants: Restaurant[] = rawRestaurants.map((r) => {
     }
   }
 
+  // 5.6 Eatery Type
+  let eateryType: "restaurant" | "bar" | "cafe" = "restaurant";
+  if (barType !== undefined) {
+    eateryType = "bar";
+  } else if (
+    cuisineLower.includes("cafe") ||
+    cuisineLower.includes("coffee") ||
+    cuisineLower.includes("bakery") ||
+    cuisineLower.includes("pastry") ||
+    cuisineLower.includes("breakfast") ||
+    cuisineLower.includes("tea") ||
+    cuisineLower.includes("dessert") ||
+    nameLower.includes("cafe") ||
+    nameLower.includes("coffee") ||
+    nameLower.includes("bakery")
+  ) {
+    eateryType = "cafe";
+  }
+
   // 6. Delivery Links
   const deliveryLinks = {
     deliveroo: `https://www.google.com/search?q=${encodeURIComponent("site:deliveroo.ae " + r.name + " Dubai")}`,
@@ -112,6 +131,7 @@ export const enrichedRestaurants: Restaurant[] = rawRestaurants.map((r) => {
     logistics,
     bookingPlatform,
     deliveryLinks,
-    barType
+    barType,
+    eateryType
   };
 });

@@ -28,6 +28,7 @@ export type Restaurant = {
   bookingPlatform?: { name: "SevenRooms" | "OpenTable" | "Direct Website"; url: string };
   deliveryLinks?: { deliveroo?: string; talabat?: string; noon?: string; careem?: string; keeta?: string };
   barType?: string;
+  eateryType?: "restaurant" | "bar" | "cafe";
 };
 
 export type SponsoredRestaurant = {

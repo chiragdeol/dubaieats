@@ -23,7 +23,24 @@ import {
   MessageSquare
 } from "lucide-react";
 
+type RestaurantsSearch = {
+  type?: string;
+  cuisine?: string;
+  area?: string;
+  vibe?: string;
+  q?: string;
+};
+
 export const Route = createFileRoute("/restaurants")({
+  validateSearch: (search: Record<string, unknown>): RestaurantsSearch => {
+    return {
+      type: (search.type as string) || undefined,
+      cuisine: (search.cuisine as string) || undefined,
+      area: (search.area as string) || undefined,
+      vibe: (search.vibe as string) || undefined,
+      q: (search.q as string) || undefined,
+    };
+  },
   component: Index,
 });
 
@@ -160,6 +177,11 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
           {r.barType && barTypeLabels[r.barType] && (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
               {barTypeLabels[r.barType]}
+            </span>
+          )}
+          {r.eateryType && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 capitalize">
+              {r.eateryType === "restaurant" ? "🍽️ Restaurant" : r.eateryType === "bar" ? "🍸 Bar/Lounge" : "☕ Cafe"}
             </span>
           )}
           {r.liquor && (
@@ -344,18 +366,30 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
 }
 
 function Index() {
-  const [query, setQuery] = useState("");
-  const [cuisine, setCuisine] = useState<string>("All");
+  const search = Route.useSearch();
+
+  const [query, setQuery] = useState(search.q || "");
+  const [cuisine, setCuisine] = useState<string>(search.cuisine || "All");
   const [priceBand, setPriceBand] = useState<string>("All");
-  const [michelinFilter, setMichelinFilter] = useState<string>("All");
+  const [michelinFilter, setMichelinFilter] = useState<string>(search.vibe === "michelin" ? "Any Michelin" : "All");
   const [statusFilter, setStatusFilter] = useState<string>("All");
 
   // Dubai Specific Logistics & perks filters
   const [liquorFilter, setLiquorFilter] = useState<string>("All");
-  const [perkFilter, setPerkFilter] = useState<string>("All");
-  const [occasionFilter, setOccasionFilter] = useState<string>("All");
+  const [perkFilter, setPerkFilter] = useState<string>(
+    search.vibe === "Burj View" || search.vibe === "Beachfront" || search.vibe === "AC Terrace" 
+      ? search.vibe 
+      : "All"
+  );
+  const [occasionFilter, setOccasionFilter] = useState<string>(
+    search.vibe === "Kid Friendly" || search.vibe === "Business Lunch" || search.vibe === "Sunday Brunch" || search.vibe === "Late Night"
+      ? search.vibe
+      : "All"
+  );
   const [logisticsFilter, setLogisticsFilter] = useState<string>("All");
   const [barTypeFilter, setBarTypeFilter] = useState<string>("All");
+  const [eateryTypeFilter, setEateryTypeFilter] = useState<string>(search.type || "All");
+  const [areaFilter, setAreaFilter] = useState<string>(search.area || "All");
   
   const [selectedDirectionsRestaurant, setSelectedDirectionsRestaurant] = useState<Restaurant | null>(null);
   const [isRandomizerOpen, setIsRandomizerOpen] = useState<boolean>(false);
@@ -363,6 +397,12 @@ function Index() {
   const cuisines = useMemo(() => {
     const set = new Set<string>();
     enrichedRestaurants.forEach((r) => set.add(r.cuisine));
+    return ["All", ...Array.from(set).sort()];
+  }, []);
+
+  const areas = useMemo(() => {
+    const set = new Set<string>();
+    enrichedRestaurants.forEach((r) => set.add(r.area));
     return ["All", ...Array.from(set).sort()];
   }, []);
 
@@ -395,6 +435,8 @@ function Index() {
       if (occasionFilter !== "All" && !r.occasions?.includes(occasionFilter)) return false;
       if (logisticsFilter !== "All" && !r.logistics?.includes(logisticsFilter)) return false;
       if (barTypeFilter !== "All" && r.barType !== barTypeFilter) return false;
+      if (eateryTypeFilter !== "All" && r.eateryType !== eateryTypeFilter.toLowerCase()) return false;
+      if (areaFilter !== "All" && r.area !== areaFilter) return false;
 
       if (statusFilter === "Open") {
         const live = isCurrentlyOpenInDubai(r.hours);
@@ -402,7 +444,7 @@ function Index() {
       }
       return true;
     });
-  }, [query, cuisine, priceBand, michelinFilter, statusFilter, liquorFilter, perkFilter, occasionFilter, logisticsFilter, barTypeFilter]);
+  }, [query, cuisine, priceBand, michelinFilter, statusFilter, liquorFilter, perkFilter, occasionFilter, logisticsFilter, barTypeFilter, eateryTypeFilter, areaFilter]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between">
@@ -455,6 +497,29 @@ function Index() {
         <div className="border-b border-border bg-background/95 backdrop-blur-md sticky top-16 z-20 shadow-sm py-4 px-6">
           <div className="max-w-7xl mx-auto flex flex-wrap gap-2.5 items-center">
             
+            {/* Eatery Type Filter */}
+            <select
+              value={eateryTypeFilter}
+              onChange={(e) => setEateryTypeFilter(e.target.value)}
+              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
+            >
+              <option value="All">All types</option>
+              <option value="restaurant">🍽️ Restaurants</option>
+              <option value="bar">🍸 Bars & Nightlife</option>
+              <option value="cafe">☕ Cafes & Bakeries</option>
+            </select>
+
+            {/* Area Filter */}
+            <select 
+              value={areaFilter} 
+              onChange={(e) => setAreaFilter(e.target.value)}
+              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
+            >
+              {areas.map((a) => (
+                <option key={a} value={a}>{a === "All" ? "All neighborhoods" : a}</option>
+              ))}
+            </select>
+
             {/* Cuisine Select */}
             <select 
               value={cuisine} 
@@ -496,9 +561,9 @@ function Index() {
             <select 
               value={barTypeFilter} 
               onChange={(e) => setBarTypeFilter(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
+              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground font-semibold"
             >
-              <option value="All">All Bar Types</option>
+              <option value="All">All Bar Vibes</option>
               
               <optgroup label="Vibe & View">
                 <option value="rooftop-skyline">Rooftop & Skyline Lounges</option>
@@ -592,7 +657,7 @@ function Index() {
             </button>
 
             {/* Reset Button */}
-            {(query || cuisine !== "All" || priceBand !== "All" || michelinFilter !== "All" || statusFilter !== "All" || liquorFilter !== "All" || perkFilter !== "All" || occasionFilter !== "All" || logisticsFilter !== "All" || barTypeFilter !== "All") && (
+            {(query || cuisine !== "All" || priceBand !== "All" || michelinFilter !== "All" || statusFilter !== "All" || liquorFilter !== "All" || perkFilter !== "All" || occasionFilter !== "All" || logisticsFilter !== "All" || barTypeFilter !== "All" || eateryTypeFilter !== "All" || areaFilter !== "All") && (
               <button 
                 onClick={() => { 
                   setQuery(""); 
@@ -605,6 +670,8 @@ function Index() {
                   setOccasionFilter("All");
                   setLogisticsFilter("All");
                   setBarTypeFilter("All");
+                  setEateryTypeFilter("All");
+                  setAreaFilter("All");
                 }}
                 className="text-xs font-semibold text-primary hover:underline ml-auto"
               >
@@ -632,6 +699,8 @@ function Index() {
                   setOccasionFilter("All");
                   setLogisticsFilter("All");
                   setBarTypeFilter("All");
+                  setEateryTypeFilter("All");
+                  setAreaFilter("All");
                 }}
                 className="text-sm text-primary underline mt-2 hover:opacity-85"
               >

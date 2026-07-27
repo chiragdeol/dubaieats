@@ -1,11 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import heroImage from "@/assets/hero-dubai.jpg";
-import { restaurants } from "@/data/restaurants";
+import { enrichedRestaurants } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Search, MapPin, UtensilsCrossed, Landmark, Award } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,17 +18,42 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const featured = restaurants.slice(0, 3);
-  const cuisines = Array.from(new Set(restaurants.map((r) => r.cuisine.split(" ")[0]))).slice(0, 10);
-  const [quickFilter, setQuickFilter] = useState<string>("All");
+  const featured = enrichedRestaurants.slice(0, 3);
+  const cuisines = Array.from(new Set(enrichedRestaurants.map((r) => r.cuisine.split(" ")[0]))).slice(0, 8);
   const [isRandomizerOpen, setIsRandomizerOpen] = useState<boolean>(false);
+  const navigate = useNavigate();
 
-  const quickList = useMemo(() => {
-    const list = quickFilter === "All"
-      ? restaurants
-      : restaurants.filter(r => r.cuisine.toLowerCase().startsWith(quickFilter.toLowerCase()));
-    return [...list].sort((a, b) => b.rating - a.rating).slice(0, 6);
-  }, [quickFilter]);
+  // Search form state
+  const [searchType, setSearchType] = useState<string>("All");
+  const [searchArea, setSearchArea] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const areas = useMemo(() => {
+    const set = new Set<string>();
+    enrichedRestaurants.forEach((r) => set.add(r.area));
+    return Array.from(set).sort();
+  }, []);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate({
+      to: "/restaurants",
+      search: {
+        type: searchType === "All" ? undefined : searchType,
+        area: searchArea === "All" ? undefined : searchArea,
+        q: searchQuery || undefined,
+      }
+    });
+  };
+
+  const handleInspirationClick = (vibe: string) => {
+    navigate({
+      to: "/restaurants",
+      search: {
+        vibe: vibe,
+      }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,165 +64,230 @@ function Landing() {
         onClose={() => setIsRandomizerOpen(false)}
       />
 
-      {/* HERO */}
-      <section className="relative h-[85vh] min-h-[580px] overflow-hidden flex items-end pb-24">
-        <img src={heroImage} alt="Dubai skyline at sunset with fine dining" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-black/30 to-black/60" />
+      {/* HERO SECTION - Visit Dubai & TheFork Inspired */}
+      <section className="relative min-h-[90vh] overflow-hidden flex items-center pt-24 pb-16">
+        <img 
+          src={heroImage} 
+          alt="Dubai skyline at sunset with fine dining" 
+          className="absolute inset-0 w-full h-full object-cover" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-background" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
-          <p className="text-sm uppercase tracking-[0.3em] text-white/80 mb-6 flex items-center gap-2">
-            <span>· Food cravings? <strong className="text-primary font-bold">Let’s Dubai-it</strong> at Dubai-Eat ·</span>
-          </p>
-          <h1 className="font-display text-5xl sm:text-7xl md:text-8xl font-semibold text-white max-w-4xl leading-[0.95] tracking-tight">
-            Where are we eating? <span className="italic text-primary">Let’s Dubai-it.</span>
-          </h1>
-          <p className="mt-6 text-base sm:text-lg text-white/90 max-w-xl">
-            Dubai-it right with Dubai-Eat. Compare ratings, price ranges, Michelin awards, and live opening hours across 50 of Dubai's most iconic dining spots.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link to="/restaurants" className="rounded-full bg-primary px-7 py-3.5 text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
-              Let's Dubai-Eat →
-            </Link>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-center md:text-left">
+          <div className="max-w-4xl">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20 backdrop-blur-md text-primary-foreground text-xs font-bold border border-primary/30 uppercase tracking-widest mb-6">
+              <Sparkles className="w-3.5 h-3.5" /> Hungry? Let's Dubai-it at Dubai-Eat.
+            </span>
+            <h1 className="font-display text-5xl sm:text-7xl md:text-8xl font-semibold text-white leading-[0.95] tracking-tight">
+              Where are we eating? <br />
+              <span className="italic text-primary">Let’s Dubai-it.</span>
+            </h1>
+            <p className="mt-6 text-base sm:text-xl text-white/90 max-w-xl leading-relaxed">
+              Explore 50 of Dubai's finest dining destinations. Compare local reviews, price bands, Michelin recognitions, and delivery apps at a glance.
+            </p>
+          </div>
+
+          {/* Dynamic Horizontal Search Panel - TheFork Inspired */}
+          <div className="mt-12 max-w-4xl bg-card/85 backdrop-blur-md border border-border p-5 rounded-3xl shadow-2xl">
+            <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+              
+              {/* Eatery Type select */}
+              <div className="md:col-span-3 relative">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Eatery Type</label>
+                <select
+                  value={searchType}
+                  onChange={(e) => setSearchType(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
+                >
+                  <option value="All">All Eatery Types</option>
+                  <option value="restaurant">🍽️ Restaurants</option>
+                  <option value="bar">🍸 Bars & Nightlife</option>
+                  <option value="cafe">☕ Cafes & Bakeries</option>
+                </select>
+              </div>
+
+              {/* Area select */}
+              <div className="md:col-span-3 relative">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Neighborhood</label>
+                <select
+                  value={searchArea}
+                  onChange={(e) => setSearchArea(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
+                >
+                  <option value="All">All Neighborhoods</option>
+                  {areas.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Keyword query */}
+              <div className="md:col-span-4 relative">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Cuisine or Vibe</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search e.g. sushi, view, rooftop..."
+                    className="w-full bg-background border border-border rounded-xl pl-9 pr-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
+                  />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                </div>
+              </div>
+
+              {/* CTA Search Button */}
+              <div className="md:col-span-2 pt-5">
+                <button
+                  type="submit"
+                  className="w-full bg-primary text-primary-foreground font-bold text-xs py-3 rounded-xl hover:opacity-90 transition-opacity shadow-sm flex items-center justify-center gap-1.5"
+                >
+                  Let's Dubai-Eat
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-2">
             <button
               onClick={() => setIsRandomizerOpen(true)}
-              className="rounded-full border border-amber-400 bg-amber-500/20 backdrop-blur-md px-7 py-3.5 text-amber-200 text-sm font-semibold hover:bg-amber-500/30 transition-colors flex items-center gap-2 shadow-lg"
+              className="text-xs font-semibold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-full border border-amber-500/20 backdrop-blur-xs flex items-center gap-1 transition-all"
             >
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              Can't Decide? Let’s Dubai-it!
+              <Sparkles className="w-3.5 h-3.5" /> Can't Decide? Let’s Dubai-it!
             </button>
           </div>
+
         </div>
       </section>
 
-      {/* STATS */}
-      <section className="border-y border-border bg-secondary/40">
-        <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 sm:grid-cols-4 gap-6">
-          {[
-            { n: "50", l: "Handpicked spots" },
-            { n: "18+", l: "Cuisines" },
-            { n: "AED 20–2000", l: "Price coverage" },
-            { n: "100%", l: "Live Google links" },
-          ].map((s) => (
-            <div key={s.l}>
-              <div className="font-display text-3xl sm:text-4xl font-semibold text-foreground">{s.n}</div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground mt-1">{s.l}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FEATURED */}
-      <section id="featured" className="max-w-7xl mx-auto px-6 py-24">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Editor's picks</p>
-            <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground max-w-xl leading-tight">
-              Three tables worth planning your week around.
-            </h2>
-          </div>
-          <Link to="/restaurants" className="hidden md:inline text-sm font-medium text-primary hover:underline">
-            View all →
-          </Link>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-3">
-          {featured.map((r, i) => (
-            <article key={r.name} className="group relative overflow-hidden rounded-3xl bg-card border border-border aspect-[4/5] shadow-sm hover:shadow-md transition-shadow">
-              <div className="absolute inset-0">
-                <img src={r.image} alt={r.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-              <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
-                <div className="text-xs uppercase tracking-widest opacity-80">#{i + 1} · {r.cuisine}</div>
-                <h3 className="font-display text-3xl font-semibold mt-1">{r.name}</h3>
-                <div className="mt-2 flex items-center gap-2 text-sm">
-                  <span>{r.rating.toFixed(1)} ★</span>
-                  <span className="opacity-70">({r.reviews})</span>
-                  <span className="opacity-70">· AED {r.priceMin}–{r.priceMax}</span>
-                </div>
-                <div className="text-sm opacity-80 mt-1">{r.area}</div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {/* CUISINES */}
-      <section id="cuisines" className="bg-primary text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-6 py-24">
-          <p className="text-xs uppercase tracking-[0.3em] opacity-70 mb-3">Want a view of the Fountains? Let’s Dubai-it.</p>
-          <h2 className="font-display text-4xl sm:text-5xl font-semibold max-w-2xl leading-tight">
-            From <span className="italic">street karak</span> to Michelin-starred tasting menus.
+      {/* QUICK INSPIRATION GRID - Visit Dubai & TheFork Categories */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <div className="text-center md:text-left mb-12">
+          <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Curated selections</p>
+          <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground max-w-2xl leading-tight">
+            Discover Dubai's ultimate culinary vibes.
           </h2>
-          <div className="mt-12 flex flex-wrap gap-3">
-            {cuisines.map((c) => (
-              <Link key={c} to="/restaurants" className="rounded-full border border-primary-foreground/30 px-5 py-2.5 text-sm hover:bg-primary-foreground hover:text-primary transition-colors">
-                {c}
-              </Link>
+          <p className="text-muted-foreground mt-2 text-sm max-w-lg">Click any category below to instantly find eateries matching your specific mood.</p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+          {[
+            { id: "michelin", label: "Michelin Starred", icon: "⭐", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=300" },
+            { id: "Burj View", label: "Burj Khalifa View", icon: "🏙️", img: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=300" },
+            { id: "Beachfront", label: "Beachfront Dining", icon: "🏖️", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300" },
+            { id: "Business Lunch", label: "Business Lunches", icon: "💼", img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=300" },
+            { id: "Sunday Brunch", label: "Sunday Brunches", icon: "🥂", img: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=300" },
+            { id: "Kid Friendly", label: "Kid Friendly Sites", icon: "🍼", img: "https://images.unsplash.com/photo-1566275529824-cdc6d5867be3?w=300" },
+          ].map((c) => (
+            <button
+              key={c.id}
+              onClick={() => handleInspirationClick(c.id)}
+              className="group relative overflow-hidden rounded-2xl aspect-[3/4] border border-border bg-card text-left transition-all hover:shadow-lg hover:-translate-y-1"
+            >
+              <img 
+                src={c.img} 
+                alt={c.label} 
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                <span className="text-xl mb-1 block">{c.icon}</span>
+                <h3 className="font-display font-semibold text-sm leading-snug">{c.label}</h3>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURED RESTAURANTS SLIDER */}
+      <section id="featured" className="border-t border-border bg-secondary/20 py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Trending now</p>
+              <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground leading-tight max-w-xl">
+                Featured Dubai Hotspots
+              </h2>
+            </div>
+            <Link to="/restaurants" className="hidden md:inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+              Browse all 50 eateries →
+            </Link>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {featured.map((r, i) => (
+              <article key={r.name} className="group relative overflow-hidden rounded-3xl bg-card border border-border aspect-[4/5] shadow-sm hover:shadow-md transition-shadow">
+                <div className="absolute inset-0">
+                  <img src={r.image} alt={r.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
+                  <div className="flex items-center gap-1.5">
+                    {r.michelin && (
+                      <span className="bg-amber-500 text-white font-bold text-[9px] px-1.5 py-0.5 rounded-sm uppercase tracking-wide">
+                        ★ Michelin
+                      </span>
+                    )}
+                    <span className="text-xs uppercase tracking-widest opacity-80">{r.cuisine}</span>
+                  </div>
+                  <h3 className="font-display text-3xl font-semibold mt-1.5">{r.name}</h3>
+                  <div className="mt-2 flex items-center gap-2 text-sm">
+                    <span className="font-bold">{r.rating.toFixed(1)} ★</span>
+                    <span className="opacity-70">({r.reviews})</span>
+                    <span className="opacity-70">· {r.area}</span>
+                  </div>
+                  <div className="text-sm opacity-90 mt-1.5 font-semibold">AED {r.priceMin}–{r.priceMax}</div>
+                </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* QUICK FILTER PREVIEW */}
+      {/* EXPLORE NEIGHBORHOODS - Visit Dubai Style */}
       <section className="max-w-7xl mx-auto px-6 py-24">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Explore quickly</p>
-            <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground leading-tight max-w-xl">
-              Filter the list without leaving this page.
-            </h2>
-          </div>
-          <Link to="/restaurants" className="text-sm font-semibold text-primary hover:underline whitespace-nowrap">
-            Open full list with filters →
-          </Link>
+        <div className="text-center md:text-left mb-12">
+          <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Dubai neighborhood guide</p>
+          <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground max-w-xl leading-tight">
+            Explore eateries by district
+          </h2>
+          <p className="text-muted-foreground mt-2 text-sm max-w-lg">From the financial hub of DIFC to the beachside vibes of Palm Jumeirah.</p>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-8">
-          {["All", ...cuisines].map(c => (
-            <button key={c} onClick={() => setQuickFilter(c)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${quickFilter === c ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/70"}`}>
-              {c}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {quickList.map((r) => (
-            <Link key={r.name} to="/restaurants"
-              className="group flex gap-4 rounded-2xl border border-border bg-card p-4 hover:shadow-lg hover:-translate-y-0.5 transition-all">
-              <img src={r.image} alt={r.name} loading="lazy"
-                className="h-20 w-20 rounded-xl object-cover shrink-0" />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-display font-semibold text-foreground truncate">{r.name}</h3>
-                  <span className="text-xs font-semibold text-accent shrink-0">★ {r.rating.toFixed(1)}</span>
-                </div>
-                <div className="text-xs text-muted-foreground truncate">{r.cuisine} · {r.area}</div>
-                <div className="mt-2 text-xs font-medium text-foreground">AED {r.priceMin}–{r.priceMax}</div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="max-w-7xl mx-auto px-6 py-24">
-        <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">How it works</p>
-        <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground max-w-2xl leading-tight mb-16">
-          Skip the endless scrolling.
-        </h2>
-        <div className="grid md:grid-cols-3 gap-10">
+        <div className="grid gap-6 md:grid-cols-4">
           {[
-            { n: "01", t: "Browse", d: "A curated list of 50 restaurants — no ads, no sponsored slots, no clutter." },
-            { n: "02", t: "Compare", d: "Ratings, price ranges, cuisines and neighbourhoods, side by side." },
-            { n: "03", t: "Reserve", d: "One tap opens the restaurant's live Google page — call, directions or reserve." },
-          ].map((s) => (
-            <div key={s.n} className="border-t border-border pt-6">
-              <div className="font-display text-5xl text-primary">{s.n}</div>
-              <h3 className="font-display text-2xl font-semibold text-foreground mt-4">{s.t}</h3>
-              <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{s.d}</p>
-            </div>
+            { name: "DIFC", desc: "Corporate lunch spots, upscale lounges, and high-end fine dining.", count: "12 Venues", img: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=400" },
+            { name: "Palm Jumeirah", desc: "Seaside views, beachfront cafes, and legendary luxury beach clubs.", count: "9 Venues", img: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400" },
+            { name: "Downtown Dubai", desc: "Burj view terraces, tourist hotspots, and elegant lounges.", count: "10 Venues", img: "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=400" },
+            { name: "Jumeirah", desc: "Casual beachfront bistros, local coffee roasters, and family bistros.", count: "8 Venues", img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=400" },
+          ].map((n) => (
+            <button
+              key={n.name}
+              onClick={() => {
+                navigate({
+                  to: "/restaurants",
+                  search: { area: n.name }
+                });
+              }}
+              className="group relative overflow-hidden rounded-2xl aspect-[4/3] border border-border text-left transition-all hover:shadow-lg"
+            >
+              <img 
+                src={n.img} 
+                alt={n.name} 
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+              />
+              <div className="absolute inset-0 bg-black/60 group-hover:bg-black/55 transition-colors" />
+              <div className="absolute inset-0 p-5 flex flex-col justify-between text-white">
+                <span className="text-[10px] font-bold bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full self-start">
+                  {n.count}
+                </span>
+                <div>
+                  <h3 className="font-display font-bold text-lg">{n.name}</h3>
+                  <p className="text-[10px] text-white/80 mt-1 line-clamp-2 leading-relaxed">{n.desc}</p>
+                </div>
+              </div>
+            </button>
           ))}
         </div>
       </section>
@@ -279,7 +369,7 @@ function Landing() {
             Your next reservation is <span className="italic text-accent">waiting</span>.
           </h2>
           <Link to="/restaurants" className="inline-block mt-10 rounded-full bg-accent text-accent-foreground px-8 py-4 text-sm font-semibold hover:opacity-90 transition-opacity">
-            Explore all 50 restaurants →
+            Explore all 50 eateries →
           </Link>
         </div>
       </section>
