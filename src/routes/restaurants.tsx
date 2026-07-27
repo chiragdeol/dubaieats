@@ -16,14 +16,9 @@ import {
   Search, 
   Share2,
   Calendar,
-  Info,
-  UtensilsCrossed,
   Sparkles,
-  Award,
-  MessageSquare,
-  SlidersHorizontal,
-  X,
-  ChevronDown
+  UtensilsCrossed,
+  MessageSquare
 } from "lucide-react";
 
 type RestaurantsSearch = {
@@ -113,7 +108,7 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
   };
 
   return (
-    <article className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between text-left relative group">
+    <article className="bg-card border border-border/85 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between text-left relative group">
       <div>
         {/* Card header image block */}
         <div className="relative aspect-[16/10] w-full overflow-hidden shrink-0 bg-secondary">
@@ -258,14 +253,13 @@ function Index() {
   const search = Route.useSearch();
   const navigate = useNavigate();
 
-  // Route state
+  // Route states
   const [query, setQuery] = useState(search.q || "");
   const [selectedType, setSelectedType] = useState<string>(search.type || "All");
   const [selectedArea, setSelectedArea] = useState<string>(search.area || "All");
   const [selectedCuisine, setSelectedCuisine] = useState<string>(search.cuisine || "All");
   const [selectedVibe, setSelectedVibe] = useState<string>(search.vibe || "All");
   const [sortBy, setSortBy] = useState<string>("rating-desc");
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
 
   const [selectedDirectionsRestaurant, setSelectedDirectionsRestaurant] = useState<Restaurant | null>(null);
   const [isRandomizerOpen, setIsRandomizerOpen] = useState<boolean>(false);
@@ -293,23 +287,6 @@ function Index() {
       })
     });
   };
-
-  // Dynamic counts for left sidebar
-  const counts = useMemo(() => {
-    const areaCounts: Record<string, number> = {};
-    const cuisineCounts: Record<string, number> = {};
-    const typeCounts = { restaurant: 0, bar: 0, cafe: 0 };
-    let michelinCount = 0;
-
-    enrichedRestaurants.forEach((r) => {
-      areaCounts[r.area] = (areaCounts[r.area] || 0) + 1;
-      cuisineCounts[r.cuisine] = (cuisineCounts[r.cuisine] || 0) + 1;
-      if (r.eateryType) typeCounts[r.eateryType]++;
-      if (r.michelin) michelinCount++;
-    });
-
-    return { areaCounts, cuisineCounts, typeCounts, michelinCount };
-  }, []);
 
   const filteredAndSorted = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -358,139 +335,6 @@ function Index() {
     return list;
   }, [query, selectedType, selectedArea, selectedCuisine, selectedVibe, sortBy]);
 
-  const SidebarContent = () => (
-    <div className="space-y-7 text-left">
-      {/* Category: Eatery Type */}
-      <div>
-        <h3 className="text-xs uppercase font-extrabold tracking-wider text-foreground mb-3 pb-1 border-b border-border">
-          Eatery Type
-        </h3>
-        <ul className="space-y-1.5 text-xs font-semibold">
-          {[
-            { id: "All", label: "All types", count: enrichedRestaurants.length },
-            { id: "restaurant", label: "🍽️ Restaurants", count: counts.typeCounts.restaurant },
-            { id: "bar", label: "🍸 Bars & Lounges", count: counts.typeCounts.bar },
-            { id: "cafe", label: "☕ Cafes & Bakeries", count: counts.typeCounts.cafe },
-          ].map((item) => (
-            <li key={item.id}>
-              <button
-                onClick={() => {
-                  setSelectedType(item.id);
-                  updateFilter({ type: item.id === "All" ? undefined : item.id });
-                }}
-                className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedType === item.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <span>{item.label}</span>
-                <span className="text-[10px] opacity-70">({item.count})</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Category: Areas */}
-      <div>
-        <h3 className="text-xs uppercase font-extrabold tracking-wider text-foreground mb-3 pb-1 border-b border-border">
-          Neighborhoods
-        </h3>
-        <ul className="space-y-1.5 text-xs font-semibold max-h-48 overflow-y-auto pr-1 gmb-sidebar">
-          <li>
-            <button
-              onClick={() => {
-                setSelectedArea("All");
-                updateFilter({ area: undefined });
-              }}
-              className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedArea === "All" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              <span>All Neighborhoods</span>
-              <span className="text-[10px] opacity-70">({enrichedRestaurants.length})</span>
-            </button>
-          </li>
-          {areas.map((a) => (
-            <li key={a}>
-              <button
-                onClick={() => {
-                  setSelectedArea(a);
-                  updateFilter({ area: a });
-                }}
-                className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedArea === a ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <span>{a}</span>
-                <span className="text-[10px] opacity-70">({counts.areaCounts[a] || 0})</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Category: Cuisines */}
-      <div>
-        <h3 className="text-xs uppercase font-extrabold tracking-wider text-foreground mb-3 pb-1 border-b border-border">
-          Cuisines
-        </h3>
-        <ul className="space-y-1.5 text-xs font-semibold max-h-48 overflow-y-auto pr-1 gmb-sidebar">
-          <li>
-            <button
-              onClick={() => {
-                setSelectedCuisine("All");
-                updateFilter({ cuisine: undefined });
-              }}
-              className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedCuisine === "All" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              <span>All Cuisines</span>
-              <span className="text-[10px] opacity-70">({enrichedRestaurants.length})</span>
-            </button>
-          </li>
-          {cuisines.map((c) => (
-            <li key={c}>
-              <button
-                onClick={() => {
-                  setSelectedCuisine(c);
-                  updateFilter({ cuisine: c });
-                }}
-                className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedCuisine === c ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <span>{c}</span>
-                <span className="text-[10px] opacity-70">({counts.cuisineCounts[c] || 0})</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Category: Experiences & Vibes */}
-      <div>
-        <h3 className="text-xs uppercase font-extrabold tracking-wider text-foreground mb-3 pb-1 border-b border-border">
-          Vibes & Experiences
-        </h3>
-        <ul className="space-y-1.5 text-xs font-semibold">
-          {[
-            { id: "All", label: "All Experiences" },
-            { id: "michelin", label: "⭐ Michelin Guide" },
-            { id: "Burj View", label: "🏙️ Burj Khalifa View" },
-            { id: "Beachfront", label: "🏖️ Beachfront Dining" },
-            { id: "AC Terrace", label: "🪑 AC Terrace Seating" },
-            { id: "Business Lunch", label: "💼 Business Lunch" },
-            { id: "Sunday Brunch", label: "🥂 Sunday Brunch" },
-            { id: "Kid Friendly", label: "🍼 Kid Friendly" },
-          ].map((item) => (
-            <li key={item.id}>
-              <button
-                onClick={() => {
-                  setSelectedVibe(item.id);
-                  updateFilter({ vibe: item.id === "All" ? undefined : item.id });
-                }}
-                className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedVibe === item.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                <span>{item.label}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between">
       <div>
@@ -506,7 +350,7 @@ function Index() {
           onClose={() => setIsRandomizerOpen(false)}
         />
 
-        {/* Outer Grid Panel */}
+        {/* Catalog Main Panel */}
         <div className="max-w-7xl mx-auto px-6 py-12">
           
           {/* Header Title Section */}
@@ -531,137 +375,160 @@ function Index() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Top Level Horizontal Filters Bar */}
+          <div className="bg-card border border-border/80 p-5 rounded-3xl shadow-sm mb-8 space-y-4">
             
-            {/* 1. Left Sidebar - Desktop only */}
-            <aside className="hidden lg:block lg:col-span-3 border-r border-border/60 pr-8 h-fit sticky top-24">
-              <SidebarContent />
-            </aside>
+            {/* Row 1: Search text input */}
+            <div className="relative w-full">
+              <input
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  updateFilter({ q: e.target.value || undefined });
+                }}
+                placeholder="Search by restaurant name, area or cuisine..."
+                className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
+              />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            </div>
 
-            {/* 2. Main Content catalog Grid */}
-            <main className="lg:col-span-9 space-y-6">
+            {/* Row 2: Dropdown selectors */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               
-              {/* Toolbar: Query Search & Sort controls */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-secondary/20 p-4 rounded-2xl border border-border/70">
-                <div className="relative flex-1">
-                  <input
-                    value={query}
-                    onChange={(e) => {
-                      setQuery(e.target.value);
-                      updateFilter({ q: e.target.value || undefined });
-                    }}
-                    placeholder="Search by restaurant name, area or cuisine..."
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
-                  />
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                </div>
-
-                <div className="flex items-center gap-3 justify-between sm:justify-end">
-                  {/* Mobile filter Toggle */}
-                  <button
-                    onClick={() => setIsMobileFilterOpen(true)}
-                    className="lg:hidden flex items-center gap-1.5 border border-border bg-card px-3.5 py-2.5 rounded-xl text-xs font-bold text-foreground cursor-pointer"
-                  >
-                    <SlidersHorizontal className="w-4 h-4" /> Filters
-                  </button>
-
-                  {/* Sort selector */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground whitespace-nowrap">Sort by</span>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
-                    >
-                      <option value="rating-desc">Highest Rated</option>
-                      <option value="reviews-desc">Most Reviewed</option>
-                      <option value="price-asc">Price: Low to High</option>
-                      <option value="price-desc">Price: High to Low</option>
-                    </select>
-                  </div>
-                </div>
+              {/* 1. Eatery Type */}
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Eatery Type</label>
+                <select
+                  value={selectedType}
+                  onChange={(e) => {
+                    setSelectedType(e.target.value);
+                    updateFilter({ type: e.target.value === "All" ? undefined : e.target.value });
+                  }}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
+                >
+                  <option value="All">All Eatery Types</option>
+                  <option value="restaurant">🍽️ Restaurants</option>
+                  <option value="bar">🍸 Bars & Lounges</option>
+                  <option value="cafe">☕ Cafes & Bakeries</option>
+                </select>
               </div>
 
-              {/* Count Summary */}
-              <div className="text-left text-xs font-bold text-muted-foreground flex items-center justify-between">
-                <span>Showing {filteredAndSorted.length} matching eateries</span>
-                {(selectedType !== "All" || selectedArea !== "All" || selectedCuisine !== "All" || selectedVibe !== "All" || query) && (
-                  <button
-                    onClick={() => {
-                      setQuery("");
-                      setSelectedType("All");
-                      setSelectedArea("All");
-                      setSelectedCuisine("All");
-                      setSelectedVibe("All");
-                      navigate({ to: "/restaurants" });
-                    }}
-                    className="text-primary hover:underline cursor-pointer"
-                  >
-                    Reset all filters
-                  </button>
-                )}
-              </div>
-
-              {/* Empty state */}
-              {filteredAndSorted.length === 0 ? (
-                <div className="text-center py-24 text-muted-foreground bg-card border border-border rounded-3xl">
-                  <UtensilsCrossed className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                  <p className="text-base font-bold text-foreground">No eateries found matching filters</p>
-                  <p className="text-xs text-muted-foreground mt-1">Try resetting your filters or adjusting search keyword.</p>
-                </div>
-              ) : (
-                /* Cards grid */
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredAndSorted.map((r) => (
-                    <GmbCard key={r.name} r={r} onOpenDirections={setSelectedDirectionsRestaurant} />
+              {/* 2. Neighborhood */}
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Neighborhood</label>
+                <select
+                  value={selectedArea}
+                  onChange={(e) => {
+                    setSelectedArea(e.target.value);
+                    updateFilter({ area: e.target.value === "All" ? undefined : e.target.value });
+                  }}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
+                >
+                  <option value="All">All Areas</option>
+                  {areas.map((a) => (
+                    <option key={a} value={a}>{a}</option>
                   ))}
-                </div>
-              )}
+                </select>
+              </div>
 
-            </main>
+              {/* 3. Cuisine */}
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Cuisine</label>
+                <select
+                  value={selectedCuisine}
+                  onChange={(e) => {
+                    setSelectedCuisine(e.target.value);
+                    updateFilter({ cuisine: e.target.value === "All" ? undefined : e.target.value });
+                  }}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
+                >
+                  <option value="All">All Cuisines</option>
+                  {cuisines.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 4. Experience & Perks */}
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Vibe / Experience</label>
+                <select
+                  value={selectedVibe}
+                  onChange={(e) => {
+                    setSelectedVibe(e.target.value);
+                    updateFilter({ vibe: e.target.value === "All" ? undefined : e.target.value });
+                  }}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
+                >
+                  <option value="All">All Vibes</option>
+                  <option value="michelin">⭐ Michelin Guide</option>
+                  <option value="Burj View">🏙️ Burj Khalifa View</option>
+                  <option value="Beachfront">🏖️ Beachfront Dining</option>
+                  <option value="AC Terrace">🪑 AC Terrace Seating</option>
+                  <option value="Business Lunch">💼 Business Lunch</option>
+                  <option value="Sunday Brunch">🥂 Sunday Brunch</option>
+                  <option value="Kid Friendly">🍼 Kid Friendly</option>
+                </select>
+              </div>
+
+              {/* 5. Sort options */}
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Sort by</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
+                >
+                  <option value="rating-desc">Highest Rated</option>
+                  <option value="reviews-desc">Most Reviewed</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                </select>
+              </div>
+
+            </div>
 
           </div>
+
+          {/* Results Summary Counter */}
+          <div className="text-left text-xs font-bold text-muted-foreground flex items-center justify-between mb-6">
+            <span>Showing {filteredAndSorted.length} matching eateries</span>
+            {(selectedType !== "All" || selectedArea !== "All" || selectedCuisine !== "All" || selectedVibe !== "All" || query) && (
+              <button
+                onClick={() => {
+                  setQuery("");
+                  setSelectedType("All");
+                  setSelectedArea("All");
+                  setSelectedCuisine("All");
+                  setSelectedVibe("All");
+                  navigate({ to: "/restaurants" });
+                }}
+                className="text-primary hover:underline cursor-pointer"
+              >
+                Reset all filters
+              </button>
+            )}
+          </div>
+
+          {/* Main Catalog Grid */}
+          {filteredAndSorted.length === 0 ? (
+            <div className="text-center py-24 text-muted-foreground bg-card border border-border rounded-3xl">
+              <UtensilsCrossed className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+              <p className="text-base font-bold text-foreground">No eateries found matching filters</p>
+              <p className="text-xs text-muted-foreground mt-1">Try resetting your filters or adjusting search keyword.</p>
+            </div>
+          ) : (
+            /* Cards grid - spans full width */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredAndSorted.map((r) => (
+                <GmbCard key={r.name} r={r} onOpenDirections={setSelectedDirectionsRestaurant} />
+              ))}
+            </div>
+          )}
 
         </div>
 
       </div>
-
-      {/* 3. Mobile Filter Drawer */}
-      {isMobileFilterOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end lg:hidden animate-in fade-in duration-200">
-          {/* Backdrop */}
-          <div 
-            onClick={() => setIsMobileFilterOpen(false)}
-            className="absolute inset-0 bg-black/40 backdrop-blur-xs" 
-          />
-          
-          {/* Drawer container */}
-          <div className="relative w-80 max-w-[90vw] h-full bg-background border-l border-border p-6 shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300">
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="font-display font-bold text-lg text-foreground">Filters</h2>
-                <button 
-                  onClick={() => setIsMobileFilterOpen(false)}
-                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-secondary/40 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              
-              <SidebarContent />
-            </div>
-
-            <div className="mt-8 border-t border-border pt-4">
-              <button
-                onClick={() => setIsMobileFilterOpen(false)}
-                className="w-full bg-primary text-primary-foreground font-bold text-xs py-3 rounded-xl hover:opacity-95"
-              >
-                Apply Filters ({filteredAndSorted.length})
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <SiteFooter />
     </div>
