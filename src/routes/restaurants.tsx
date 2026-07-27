@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SponsoredDirectionsModal } from "@/components/sponsored-directions-modal";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
+import { OwnerCta } from "@/components/owner-cta";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import { 
   Phone, 
@@ -531,6 +532,8 @@ function Index() {
         </div>
 
       </div>
+
+      <OwnerCta />
 
       <SiteFooter />
     </div>

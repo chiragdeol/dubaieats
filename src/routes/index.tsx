@@ -4,6 +4,7 @@ import { enrichedRestaurants } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
+import { OwnerCta } from "@/components/owner-cta";
 import { useMemo, useState } from "react";
 import { Sparkles, Search, Heart, ChevronRight } from "lucide-react";
 
@@ -540,6 +541,8 @@ function Landing() {
           </Link>
         </div>
       </section>
+
+      <OwnerCta />
 
       <SiteFooter />
     </div>
