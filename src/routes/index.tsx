@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import heroImage from "@/assets/hero-dubai.jpg";
+import heroImage from "@/assets/hero-dubai.png";
 import { enrichedRestaurants } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
