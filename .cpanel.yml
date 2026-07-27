@@ -1,0 +1,13 @@
+---
+deployment:
+  tasks:
+    # Ensure Node and npm paths are set correctly in your cPanel environment
+    - export PATH=/usr/local/bin:$PATH
+    
+    # Install dependencies and build the application
+    - npm install
+    - npm run build
+    
+    # Copy the static production build files to your public_html directory.
+    # IMPORTANT: Replace 'YOUR_CPANEL_USERNAME' with your actual cPanel username.
+    - cp -R dist/client/* /home/YOUR_CPANEL_USERNAME/public_html/
