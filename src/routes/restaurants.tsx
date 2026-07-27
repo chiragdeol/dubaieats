@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { type Restaurant } from "@/data/restaurants";
 import { enrichedRestaurants } from "../lib/restaurants-enriched";
@@ -20,7 +20,10 @@ import {
   UtensilsCrossed,
   Sparkles,
   Award,
-  MessageSquare
+  MessageSquare,
+  SlidersHorizontal,
+  X,
+  ChevronDown
 } from "lucide-react";
 
 type RestaurantsSearch = {
@@ -52,7 +55,6 @@ function shareUrl(name: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " Dubai")}`;
 }
 
-// User-friendly labels and emojis for Dubai Bar Types
 const barTypeLabels: Record<string, string> = {
   "rooftop-skyline": "🏙️ Rooftop & Skyline Lounge",
   "beach-waterfront": "🏖️ Beach Club & Waterfront",
@@ -74,19 +76,18 @@ const barTypeLabels: Record<string, string> = {
   "hotel-lobby": "🛋️ Hotel Lounge"
 };
 
-// Helper to resolve secondary image deterministically for the GMB card split view
 function getSecondImage(name: string): string {
   const foodImages = [
-    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500", // pizza
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500", // bowl
-    "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=500", // pancakes
-    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500", // salad
-    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500", // burger
-    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500", // salad2
-    "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=500", // pasta
-    "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=500", // seafood
-    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500", // sushi
-    "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=500", // asian bowl
+    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500",
+    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
+    "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=500",
+    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500",
+    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500",
+    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500",
+    "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=500",
+    "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=500",
+    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500",
+    "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=500",
   ];
   const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return foodImages[hash % foodImages.length];
@@ -95,8 +96,6 @@ function getSecondImage(name: string): string {
 function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r: Restaurant) => void }) {
   const secondaryImg = getSecondImage(r.name);
   const liveStatus = isCurrentlyOpenInDubai(r.hours);
-
-  // Parse phone number for WhatsApp concierge link
   const cleanPhone = r.phone.replace(/[^0-9]/g, "");
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=Hi!%20I'd%20like%20to%20check%20table%20availability%20for%20${encodeURIComponent(r.name)}%20via%20Dubai-Eat.`;
 
@@ -114,252 +113,142 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
   };
 
   return (
-    <article className="bg-card border border-border rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between text-left relative overflow-hidden">
+    <article className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between text-left relative group">
       <div>
-        {/* Michelin Badge */}
-        {r.michelin && (
-          <div className="mb-2">
-            {r.michelin.includes("Star") ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20 shadow-xs">
-                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                {r.michelin} Michelin
+        {/* Card header image block */}
+        <div className="relative aspect-[16/10] w-full overflow-hidden shrink-0 bg-secondary">
+          <img 
+            src={r.image} 
+            alt={r.name} 
+            loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          
+          {/* Overlay badges */}
+          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+            {r.michelin && (
+              <span className="bg-rose-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-0.5 shadow-sm">
+                ★ Michelin
               </span>
-            ) : r.michelin === "Bib Gourmand" ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold border border-rose-500/20 shadow-xs">
-                <UtensilsCrossed className="w-3.5 h-3.5" />
-                Bib Gourmand
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-bold border border-purple-500/20 shadow-xs">
-                <Award className="w-3.5 h-3.5" />
-                Michelin Selected
+            )}
+            {r.barType && (
+              <span className="bg-purple-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
+                🍸 Bar/Vibe
               </span>
             )}
           </div>
-        )}
 
-        {/* Title */}
-        <h2 className="font-sans text-xl font-bold text-foreground leading-tight tracking-tight">
-          {r.name}
-        </h2>
-
-        {/* Rating and Info Line */}
-        <div className="flex items-center flex-wrap gap-1 mt-1 text-sm text-muted-foreground">
-          <span className="font-bold text-foreground">{r.rating.toFixed(1)}</span>
-          <Star className="h-4 w-4 fill-amber-500 text-amber-500 shrink-0" />
-          <Info className="h-3.5 w-3.5 text-muted-foreground/75 shrink-0" />
-          <a 
-            href={shareUrl(r.name)} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-primary font-semibold hover:underline"
-          >
-            ({r.reviews})
-          </a>
-          <span>·</span>
-          <span>AED {r.priceMin}–{r.priceMax}</span>
-          <span>·</span>
-          <span className="truncate">{r.category}</span>
-        </div>
-
-        {/* Live Dubai Status Line */}
-        <div className="mt-1 text-sm">
-          {liveStatus.isOpen ? (
-            <span className="text-emerald-600 font-medium">Open Now</span>
-          ) : (
-            <span className="text-rose-600 font-medium">Closed</span>
-          )}
-          <span className="text-muted-foreground font-light"> · {r.hours}</span>
-        </div>
-
-        {/* Dubai Criteria Logistics & Perks Badges */}
-        <div className="flex flex-wrap gap-1 mt-3">
-          {r.barType && barTypeLabels[r.barType] && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
-              {barTypeLabels[r.barType]}
-            </span>
-          )}
-          {r.eateryType && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 capitalize">
-              {r.eateryType === "restaurant" ? "🍽️ Restaurant" : r.eateryType === "bar" ? "🍸 Bar/Lounge" : "☕ Cafe"}
-            </span>
-          )}
-          {r.liquor && (
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-              r.liquor === "Licensed" 
-                ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/55" 
-                : "bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-900 dark:text-gray-400"
-            }`}>
-              🍷 {r.liquor}
-            </span>
-          )}
-          {r.seatingPerks?.map((perk) => (
-            <span key={perk} className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-900/55">
-              {perk === "Burj View" ? "🏙️" : perk === "Beachfront" ? "🏖️" : "🪑"} {perk}
-            </span>
-          ))}
-          {r.occasions?.includes("Kid Friendly") && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/55">
-              🍼 Kid Friendly
-            </span>
-          )}
-          {r.logistics?.map((item) => (
-            <span key={item} className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/55">
-              {item === "Complimentary Valet" ? "🚗" : item === "Shisha Available" ? "💨" : "⚡"} {item}
-            </span>
-          ))}
-        </div>
-
-        {/* Split Images Area */}
-        <div className="flex gap-1.5 mt-4 h-36 w-full rounded-2xl overflow-hidden shrink-0">
-          <img 
-            src={r.image} 
-            alt={`${r.name} interior`} 
-            className="w-[65%] h-full object-cover" 
-          />
-          <img 
-            src={secondaryImg} 
-            alt={`${r.name} cuisine`} 
-            className="w-[35%] h-full object-cover" 
-          />
-        </div>
-
-        {/* Delivery App Launchers Row */}
-        {r.deliveryLinks && (
-          <div className="mt-4 pt-3 border-t border-border/70">
-            <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mb-2">Instant Delivery Apps Menu</p>
-            <div className="grid grid-cols-5 gap-1.5">
-              <a
-                href={r.deliveryLinks.deliveroo}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#00cdbc]/10 border border-[#00cdbc]/30 hover:bg-[#00cdbc]/25 text-[#00cdbc] dark:text-[#00e3cf] p-2 rounded-xl flex flex-col items-center gap-0.5 transition-colors text-center"
-                title="Open in Deliveroo"
-              >
-                <span className="text-sm">🛵</span>
-                <span className="text-[9px] font-bold">Deliveroo</span>
-              </a>
-              <a
-                href={r.deliveryLinks.talabat}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#ff5a00]/10 border border-[#ff5a00]/30 hover:bg-[#ff5a00]/25 text-[#ff5a00] p-2 rounded-xl flex flex-col items-center gap-0.5 transition-colors text-center"
-                title="Open in Talabat"
-              >
-                <span className="text-sm">🚚</span>
-                <span className="text-[9px] font-bold">Talabat</span>
-              </a>
-              <a
-                href={r.deliveryLinks.noon}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#ffe816]/15 border border-[#ffe816]/40 hover:bg-[#ffe816]/30 text-yellow-700 dark:text-yellow-400 p-2 rounded-xl flex flex-col items-center gap-0.5 transition-colors text-center"
-                title="Open in Noon Food"
-              >
-                <span className="text-sm">🟡</span>
-                <span className="text-[9px] font-bold">Noon</span>
-              </a>
-              <a
-                href={r.deliveryLinks.careem}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#47a13c]/10 border border-[#47a13c]/30 hover:bg-[#47a13c]/25 text-[#47a13c] dark:text-[#5ce74f] p-2 rounded-xl flex flex-col items-center gap-0.5 transition-colors text-center"
-                title="Open in Careem"
-              >
-                <span className="text-sm">🟢</span>
-                <span className="text-[9px] font-bold">Careem</span>
-              </a>
-              <a
-                href={r.deliveryLinks.keeta}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-sky-500/10 border border-sky-500/30 hover:bg-sky-500/25 text-sky-600 dark:text-sky-400 p-2 rounded-xl flex flex-col items-center gap-0.5 transition-colors text-center"
-                title="Open in Keeta"
-              >
-                <span className="text-sm">⏺️</span>
-                <span className="text-[9px] font-bold">Keeta</span>
-              </a>
-            </div>
+          <div className="absolute bottom-3 right-3 text-white text-xs font-bold drop-shadow-md">
+            AED {r.priceMin}–{r.priceMax}
           </div>
-        )}
+        </div>
 
-        {/* Action Circles */}
-        <div className="flex justify-between items-center mt-5 px-1 shrink-0">
-          <a 
-            href={callUrl(r.phone)} 
-            className="flex flex-col items-center gap-1 cursor-pointer group"
-          >
-            <div className="w-11 h-11 rounded-full border border-primary flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
-              <Phone className="h-4.5 w-4.5" />
-            </div>
-            <span className="text-primary font-semibold text-[11px] tracking-wide">Call</span>
-          </a>
+        <div className="p-5">
+          {/* Title */}
+          <h2 className="font-sans text-lg font-bold text-foreground leading-snug tracking-tight">
+            {r.name}
+          </h2>
 
-          <button 
-            onClick={() => onOpenDirections(r)} 
-            className="flex flex-col items-center gap-1 cursor-pointer group"
-          >
-            <div className="w-11 h-11 rounded-full border border-primary flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
-              <MapPin className="h-4.5 w-4.5" />
+          {/* Rating */}
+          <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+            <span className="font-bold text-foreground text-sm">{(r.rating * 2).toFixed(1)}</span>
+            <div className="flex gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star 
+                  key={i} 
+                  className={`h-3 w-3 ${i < Math.floor(r.rating) ? "fill-amber-500 text-amber-500" : "text-gray-300 dark:text-zinc-700"}`} 
+                />
+              ))}
             </div>
-            <span className="text-primary font-semibold text-[11px] tracking-wide">Directions</span>
-          </button>
+            <a 
+              href={shareUrl(r.name)} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-primary font-bold hover:underline"
+            >
+              ({r.reviews} reviews)
+            </a>
+          </div>
 
-          <a 
-            href={r.website} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex flex-col items-center gap-1 cursor-pointer group"
-          >
-            <div className="w-11 h-11 rounded-full border border-primary flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
-              <Globe className="h-4.5 w-4.5" />
-            </div>
-            <span className="text-primary font-semibold text-[11px] tracking-wide">Website</span>
-          </a>
+          {/* Logistics & Area */}
+          <p className="text-xs text-muted-foreground mt-1">
+            {r.cuisine} · {r.area}
+          </p>
 
-          <button 
-            onClick={handleShare}
-            className="flex flex-col items-center gap-1 cursor-pointer group"
-          >
-            <div className="w-11 h-11 rounded-full border border-primary flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
-              <Share2 className="h-4.5 w-4.5" />
-            </div>
-            <span className="text-primary font-semibold text-[11px] tracking-wide">Share</span>
-          </button>
+          {/* Hours line */}
+          <div className="mt-2 text-xs flex items-center gap-1.5">
+            {liveStatus.isOpen ? (
+              <span className="text-emerald-600 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded-sm">Open Now</span>
+            ) : (
+              <span className="text-rose-600 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded-sm">Closed</span>
+            )}
+            <span className="text-muted-foreground font-medium">{r.hours}</span>
+          </div>
 
-          <button 
-            onClick={() => alert(`Saved ${r.name} to list!`)}
-            className="flex flex-col items-center gap-1 cursor-pointer group"
-          >
-            <div className="w-11 h-11 rounded-full border border-primary flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
-              <Bookmark className="h-4.5 w-4.5" />
-            </div>
-            <span className="text-primary font-semibold text-[11px] tracking-wide">Save</span>
-          </button>
+          {/* Perks Tags list */}
+          <div className="flex flex-wrap gap-1 mt-3.5">
+            {r.liquor === "Licensed" && (
+              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/15">
+                🍷 Licensed
+              </span>
+            )}
+            {r.seatingPerks?.map((perk) => (
+              <span key={perk} className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/15">
+                {perk === "Burj View" ? "🏙️" : perk === "Beachfront" ? "🏖️" : "🪑"} {perk}
+              </span>
+            ))}
+            {r.logistics?.includes("Complimentary Valet") && (
+              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/15">
+                🚗 Free Valet
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Booking Row */}
-      <div className="mt-5 pt-3 border-t border-border/70 space-y-2 shrink-0">
-        <a 
-          href={r.bookingPlatform?.url || r.website} 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="w-full bg-primary text-primary-foreground hover:opacity-90 rounded-full py-2.5 flex items-center justify-center gap-2 text-xs font-bold shadow-sm transition-all"
-        >
-          <Calendar className="h-3.5 w-3.5" />
-          <span>Reserve via {r.bookingPlatform?.name || "Website"}</span>
-        </a>
+      {/* Button controls */}
+      <div className="px-5 pb-5 shrink-0 border-t border-border/50 pt-4 space-y-2.5 bg-secondary/10">
+        
+        {/* Primary Booking buttons */}
+        <div className="grid grid-cols-2 gap-2">
+          <a 
+            href={r.bookingPlatform?.url || r.website} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="bg-primary text-primary-foreground hover:opacity-90 rounded-xl py-2 flex items-center justify-center gap-1.5 text-xs font-bold shadow-xs transition-all text-center"
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            <span>Book Table</span>
+          </a>
 
-        <a 
-          href={whatsappUrl} 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="w-full border border-emerald-500/50 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full py-2.5 flex items-center justify-center gap-2 text-xs font-bold transition-all"
-        >
-          <MessageSquare className="h-3.5 w-3.5 text-emerald-500 fill-current" />
-          <span>💬 WhatsApp Concierge</span>
-        </a>
+          <a 
+            href={whatsappUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl py-2 flex items-center justify-center gap-1 text-xs font-bold transition-all text-center"
+          >
+            <MessageSquare className="h-3.5 w-3.5 text-emerald-500 fill-current" />
+            <span>WhatsApp</span>
+          </a>
+        </div>
+
+        {/* Quick action icons */}
+        <div className="flex justify-between items-center px-1 pt-1.5 border-t border-border/30">
+          <a href={callUrl(r.phone)} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
+            <Phone className="w-3.5 h-3.5 text-primary" /> Call
+          </a>
+          <button onClick={() => onOpenDirections(r)} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
+            <MapPin className="w-3.5 h-3.5 text-primary" /> Map
+          </button>
+          <a href={r.website} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
+            <Globe className="w-3.5 h-3.5 text-primary" /> Site
+          </a>
+          <button onClick={handleShare} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
+            <Share2 className="w-3.5 h-3.5 text-primary" /> Share
+          </button>
+        </div>
+
       </div>
     </article>
   );
@@ -367,84 +256,240 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
 
 function Index() {
   const search = Route.useSearch();
+  const navigate = useNavigate();
 
+  // Route state
   const [query, setQuery] = useState(search.q || "");
-  const [cuisine, setCuisine] = useState<string>(search.cuisine || "All");
-  const [priceBand, setPriceBand] = useState<string>("All");
-  const [michelinFilter, setMichelinFilter] = useState<string>(search.vibe === "michelin" ? "Any Michelin" : "All");
-  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [selectedType, setSelectedType] = useState<string>(search.type || "All");
+  const [selectedArea, setSelectedArea] = useState<string>(search.area || "All");
+  const [selectedCuisine, setSelectedCuisine] = useState<string>(search.cuisine || "All");
+  const [selectedVibe, setSelectedVibe] = useState<string>(search.vibe || "All");
+  const [sortBy, setSortBy] = useState<string>("rating-desc");
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
 
-  // Dubai Specific Logistics & perks filters
-  const [liquorFilter, setLiquorFilter] = useState<string>("All");
-  const [perkFilter, setPerkFilter] = useState<string>(
-    search.vibe === "Burj View" || search.vibe === "Beachfront" || search.vibe === "AC Terrace" 
-      ? search.vibe 
-      : "All"
-  );
-  const [occasionFilter, setOccasionFilter] = useState<string>(
-    search.vibe === "Kid Friendly" || search.vibe === "Business Lunch" || search.vibe === "Sunday Brunch" || search.vibe === "Late Night"
-      ? search.vibe
-      : "All"
-  );
-  const [logisticsFilter, setLogisticsFilter] = useState<string>("All");
-  const [barTypeFilter, setBarTypeFilter] = useState<string>("All");
-  const [eateryTypeFilter, setEateryTypeFilter] = useState<string>(search.type || "All");
-  const [areaFilter, setAreaFilter] = useState<string>(search.area || "All");
-  
   const [selectedDirectionsRestaurant, setSelectedDirectionsRestaurant] = useState<Restaurant | null>(null);
   const [isRandomizerOpen, setIsRandomizerOpen] = useState<boolean>(false);
+
+  // Dynamic filter lists
+  const areas = useMemo(() => {
+    const set = new Set<string>();
+    enrichedRestaurants.forEach((r) => set.add(r.area));
+    return Array.from(set).sort();
+  }, []);
 
   const cuisines = useMemo(() => {
     const set = new Set<string>();
     enrichedRestaurants.forEach((r) => set.add(r.cuisine));
-    return ["All", ...Array.from(set).sort()];
+    return Array.from(set).sort();
   }, []);
 
-  const areas = useMemo(() => {
-    const set = new Set<string>();
-    enrichedRestaurants.forEach((r) => set.add(r.area));
-    return ["All", ...Array.from(set).sort()];
+  // Sync state helper to URL params
+  const updateFilter = (params: Partial<RestaurantsSearch>) => {
+    navigate({
+      to: "/restaurants",
+      search: (prev) => ({
+        ...prev,
+        ...params
+      })
+    });
+  };
+
+  // Dynamic counts for left sidebar
+  const counts = useMemo(() => {
+    const areaCounts: Record<string, number> = {};
+    const cuisineCounts: Record<string, number> = {};
+    const typeCounts = { restaurant: 0, bar: 0, cafe: 0 };
+    let michelinCount = 0;
+
+    enrichedRestaurants.forEach((r) => {
+      areaCounts[r.area] = (areaCounts[r.area] || 0) + 1;
+      cuisineCounts[r.cuisine] = (cuisineCounts[r.cuisine] || 0) + 1;
+      if (r.eateryType) typeCounts[r.eateryType]++;
+      if (r.michelin) michelinCount++;
+    });
+
+    return { areaCounts, cuisineCounts, typeCounts, michelinCount };
   }, []);
 
-  const filtered = useMemo(() => {
+  const filteredAndSorted = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return enrichedRestaurants.filter((r) => {
+    
+    // Filter
+    let list = enrichedRestaurants.filter((r) => {
       if (
         q &&
         !(
           r.name.toLowerCase().includes(q) ||
           r.cuisine.toLowerCase().includes(q) ||
-          r.area.toLowerCase().includes(q) ||
-          r.address.toLowerCase().includes(q)
+          r.area.toLowerCase().includes(q)
         )
       )
         return false;
-      if (cuisine !== "All" && r.cuisine !== cuisine) return false;
-      
-      const symbol = r.priceMin < 100 ? "AED" : r.priceMin < 250 ? "AED AED" : r.priceMin < 400 ? "AED AED AED" : "AED AED AED AED";
-      if (priceBand !== "All" && symbol !== priceBand) return false;
-      
-      if (michelinFilter === "Starred" && (!r.michelin || !r.michelin.includes("Star"))) return false;
-      if (michelinFilter === "Bib Gourmand" && r.michelin !== "Bib Gourmand") return false;
-      if (michelinFilter === "Selected" && r.michelin !== "Michelin Selected") return false;
-      if (michelinFilter === "Any Michelin" && !r.michelin) return false;
 
-      // Dubai Criteria Filters
-      if (liquorFilter !== "All" && r.liquor !== liquorFilter) return false;
-      if (perkFilter !== "All" && !r.seatingPerks?.includes(perkFilter)) return false;
-      if (occasionFilter !== "All" && !r.occasions?.includes(occasionFilter)) return false;
-      if (logisticsFilter !== "All" && !r.logistics?.includes(logisticsFilter)) return false;
-      if (barTypeFilter !== "All" && r.barType !== barTypeFilter) return false;
-      if (eateryTypeFilter !== "All" && r.eateryType !== eateryTypeFilter.toLowerCase()) return false;
-      if (areaFilter !== "All" && r.area !== areaFilter) return false;
+      if (selectedType !== "All" && r.eateryType !== selectedType.toLowerCase()) return false;
+      if (selectedArea !== "All" && r.area !== selectedArea) return false;
+      if (selectedCuisine !== "All" && r.cuisine !== selectedCuisine) return false;
 
-      if (statusFilter === "Open") {
-        const live = isCurrentlyOpenInDubai(r.hours);
-        if (!live.isOpen) return false;
+      if (selectedVibe !== "All") {
+        if (selectedVibe === "michelin" && !r.michelin) return false;
+        if (selectedVibe === "Burj View" && !r.seatingPerks?.includes("Burj View")) return false;
+        if (selectedVibe === "Beachfront" && !r.seatingPerks?.includes("Beachfront")) return false;
+        if (selectedVibe === "AC Terrace" && !r.seatingPerks?.includes("AC Terrace")) return false;
+        if (selectedVibe === "Business Lunch" && !r.occasions?.includes("Business Lunch")) return false;
+        if (selectedVibe === "Sunday Brunch" && !r.occasions?.includes("Sunday Brunch")) return false;
+        if (selectedVibe === "Kid Friendly" && !r.occasions?.includes("Kid Friendly")) return false;
       }
+
       return true;
     });
-  }, [query, cuisine, priceBand, michelinFilter, statusFilter, liquorFilter, perkFilter, occasionFilter, logisticsFilter, barTypeFilter, eateryTypeFilter, areaFilter]);
+
+    // Sort
+    if (sortBy === "rating-desc") {
+      list.sort((a, b) => b.rating - a.rating);
+    } else if (sortBy === "reviews-desc") {
+      const getReviewsNum = (val: string) => parseInt(val.replace(/,/g, ""), 10) || 0;
+      list.sort((a, b) => getReviewsNum(b.reviews) - getReviewsNum(a.reviews));
+    } else if (sortBy === "price-asc") {
+      list.sort((a, b) => a.priceMin - b.priceMin);
+    } else if (sortBy === "price-desc") {
+      list.sort((a, b) => b.priceMin - a.priceMin);
+    }
+
+    return list;
+  }, [query, selectedType, selectedArea, selectedCuisine, selectedVibe, sortBy]);
+
+  const SidebarContent = () => (
+    <div className="space-y-7 text-left">
+      {/* Category: Eatery Type */}
+      <div>
+        <h3 className="text-xs uppercase font-extrabold tracking-wider text-foreground mb-3 pb-1 border-b border-border">
+          Eatery Type
+        </h3>
+        <ul className="space-y-1.5 text-xs font-semibold">
+          {[
+            { id: "All", label: "All types", count: enrichedRestaurants.length },
+            { id: "restaurant", label: "🍽️ Restaurants", count: counts.typeCounts.restaurant },
+            { id: "bar", label: "🍸 Bars & Lounges", count: counts.typeCounts.bar },
+            { id: "cafe", label: "☕ Cafes & Bakeries", count: counts.typeCounts.cafe },
+          ].map((item) => (
+            <li key={item.id}>
+              <button
+                onClick={() => {
+                  setSelectedType(item.id);
+                  updateFilter({ type: item.id === "All" ? undefined : item.id });
+                }}
+                className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedType === item.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <span>{item.label}</span>
+                <span className="text-[10px] opacity-70">({item.count})</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Category: Areas */}
+      <div>
+        <h3 className="text-xs uppercase font-extrabold tracking-wider text-foreground mb-3 pb-1 border-b border-border">
+          Neighborhoods
+        </h3>
+        <ul className="space-y-1.5 text-xs font-semibold max-h-48 overflow-y-auto pr-1 gmb-sidebar">
+          <li>
+            <button
+              onClick={() => {
+                setSelectedArea("All");
+                updateFilter({ area: undefined });
+              }}
+              className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedArea === "All" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <span>All Neighborhoods</span>
+              <span className="text-[10px] opacity-70">({enrichedRestaurants.length})</span>
+            </button>
+          </li>
+          {areas.map((a) => (
+            <li key={a}>
+              <button
+                onClick={() => {
+                  setSelectedArea(a);
+                  updateFilter({ area: a });
+                }}
+                className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedArea === a ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <span>{a}</span>
+                <span className="text-[10px] opacity-70">({counts.areaCounts[a] || 0})</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Category: Cuisines */}
+      <div>
+        <h3 className="text-xs uppercase font-extrabold tracking-wider text-foreground mb-3 pb-1 border-b border-border">
+          Cuisines
+        </h3>
+        <ul className="space-y-1.5 text-xs font-semibold max-h-48 overflow-y-auto pr-1 gmb-sidebar">
+          <li>
+            <button
+              onClick={() => {
+                setSelectedCuisine("All");
+                updateFilter({ cuisine: undefined });
+              }}
+              className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedCuisine === "All" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <span>All Cuisines</span>
+              <span className="text-[10px] opacity-70">({enrichedRestaurants.length})</span>
+            </button>
+          </li>
+          {cuisines.map((c) => (
+            <li key={c}>
+              <button
+                onClick={() => {
+                  setSelectedCuisine(c);
+                  updateFilter({ cuisine: c });
+                }}
+                className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedCuisine === c ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <span>{c}</span>
+                <span className="text-[10px] opacity-70">({counts.cuisineCounts[c] || 0})</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Category: Experiences & Vibes */}
+      <div>
+        <h3 className="text-xs uppercase font-extrabold tracking-wider text-foreground mb-3 pb-1 border-b border-border">
+          Vibes & Experiences
+        </h3>
+        <ul className="space-y-1.5 text-xs font-semibold">
+          {[
+            { id: "All", label: "All Experiences" },
+            { id: "michelin", label: "⭐ Michelin Guide" },
+            { id: "Burj View", label: "🏙️ Burj Khalifa View" },
+            { id: "Beachfront", label: "🏖️ Beachfront Dining" },
+            { id: "AC Terrace", label: "🪑 AC Terrace Seating" },
+            { id: "Business Lunch", label: "💼 Business Lunch" },
+            { id: "Sunday Brunch", label: "🥂 Sunday Brunch" },
+            { id: "Kid Friendly", label: "🍼 Kid Friendly" },
+          ].map((item) => (
+            <li key={item.id}>
+              <button
+                onClick={() => {
+                  setSelectedVibe(item.id);
+                  updateFilter({ vibe: item.id === "All" ? undefined : item.id });
+                }}
+                className={`w-full flex items-center justify-between py-1 px-2 rounded-md hover:bg-secondary/40 transition-colors ${selectedVibe === item.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <span>{item.label}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between">
@@ -461,261 +506,162 @@ function Index() {
           onClose={() => setIsRandomizerOpen(false)}
         />
 
-        {/* Page Title & Search Section */}
-        <section className="bg-secondary/20 border-b border-border py-12 px-6">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* Outer Grid Panel */}
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          
+          {/* Header Title Section */}
+          <div className="border-b border-border/60 pb-8 mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6 text-left">
             <div>
-              <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest mb-1">
-                <Sparkles className="w-4 h-4" /> Food cravings? Let’s Dubai-it at Dubai-Eat
+              <div className="text-xs font-bold text-primary uppercase tracking-widest mb-1 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" /> Food cravings? Let's Dubai-it.
               </div>
-              <h1 className="font-display text-4xl sm:text-5xl font-bold text-foreground">Dubai Eateries Directory</h1>
-              <p className="text-muted-foreground mt-1">Explore 50 top-rated Dubai restaurant directories styled as GMB profiles</p>
+              <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-foreground leading-tight">
+                Eateries & Dining in Dubai
+              </h1>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Discover verified menus, licensed status, valet, and live reservation platforms.
+              </p>
             </div>
             
-            {/* Search Input & Randomizer */}
-            <div className="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto shrink-0">
-              <div className="relative w-full sm:w-72">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search restaurant, area, cuisine..."
-                  className="w-full rounded-xl border border-border bg-card pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              </div>
-              <button
-                onClick={() => setIsRandomizerOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-amber-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm hover:bg-amber-600 transition-colors shrink-0"
-              >
-                <Sparkles className="w-4 h-4" /> Can't Decide? Let’s Dubai-it!
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* Filters Toolbar */}
-        <div className="border-b border-border bg-background/95 backdrop-blur-md sticky top-16 z-20 shadow-sm py-4 px-6">
-          <div className="max-w-7xl mx-auto flex flex-wrap gap-2.5 items-center">
-            
-            {/* Eatery Type Filter */}
-            <select
-              value={eateryTypeFilter}
-              onChange={(e) => setEateryTypeFilter(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
-            >
-              <option value="All">All types</option>
-              <option value="restaurant">🍽️ Restaurants</option>
-              <option value="bar">🍸 Bars & Nightlife</option>
-              <option value="cafe">☕ Cafes & Bakeries</option>
-            </select>
-
-            {/* Area Filter */}
-            <select 
-              value={areaFilter} 
-              onChange={(e) => setAreaFilter(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
-            >
-              {areas.map((a) => (
-                <option key={a} value={a}>{a === "All" ? "All neighborhoods" : a}</option>
-              ))}
-            </select>
-
-            {/* Cuisine Select */}
-            <select 
-              value={cuisine} 
-              onChange={(e) => setCuisine(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
-            >
-              {cuisines.map((c) => (
-                <option key={c} value={c}>{c === "All" ? "All cuisines" : c}</option>
-              ))}
-            </select>
-
-            {/* Price Select */}
-            <select 
-              value={priceBand} 
-              onChange={(e) => setPriceBand(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
-            >
-              <option value="All">All prices</option>
-              <option value="AED">AED (Budget)</option>
-              <option value="AED AED">AED AED (Casual)</option>
-              <option value="AED AED AED">AED AED AED (Upscale)</option>
-              <option value="AED AED AED AED">AED AED AED AED (Fine Dining)</option>
-            </select>
-
-            {/* Michelin Select */}
-            <select 
-              value={michelinFilter} 
-              onChange={(e) => setMichelinFilter(e.target.value)}
-              className="rounded-full border border-amber-500/40 bg-amber-50 dark:bg-amber-950/30 text-amber-955 dark:text-amber-200 px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-amber-500/20 cursor-pointer font-semibold"
-            >
-              <option value="All">All Michelin & Guide</option>
-              <option value="Any Michelin">⭐ Michelin Guide Venues</option>
-              <option value="Starred">⭐ Michelin Starred Only</option>
-              <option value="Bib Gourmand">🍽️ Bib Gourmand Only</option>
-              <option value="Selected">✨ Michelin Selected Only</option>
-            </select>
-
-            {/* Grouped Bar Type Select Menu */}
-            <select 
-              value={barTypeFilter} 
-              onChange={(e) => setBarTypeFilter(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground font-semibold"
-            >
-              <option value="All">All Bar Vibes</option>
-              
-              <optgroup label="Vibe & View">
-                <option value="rooftop-skyline">Rooftop & Skyline Lounges</option>
-                <option value="beach-waterfront">Beach Clubs & Waterfront Bars</option>
-                <option value="speakeasy">Speakeasies & Hidden Bars</option>
-                <option value="skypool">Skypool & Infinity Pool Bars</option>
-              </optgroup>
-
-              <optgroup label="Entertainment & Music">
-                <option value="jazz-live-music">Jazz & Live Music Bars</option>
-                <option value="dinner-show">Dinner Show & Cabaret</option>
-                <option value="hifi-listening">Hi-Fi & Vinyl Listening Bars</option>
-                <option value="activity-arcade">Activity & Arcade Bars</option>
-                <option value="karaoke">Karaoke & Private Rooms</option>
-              </optgroup>
-
-              <optgroup label="Specialty & Craft">
-                <option value="cocktail-mixology">Cocktail & Craft Mixology</option>
-                <option value="cigar-whisky">Cigar & Whisky Lounges</option>
-                <option value="shisha-hookah">Shisha & Hookah Lounges</option>
-                <option value="wine-tapas">Wine & Tapas Bars</option>
-                <option value="izakaya-sake">Izakaya & Sake Bars</option>
-              </optgroup>
-
-              <optgroup label="Casual & Classic">
-                <option value="sports-bar">Sports Bars</option>
-                <option value="pubs">British & Irish Pubs</option>
-                <option value="gastropub">Gastropubs</option>
-                <option value="hotel-lobby">Hotel & Lobby Lounges</option>
-              </optgroup>
-            </select>
-
-            {/* Liquor License Status Filter */}
-            <select
-              value={liquorFilter}
-              onChange={(e) => setLiquorFilter(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
-            >
-              <option value="All">All Liquor Status</option>
-              <option value="Licensed">🍷 Licensed</option>
-              <option value="Non-Licensed">🥤 Non-Licensed</option>
-            </select>
-
-            {/* Seating Perks Filter */}
-            <select
-              value={perkFilter}
-              onChange={(e) => setPerkFilter(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
-            >
-              <option value="All">All Seating Perks</option>
-              <option value="AC Terrace">🪑 AC Terrace</option>
-              <option value="Burj View">🏙️ Burj View</option>
-              <option value="Beachfront">🏖️ Beachfront</option>
-            </select>
-
-            {/* Occasions / Kids Friendly Filter */}
-            <select
-              value={occasionFilter}
-              onChange={(e) => setOccasionFilter(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
-            >
-              <option value="All">All Occasions</option>
-              <option value="Business Lunch">💼 Business Lunch</option>
-              <option value="Sunday Brunch">🥂 Sunday Brunch</option>
-              <option value="Late Night">🌌 Late Night</option>
-              <option value="Kid Friendly">🍼 Kid Friendly</option>
-            </select>
-
-            {/* Logistics Filter */}
-            <select
-              value={logisticsFilter}
-              onChange={(e) => setLogisticsFilter(e.target.value)}
-              className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer font-semibold text-foreground"
-            >
-              <option value="All">All Logistics</option>
-              <option value="Complimentary Valet">🚗 Complimentary Valet</option>
-              <option value="EV Charging">⚡ EV Charging</option>
-              <option value="Shisha Available">💨 Shisha Available</option>
-            </select>
-
-            {/* Open Now Button */}
             <button
-              onClick={() => setStatusFilter(statusFilter === "Open" ? "All" : "Open")}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all ${
-                statusFilter === "Open" 
-                  ? "bg-emerald-500/10 border-emerald-500 text-emerald-700" 
-                  : "border-border bg-card text-foreground hover:bg-secondary/40"
-              }`}
+              onClick={() => setIsRandomizerOpen(true)}
+              className="bg-amber-500 text-white font-bold text-xs px-5 py-3 rounded-full hover:bg-amber-600 transition-colors shadow-sm flex items-center gap-1.5 self-start"
             >
-              Open Now in Dubai
+              <Sparkles className="w-4 h-4 fill-white" /> Let’s Dubai-it Randomizer
             </button>
-
-            {/* Reset Button */}
-            {(query || cuisine !== "All" || priceBand !== "All" || michelinFilter !== "All" || statusFilter !== "All" || liquorFilter !== "All" || perkFilter !== "All" || occasionFilter !== "All" || logisticsFilter !== "All" || barTypeFilter !== "All" || eateryTypeFilter !== "All" || areaFilter !== "All") && (
-              <button 
-                onClick={() => { 
-                  setQuery(""); 
-                  setCuisine("All"); 
-                  setPriceBand("All"); 
-                  setMichelinFilter("All"); 
-                  setStatusFilter("All"); 
-                  setLiquorFilter("All");
-                  setPerkFilter("All");
-                  setOccasionFilter("All");
-                  setLogisticsFilter("All");
-                  setBarTypeFilter("All");
-                  setEateryTypeFilter("All");
-                  setAreaFilter("All");
-                }}
-                className="text-xs font-semibold text-primary hover:underline ml-auto"
-              >
-                Clear all filters
-              </button>
-            )}
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            
+            {/* 1. Left Sidebar - Desktop only */}
+            <aside className="hidden lg:block lg:col-span-3 border-r border-border/60 pr-8 h-fit sticky top-24">
+              <SidebarContent />
+            </aside>
+
+            {/* 2. Main Content catalog Grid */}
+            <main className="lg:col-span-9 space-y-6">
+              
+              {/* Toolbar: Query Search & Sort controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-secondary/20 p-4 rounded-2xl border border-border/70">
+                <div className="relative flex-1">
+                  <input
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      updateFilter({ q: e.target.value || undefined });
+                    }}
+                    placeholder="Search by restaurant name, area or cuisine..."
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
+                  />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                </div>
+
+                <div className="flex items-center gap-3 justify-between sm:justify-end">
+                  {/* Mobile filter Toggle */}
+                  <button
+                    onClick={() => setIsMobileFilterOpen(true)}
+                    className="lg:hidden flex items-center gap-1.5 border border-border bg-card px-3.5 py-2.5 rounded-xl text-xs font-bold text-foreground cursor-pointer"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" /> Filters
+                  </button>
+
+                  {/* Sort selector */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground whitespace-nowrap">Sort by</span>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
+                    >
+                      <option value="rating-desc">Highest Rated</option>
+                      <option value="reviews-desc">Most Reviewed</option>
+                      <option value="price-asc">Price: Low to High</option>
+                      <option value="price-desc">Price: High to Low</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Count Summary */}
+              <div className="text-left text-xs font-bold text-muted-foreground flex items-center justify-between">
+                <span>Showing {filteredAndSorted.length} matching eateries</span>
+                {(selectedType !== "All" || selectedArea !== "All" || selectedCuisine !== "All" || selectedVibe !== "All" || query) && (
+                  <button
+                    onClick={() => {
+                      setQuery("");
+                      setSelectedType("All");
+                      setSelectedArea("All");
+                      setSelectedCuisine("All");
+                      setSelectedVibe("All");
+                      navigate({ to: "/restaurants" });
+                    }}
+                    className="text-primary hover:underline cursor-pointer"
+                  >
+                    Reset all filters
+                  </button>
+                )}
+              </div>
+
+              {/* Empty state */}
+              {filteredAndSorted.length === 0 ? (
+                <div className="text-center py-24 text-muted-foreground bg-card border border-border rounded-3xl">
+                  <UtensilsCrossed className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                  <p className="text-base font-bold text-foreground">No eateries found matching filters</p>
+                  <p className="text-xs text-muted-foreground mt-1">Try resetting your filters or adjusting search keyword.</p>
+                </div>
+              ) : (
+                /* Cards grid */
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredAndSorted.map((r) => (
+                    <GmbCard key={r.name} r={r} onOpenDirections={setSelectedDirectionsRestaurant} />
+                  ))}
+                </div>
+              )}
+
+            </main>
+
+          </div>
+
         </div>
 
-        {/* Directory Cards Grid */}
-        <main className="max-w-7xl mx-auto px-6 py-12">
-          {filtered.length === 0 ? (
-            <div className="text-center py-24 text-muted-foreground">
-              <UtensilsCrossed className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-              <p className="text-lg font-semibold">No eateries match your search</p>
-              <button 
-                onClick={() => { 
-                  setQuery(""); 
-                  setCuisine("All"); 
-                  setPriceBand("All"); 
-                  setMichelinFilter("All"); 
-                  setStatusFilter("All"); 
-                  setLiquorFilter("All");
-                  setPerkFilter("All");
-                  setOccasionFilter("All");
-                  setLogisticsFilter("All");
-                  setBarTypeFilter("All");
-                  setEateryTypeFilter("All");
-                  setAreaFilter("All");
-                }}
-                className="text-sm text-primary underline mt-2 hover:opacity-85"
+      </div>
+
+      {/* 3. Mobile Filter Drawer */}
+      {isMobileFilterOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end lg:hidden animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setIsMobileFilterOpen(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-xs" 
+          />
+          
+          {/* Drawer container */}
+          <div className="relative w-80 max-w-[90vw] h-full bg-background border-l border-border p-6 shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300">
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-display font-bold text-lg text-foreground">Filters</h2>
+                <button 
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:bg-secondary/40 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <SidebarContent />
+            </div>
+
+            <div className="mt-8 border-t border-border pt-4">
+              <button
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="w-full bg-primary text-primary-foreground font-bold text-xs py-3 rounded-xl hover:opacity-95"
               >
-                Reset filters and show all
+                Apply Filters ({filteredAndSorted.length})
               </button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filtered.map((r) => (
-                <GmbCard key={r.name} r={r} onOpenDirections={setSelectedDirectionsRestaurant} />
-              ))}
-            </div>
-          )}
-        </main>
-      </div>
+          </div>
+        </div>
+      )}
 
       <SiteFooter />
     </div>
