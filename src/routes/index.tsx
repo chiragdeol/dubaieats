@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { useMemo, useState } from "react";
-import { Sparkles, Search, MapPin, UtensilsCrossed, Landmark, Award } from "lucide-react";
+import { Sparkles, Search, Heart, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,6 +54,28 @@ function Landing() {
       }
     });
   };
+
+  // Curated list for the "Restaurants chosen for you" section
+  const chosenRestaurants = useMemo(() => {
+    // Select Zuma, LPM, Pierchic, and Ossiano
+    const selectedNames = ["Zuma", "LPM Restaurant", "Pierchic", "Ossiano"];
+    const found = enrichedRestaurants.filter(r => selectedNames.some(name => r.name.toLowerCase().includes(name.toLowerCase())));
+    
+    // Add dummy discount badges for TheFork style
+    const deals = [
+      { badge: "Up to -50% - Dubai-Eat Festival", tag: "Insider" },
+      { badge: "Up to -50% - Food bill", tag: "Insider" },
+      { badge: "Up to -30%", tag: "Popular" },
+      { badge: "Up to -30% - Early Bird", tag: "Insider" }
+    ];
+
+    return found.slice(0, 4).map((r, index) => ({
+      ...r,
+      deal: deals[index % deals.length].badge,
+      tag: deals[index % deals.length].tag,
+      customRating: (r.rating * 2).toFixed(1) // Map 5.0 scale to 10.0 scale to match TheFork screenshot (e.g. 9.1, 8.9)
+    }));
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -162,8 +184,8 @@ function Landing() {
       </section>
 
       {/* QUICK INSPIRATION GRID - Visit Dubai & TheFork Categories */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center md:text-left mb-12">
+      <section className="max-w-7xl mx-auto px-6 py-16">
+        <div className="text-center md:text-left mb-10">
           <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Curated selections</p>
           <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground max-w-2xl leading-tight">
             Discover Dubai's ultimate culinary vibes.
@@ -197,6 +219,142 @@ function Landing() {
               </div>
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* SECTION: Restaurants chosen for you - TheFork screenshot styled */}
+      <section className="max-w-7xl mx-auto px-6 py-16 border-t border-border/60">
+        <div className="flex justify-between items-end mb-10">
+          <div>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+              Restaurants chosen for you
+            </h2>
+          </div>
+          <Link to="/restaurants" className="text-sm font-semibold text-primary hover:underline flex items-center gap-0.5">
+            See all <ChevronRight className="w-4.5 h-4.5" />
+          </Link>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {chosenRestaurants.map((r) => (
+            <div key={r.name} className="bg-card border border-border/80 rounded-2xl overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between">
+              <div>
+                {/* Image panel with badge & heart */}
+                <div className="relative aspect-[4/3] w-full overflow-hidden">
+                  <img src={r.image} alt={r.name} className="w-full h-full object-cover" />
+                  
+                  {/* Tag on top left */}
+                  <span className="absolute top-3 left-3 bg-white/95 text-primary text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 dark:bg-zinc-900 dark:text-amber-400">
+                    👑 {r.tag}
+                  </span>
+
+                  {/* Heart on top right */}
+                  <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-muted-foreground hover:text-rose-500 transition-colors shadow-xs dark:bg-zinc-900/80">
+                    <Heart className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Details */}
+                <div className="p-4">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-display font-bold text-base text-foreground leading-snug line-clamp-1">{r.name}</h3>
+                    <div className="text-right shrink-0">
+                      <span className="inline-block bg-emerald-500 text-white font-extrabold text-xs px-1.5 py-0.5 rounded-md">
+                        {r.customRating}
+                      </span>
+                      <p className="text-[9px] text-muted-foreground mt-0.5">({r.reviews})</p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {r.area}
+                  </p>
+                  
+                  <p className="text-xs font-medium text-foreground mt-1.5">
+                    {r.cuisine} · ~AED {r.priceMin}
+                  </p>
+                </div>
+              </div>
+
+              {/* Special green offer badge at the bottom */}
+              <div className="px-4 pb-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-extrabold py-2 px-3 rounded-lg flex items-center justify-between">
+                  <span>{r.deal}</span>
+                </div>
+              </div>
+
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SECTION: Dubai-Eat Recommends - TheFork screenshot styled */}
+      <section className="max-w-7xl mx-auto px-6 py-16 border-t border-border/60">
+        <div className="mb-10">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+            Dubai-Eat recommends
+          </h2>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          
+          {/* Card 1: Best deals in town */}
+          <div className="bg-emerald-400/90 dark:bg-emerald-950/65 border border-emerald-500/20 rounded-2xl p-6 flex flex-col justify-between min-h-[250px] relative overflow-hidden group">
+            <div className="absolute right-0 bottom-0 w-36 h-36 opacity-35 group-hover:scale-105 transition-transform duration-500">
+              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300" alt="Best deals bowl" className="w-full h-full object-cover rounded-full" />
+            </div>
+            <div className="relative z-10 max-w-[70%]">
+              <h3 className="font-display font-bold text-2xl text-emerald-950 dark:text-white leading-tight">Best deals in town</h3>
+              <p className="text-emerald-900/90 dark:text-emerald-100/90 text-xs mt-3 leading-relaxed">Book a table with us and benefit from our unheard of deals.</p>
+            </div>
+            <button
+              onClick={() => {
+                navigate({ to: "/restaurants", search: { type: "restaurant" } });
+              }}
+              className="self-start text-[10px] font-bold tracking-wider text-emerald-950 dark:text-emerald-400 hover:underline flex items-center gap-1 mt-6 relative z-10"
+            >
+              SEE OFFERS <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Card 2: New on Dubai-Eat */}
+          <div className="bg-orange-50 dark:bg-zinc-900 border border-border rounded-2xl p-6 flex flex-col justify-between min-h-[250px] relative overflow-hidden group">
+            <div className="absolute right-0 bottom-0 w-36 h-36 opacity-35 group-hover:scale-105 transition-transform duration-500">
+              <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300" alt="Hotspot burger" className="w-full h-full object-cover rounded-full" />
+            </div>
+            <div className="relative z-10 max-w-[70%]">
+              <h3 className="font-display font-bold text-2xl text-foreground leading-tight">New on Dubai-Eat</h3>
+              <p className="text-muted-foreground text-xs mt-3 leading-relaxed">Check out our latest additions and book a table at the newest hotspots in your city!</p>
+            </div>
+            <button
+              onClick={() => {
+                navigate({ to: "/restaurants" });
+              }}
+              className="self-start text-[10px] font-bold tracking-wider text-primary hover:underline flex items-center gap-1 mt-6 relative z-10"
+            >
+              SEE RESTAURANTS <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Card 3: Insider */}
+          <div className="bg-pink-500/10 dark:bg-pink-950/45 border border-pink-500/20 rounded-2xl p-6 flex flex-col justify-between min-h-[250px] relative overflow-hidden group">
+            <div className="absolute right-0 bottom-0 w-36 h-36 opacity-35 group-hover:scale-105 transition-transform duration-500">
+              <img src="https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=300" alt="Insider pasta" className="w-full h-full object-cover rounded-full" />
+            </div>
+            <div className="relative z-10 max-w-[70%]">
+              <h3 className="font-display font-bold text-2xl text-pink-700 dark:text-pink-300 leading-tight">Insider Selection</h3>
+              <p className="text-pink-900/90 dark:text-pink-100/90 text-xs mt-3 leading-relaxed">We have selected for you the trendiest and gourmet restaurants among our best rated places.</p>
+            </div>
+            <button
+              onClick={() => {
+                navigate({ to: "/restaurants", search: { vibe: "michelin" } });
+              }}
+              className="self-start text-[10px] font-bold tracking-wider text-pink-700 dark:text-pink-400 hover:underline flex items-center gap-1 mt-6 relative z-10"
+            >
+              SEE RESTAURANTS <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
         </div>
       </section>
 
@@ -369,7 +527,7 @@ function Landing() {
             Your next reservation is <span className="italic text-accent">waiting</span>.
           </h2>
           <Link to="/restaurants" className="inline-block mt-10 rounded-full bg-accent text-accent-foreground px-8 py-4 text-sm font-semibold hover:opacity-90 transition-opacity">
-            Explore all 50 eateries →
+            Explore all 50 restaurants →
           </Link>
         </div>
       </section>

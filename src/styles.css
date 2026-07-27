@@ -140,10 +140,10 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Jost', 'Inter', system-ui, sans-serif;
   }
   .font-display {
-    font-family: 'Fraunces', 'Times New Roman', serif;
+    font-family: 'Jost', sans-serif;
     letter-spacing: -0.02em;
   }
 
@@ -168,7 +168,7 @@
 
   /* Leaflet maps styling custom overrides */
   .leaflet-container {
-    font-family: 'Inter', system-ui, sans-serif !important;
+    font-family: 'Jost', 'Inter', system-ui, sans-serif !important;
     background-color: oklch(0.96 0.01 80) !important;
   }
   .leaflet-popup-content-wrapper {
