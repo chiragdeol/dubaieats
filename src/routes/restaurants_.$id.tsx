@@ -19,7 +19,7 @@ import {
   Award
 } from "lucide-react";
 
-export const Route = createFileRoute("/restaurants/$id")({
+export const Route = createFileRoute("/restaurants_/$id")({
   head: ({ params }) => {
     const restaurant = enrichedRestaurants.find(r => r.slug === params.id);
     return {
