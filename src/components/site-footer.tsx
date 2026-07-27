@@ -1,13 +1,12 @@
 import { Link } from "@tanstack/react-router";
+import { Logo } from "./logo";
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-foreground text-background mt-20">
       <div className="max-w-7xl mx-auto px-6 py-16 grid gap-10 md:grid-cols-4">
         <div className="md:col-span-2">
-          <div className="font-display text-3xl font-bold">
-            Dubai<span className="italic text-accent"> Eats</span>
-          </div>
+          <Logo className="text-white" />
           <p className="mt-4 text-sm text-background/70 max-w-sm leading-relaxed">
             Food cravings? <span className="text-accent font-semibold">Let’s Dubai-it at Dubai-Eat.</span> A hand-curated guide to 50 of Dubai's most iconic restaurants.
           </p>
