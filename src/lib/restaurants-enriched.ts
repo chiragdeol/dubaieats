@@ -1,6 +1,13 @@
 import { restaurants as rawRestaurants, Restaurant } from "../data/restaurants";
 
-export const enrichedRestaurants: Restaurant[] = rawRestaurants.map((r) => {
+export function getRestaurantSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+export const enrichedRestaurants: (Restaurant & { slug: string })[] = rawRestaurants.map((r) => {
   const nameLower = r.name.toLowerCase();
   const areaLower = r.area.toLowerCase();
   const cuisineLower = r.cuisine.toLowerCase();
@@ -132,6 +139,7 @@ export const enrichedRestaurants: Restaurant[] = rawRestaurants.map((r) => {
     bookingPlatform,
     deliveryLinks,
     barType,
-    eateryType
+    eateryType,
+    slug: getRestaurantSlug(r.name)
   };
 });

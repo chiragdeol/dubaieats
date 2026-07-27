@@ -29,6 +29,7 @@ export type Restaurant = {
   deliveryLinks?: { deliveroo?: string; talabat?: string; noon?: string; careem?: string; keeta?: string };
   barType?: string;
   eateryType?: "restaurant" | "bar" | "cafe";
+  slug?: string;
 };
 
 export type SponsoredRestaurant = {

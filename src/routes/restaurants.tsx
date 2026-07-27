@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { type Restaurant } from "@/data/restaurants";
 import { enrichedRestaurants } from "../lib/restaurants-enriched";
@@ -111,7 +111,7 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
     <article className="bg-card border border-border/85 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between text-left relative group">
       <div>
         {/* Card header image block */}
-        <div className="relative aspect-[16/10] w-full overflow-hidden shrink-0 bg-secondary">
+        <Link to="/restaurants/$id" params={{ id: r.slug || "" }} className="relative aspect-[16/10] w-full overflow-hidden shrink-0 bg-secondary block">
           <img 
             src={r.image} 
             alt={r.name} 
@@ -137,12 +137,14 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
           <div className="absolute bottom-3 right-3 text-white text-xs font-bold drop-shadow-md">
             AED {r.priceMin}–{r.priceMax}
           </div>
-        </div>
+        </Link>
 
         <div className="p-5">
           {/* Title */}
-          <h2 className="font-sans text-lg font-bold text-foreground leading-snug tracking-tight">
-            {r.name}
+          <h2 className="font-sans text-lg font-bold text-foreground leading-snug tracking-tight hover:text-primary transition-colors">
+            <Link to="/restaurants/$id" params={{ id: r.slug || "" }}>
+              {r.name}
+            </Link>
           </h2>
 
           {/* Rating */}

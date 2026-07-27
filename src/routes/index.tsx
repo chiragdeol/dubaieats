@@ -240,7 +240,7 @@ function Landing() {
             <div key={r.name} className="bg-card border border-border/80 rounded-2xl overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between">
               <div>
                 {/* Image panel with badge & heart */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden">
+                <Link to="/restaurants/$id" params={{ id: r.slug || "" }} className="relative aspect-[4/3] w-full overflow-hidden block">
                   <img src={r.image} alt={r.name} className="w-full h-full object-cover" />
                   
                   {/* Tag on top left */}
@@ -252,12 +252,16 @@ function Landing() {
                   <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-muted-foreground hover:text-rose-500 transition-colors shadow-xs dark:bg-zinc-900/80">
                     <Heart className="w-4 h-4" />
                   </button>
-                </div>
+                </Link>
 
                 {/* Details */}
                 <div className="p-4">
                   <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-display font-bold text-base text-foreground leading-snug line-clamp-1">{r.name}</h3>
+                    <h3 className="font-display font-bold text-base text-foreground leading-snug line-clamp-1 hover:text-primary transition-colors">
+                      <Link to="/restaurants/$id" params={{ id: r.slug || "" }}>
+                        {r.name}
+                      </Link>
+                    </h3>
                     <div className="text-right shrink-0">
                       <span className="inline-block bg-emerald-500 text-white font-extrabold text-xs px-1.5 py-0.5 rounded-md">
                         {r.customRating}
@@ -375,12 +379,17 @@ function Landing() {
 
           <div className="grid gap-8 md:grid-cols-3">
             {featured.map((r, i) => (
-              <article key={r.name} className="group relative overflow-hidden rounded-3xl bg-card border border-border aspect-[4/5] shadow-sm hover:shadow-md transition-shadow">
+              <Link 
+                key={r.name} 
+                to="/restaurants/$id" 
+                params={{ id: r.slug || "" }} 
+                className="group relative overflow-hidden rounded-3xl bg-card border border-border aspect-[4/5] shadow-sm hover:shadow-md transition-all block"
+              >
                 <div className="absolute inset-0">
                   <img src={r.image} alt={r.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
+                <div className="absolute inset-0 p-6 flex flex-col justify-end text-white text-left">
                   <div className="flex items-center gap-1.5">
                     {r.michelin && (
                       <span className="bg-amber-500 text-white font-bold text-[9px] px-1.5 py-0.5 rounded-sm uppercase tracking-wide">
@@ -397,7 +406,7 @@ function Landing() {
                   </div>
                   <div className="text-sm opacity-90 mt-1.5 font-semibold">AED {r.priceMin}–{r.priceMax}</div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>
