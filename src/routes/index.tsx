@@ -174,9 +174,9 @@ function Landing() {
           <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-2">
             <button
               onClick={() => setIsRandomizerOpen(true)}
-              className="text-xs font-semibold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-full border border-amber-500/20 backdrop-blur-xs flex items-center gap-1 transition-all"
+              className="text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 px-4.5 py-2 rounded-full shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" /> Can't Decide? Let’s Dubai-it!
+              <Sparkles className="w-3.5 h-3.5 fill-white text-white" /> Can't Decide? Let’s Dubai-it!
             </button>
           </div>
 
