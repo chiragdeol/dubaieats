@@ -6,7 +6,23 @@ import { SiteFooter } from "@/components/site-footer";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { OwnerCta } from "@/components/owner-cta";
 import { useMemo, useState } from "react";
-import { Sparkles, Search, Heart, ChevronRight } from "lucide-react";
+import { 
+  Sparkles, 
+  Search, 
+  Heart, 
+  ChevronRight, 
+  Building2, 
+  ShieldCheck, 
+  TrendingUp, 
+  CreditCard, 
+  Award, 
+  CheckCircle2,
+  BadgePercent,
+  Star,
+  ExternalLink,
+  MessageSquare,
+  Calendar
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,6 +51,11 @@ function Landing() {
     return Array.from(set).sort();
   }, []);
 
+  // Filter sponsored venues for homepage ad placement
+  const homepageSponsoredVenues = useMemo(() => {
+    return enrichedRestaurants.filter(r => r.isSponsored).slice(0, 2);
+  }, []);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     navigate({
@@ -58,11 +79,9 @@ function Landing() {
 
   // Curated list for the "Restaurants chosen for you" section
   const chosenRestaurants = useMemo(() => {
-    // Select Zuma, LPM, Pierchic, and Ossiano
     const selectedNames = ["Zuma", "LPM Restaurant", "Pierchic", "Ossiano"];
     const found = enrichedRestaurants.filter(r => selectedNames.some(name => r.name.toLowerCase().includes(name.toLowerCase())));
     
-    // Add dummy discount badges for TheFork style
     const deals = [
       { badge: "Up to -50% - Dubai-Eat Festival", tag: "Insider" },
       { badge: "Up to -50% - Food bill", tag: "Insider" },
@@ -74,12 +93,12 @@ function Landing() {
       ...r,
       deal: deals[index % deals.length].badge,
       tag: deals[index % deals.length].tag,
-      customRating: (r.rating * 2).toFixed(1) // Map 5.0 scale to 10.0 scale to match TheFork screenshot (e.g. 9.1, 8.9)
+      customRating: (r.rating * 2).toFixed(1)
     }));
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-left">
       <SiteHeader />
 
       <DubaiItRandomizerModal
@@ -87,57 +106,60 @@ function Landing() {
         onClose={() => setIsRandomizerOpen(false)}
       />
 
-      {/* HERO SECTION - Visit Dubai & TheFork Inspired */}
+      {/* HERO SECTION */}
       <section className="relative min-h-[90vh] overflow-hidden flex items-center pt-24 pb-16">
         <img 
           src={heroImage} 
           alt="Dubai skyline at sunset with fine dining" 
           className="absolute inset-0 w-full h-full object-cover" 
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/40 to-background" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-center md:text-left">
           <div className="max-w-4xl">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20 backdrop-blur-md text-primary-foreground text-xs font-bold border border-primary/30 uppercase tracking-widest mb-6">
-              <Sparkles className="w-3.5 h-3.5" /> Hungry? Let's Dubai-it at Dubai-Eat.
+              <Sparkles className="w-3.5 h-3.5" /> B2B Hospitality SaaS & Dining Intelligence
             </span>
             <h1 className="font-display text-5xl sm:text-7xl md:text-8xl font-semibold text-white leading-[0.95] tracking-tight">
               Where are we eating? <br />
               <span className="italic text-primary">Let’s Dubai-it.</span>
             </h1>
             <p className="mt-6 text-base sm:text-xl text-white/90 max-w-xl leading-relaxed">
-              Explore 50 of Dubai's finest dining destinations. Compare local reviews, price bands, Michelin recognitions, and delivery apps at a glance.
+              Explore 50 of Dubai's finest dining destinations. 100% Unbiased Organic Rankings, Esaad & Fazaa Privilege Filters, and Transparent Google-Style Venue Ads.
             </p>
           </div>
 
-          {/* Dynamic Horizontal Search Panel - TheFork Inspired */}
+          {/* Dynamic Horizontal Search Panel */}
           <div className="mt-12 max-w-4xl bg-card/85 backdrop-blur-md border border-border p-5 rounded-3xl shadow-2xl">
             <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
               
               {/* Eatery Type select */}
               <div className="md:col-span-3 relative">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Eatery Type</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Eatery Scope</label>
                 <select
                   value={searchType}
                   onChange={(e) => setSearchType(e.target.value)}
                   className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
                 >
-                  <option value="All">All Eatery Types</option>
+                  <option value="All">All Scope & Venues</option>
                   <option value="restaurant">🍽️ Restaurants</option>
-                  <option value="bar">🍸 Bars & Nightlife</option>
                   <option value="cafe">☕ Cafes & Bakeries</option>
+                  <option value="bar">🍸 Bars & Lounges</option>
+                  <option value="nightclub">🕺 Nightclubs</option>
+                  <option value="beach_club">🏖️ Beach Clubs</option>
+                  <option value="private_chef">👨‍🍳 Private Chefs</option>
                 </select>
               </div>
 
               {/* Area select */}
               <div className="md:col-span-3 relative">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Neighborhood</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">District / Area</label>
                 <select
                   value={searchArea}
                   onChange={(e) => setSearchArea(e.target.value)}
                   className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
                 >
-                  <option value="All">All Neighborhoods</option>
+                  <option value="All">All Dubai Districts</option>
                   {areas.map((a) => (
                     <option key={a} value={a}>{a}</option>
                   ))}
@@ -146,13 +168,13 @@ function Landing() {
 
               {/* Keyword query */}
               <div className="md:col-span-4 relative">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Cuisine or Vibe</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Cuisine or Privileges</label>
                 <div className="relative">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search e.g. sushi, view, rooftop..."
+                    placeholder="Search e.g. sushi, Esaad, Fazaa..."
                     className="w-full bg-background border border-border rounded-xl pl-9 pr-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
                   />
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -184,8 +206,73 @@ function Landing() {
         </div>
       </section>
 
-      {/* QUICK INSPIRATION GRID - Visit Dubai & TheFork Categories */}
-      <section className="max-w-7xl mx-auto px-6 py-16">
+      {/* ── HOMEPAGE SPONSORED PRODUCTS / FEATURED PARTNERS SECTION ── */}
+      <section className="max-w-7xl mx-auto px-6 py-12">
+        <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 border border-amber-500/30 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-amber-500/20 pb-6 mb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-amber-500 text-white font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  [FEATURED SPONSORED PRODUCTS]
+                </span>
+                <span className="text-xs font-bold text-muted-foreground">Transparent Ad Placement</span>
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-foreground">
+                Featured Partner Venues & Direct Booking Privileges
+              </h2>
+            </div>
+            <Link
+              to="/merchant"
+              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl hover:opacity-95 transition-opacity shrink-0"
+            >
+              <Building2 className="w-4 h-4" /> Feature Your Venue Here
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {homepageSponsoredVenues.map(s => (
+              <div key={s.slug} className="bg-card border border-border rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4">
+                <div className="flex items-start gap-4">
+                  <img src={s.image} alt={s.name} className="w-24 h-24 rounded-xl object-cover shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/25 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
+                        SPONSORED
+                      </span>
+                      <span className="text-xs font-bold text-muted-foreground">{s.district}</span>
+                    </div>
+                    <h3 className="font-extrabold text-lg text-foreground mt-1 truncate">{s.name}</h3>
+                    <p className="text-xs text-muted-foreground truncate">{s.cuisine} · AED {s.priceMin}–{s.priceMax}</p>
+                    {s.discounts && s.discounts.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {s.discounts.slice(0, 2).map(disc => (
+                          <span key={disc} className="text-[9px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/20">
+                            💳 {disc}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-3">
+                  <p className="text-xs font-bold text-amber-600 dark:text-amber-400">✨ {s.sponsoredBannerText}</p>
+                  <Link
+                    to="/restaurants/$id"
+                    params={{ id: s.slug }}
+                    className="bg-primary text-primary-foreground font-bold text-xs px-4 py-2 rounded-xl hover:opacity-90 transition-opacity shrink-0 flex items-center gap-1"
+                  >
+                    View Partner <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* QUICK INSPIRATION GRID */}
+      <section className="max-w-7xl mx-auto px-6 py-12">
         <div className="text-center md:text-left mb-10">
           <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Curated selections</p>
           <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground max-w-2xl leading-tight">
@@ -223,7 +310,87 @@ function Landing() {
         </div>
       </section>
 
-      {/* SECTION: Restaurants chosen for you - TheFork screenshot styled */}
+      {/* ── B2B SAAS PLATFORM SHOWCASE SECTION ── */}
+      <section className="bg-gradient-to-br from-zinc-950 via-zinc-900 to-amber-950 text-white py-20 px-6 my-12 border-y border-amber-500/20">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-7 space-y-6">
+            <div className="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/30 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider">
+              <Building2 className="w-4 h-4" /> B2B Hospitality SaaS Product
+            </div>
+            <h2 className="font-display text-4xl sm:text-5xl font-black text-white leading-tight">
+              Powered by Dubai Eats SaaS Merchant Engine
+            </h2>
+            <p className="text-white/80 text-sm sm:text-base leading-relaxed">
+              Dubai Eats is built as an end-to-end B2B SaaS platform for restaurants, cafes, beach clubs, and hospitality venues across Dubai.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-1">
+                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase">
+                  <ShieldCheck className="w-4 h-4" /> DET Dubai Open Data Sync
+                </div>
+                <p className="text-xs text-white/70">Automated licensing, commercial register validation, and open data indexing.</p>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-1">
+                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase">
+                  <BadgePercent className="w-4 h-4" /> Privilege Card Portal
+                </div>
+                <p className="text-xs text-white/70">Manage accepted Esaad, Fazaa, Entertainer & Bank card promotion matrices.</p>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-1">
+                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase">
+                  <TrendingUp className="w-4 h-4" /> Google-Style Ad Server
+                </div>
+                <p className="text-xs text-white/70">Transparent sponsored listings and high-visibility hero display banner auctions.</p>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-1">
+                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase">
+                  <CreditCard className="w-4 h-4" /> Deposit & Lead Gateway
+                </div>
+                <p className="text-xs text-white/70">Integrated Stripe & Telr checkout for VIP table deposits & private chef commissions.</p>
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <Link
+                to="/merchant"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold text-sm px-8 py-4 rounded-2xl shadow-xl hover:opacity-95 transition-opacity"
+              >
+                Access Merchant & SaaS Portal →
+              </Link>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 bg-card/10 backdrop-blur-md border border-white/15 p-6 rounded-3xl space-y-4">
+            <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
+              <Award className="w-5 h-5 text-amber-400" /> SaaS Merchant Features
+            </h3>
+            <ul className="space-y-3 text-xs text-white/80">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span><strong>100% Unbiased Organic Ranking:</strong> Verified algorithms.</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span><strong>Transparent Ad Badges:</strong> Clearly labeled `[SPONSORED]`.</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span><strong>AI WhatsApp Lead Engine:</strong> Direct pre-filled inquiries.</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span><strong>District Coverage:</strong> 60+ Dubai communities indexed.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION: Restaurants chosen for you */}
       <section className="max-w-7xl mx-auto px-6 py-16 border-t border-border/60">
         <div className="flex justify-between items-end mb-10">
           <div>
@@ -240,22 +407,18 @@ function Landing() {
           {chosenRestaurants.map((r) => (
             <div key={r.name} className="bg-card border border-border/80 rounded-2xl overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between">
               <div>
-                {/* Image panel with badge & heart */}
                 <Link to="/restaurants/$id" params={{ id: r.slug || "" }} className="relative aspect-[4/3] w-full overflow-hidden block">
                   <img src={r.image} alt={r.name} className="w-full h-full object-cover" />
                   
-                  {/* Tag on top left */}
                   <span className="absolute top-3 left-3 bg-white/95 text-primary text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 dark:bg-zinc-900 dark:text-amber-400">
                     👑 {r.tag}
                   </span>
 
-                  {/* Heart on top right */}
                   <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-muted-foreground hover:text-rose-500 transition-colors shadow-xs dark:bg-zinc-900/80">
                     <Heart className="w-4 h-4" />
                   </button>
                 </Link>
 
-                {/* Details */}
                 <div className="p-4">
                   <div className="flex justify-between items-start gap-2">
                     <h3 className="font-display font-bold text-base text-foreground leading-snug line-clamp-1 hover:text-primary transition-colors">
@@ -281,7 +444,6 @@ function Landing() {
                 </div>
               </div>
 
-              {/* Special green offer badge at the bottom */}
               <div className="px-4 pb-4">
                 <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-extrabold py-2 px-3 rounded-lg flex items-center justify-between">
                   <span>{r.deal}</span>
@@ -289,173 +451,6 @@ function Landing() {
               </div>
 
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* SECTION: Dubai-Eat Recommends - TheFork screenshot styled */}
-      <section className="max-w-7xl mx-auto px-6 py-16 border-t border-border/60">
-        <div className="mb-10">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-            Dubai-Eat recommends
-          </h2>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-3">
-          
-          {/* Card 1: Best deals in town */}
-          <div className="bg-emerald-400/90 dark:bg-emerald-950/65 border border-emerald-500/20 rounded-2xl p-6 flex flex-col justify-between min-h-[250px] relative overflow-hidden group">
-            <div className="absolute right-0 bottom-0 w-36 h-36 opacity-35 group-hover:scale-105 transition-transform duration-500">
-              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300" alt="Best deals bowl" className="w-full h-full object-cover rounded-full" />
-            </div>
-            <div className="relative z-10 max-w-[70%]">
-              <h3 className="font-display font-bold text-2xl text-emerald-950 dark:text-white leading-tight">Best deals in town</h3>
-              <p className="text-emerald-900/90 dark:text-emerald-100/90 text-xs mt-3 leading-relaxed">Book a table with us and benefit from our unheard of deals.</p>
-            </div>
-            <button
-              onClick={() => {
-                navigate({ to: "/restaurants", search: { type: "restaurant" } });
-              }}
-              className="self-start text-[10px] font-bold tracking-wider text-emerald-950 dark:text-emerald-400 hover:underline flex items-center gap-1 mt-6 relative z-10"
-            >
-              SEE OFFERS <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Card 2: New on Dubai-Eat */}
-          <div className="bg-orange-50 dark:bg-zinc-900 border border-border rounded-2xl p-6 flex flex-col justify-between min-h-[250px] relative overflow-hidden group">
-            <div className="absolute right-0 bottom-0 w-36 h-36 opacity-35 group-hover:scale-105 transition-transform duration-500">
-              <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300" alt="Hotspot burger" className="w-full h-full object-cover rounded-full" />
-            </div>
-            <div className="relative z-10 max-w-[70%]">
-              <h3 className="font-display font-bold text-2xl text-foreground leading-tight">New on Dubai-Eat</h3>
-              <p className="text-muted-foreground text-xs mt-3 leading-relaxed">Check out our latest additions and book a table at the newest hotspots in your city!</p>
-            </div>
-            <button
-              onClick={() => {
-                navigate({ to: "/restaurants" });
-              }}
-              className="self-start text-[10px] font-bold tracking-wider text-primary hover:underline flex items-center gap-1 mt-6 relative z-10"
-            >
-              SEE RESTAURANTS <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Card 3: Insider */}
-          <div className="bg-pink-500/10 dark:bg-pink-950/45 border border-pink-500/20 rounded-2xl p-6 flex flex-col justify-between min-h-[250px] relative overflow-hidden group">
-            <div className="absolute right-0 bottom-0 w-36 h-36 opacity-35 group-hover:scale-105 transition-transform duration-500">
-              <img src="https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=300" alt="Insider pasta" className="w-full h-full object-cover rounded-full" />
-            </div>
-            <div className="relative z-10 max-w-[70%]">
-              <h3 className="font-display font-bold text-2xl text-pink-700 dark:text-pink-300 leading-tight">Insider Selection</h3>
-              <p className="text-pink-900/90 dark:text-pink-100/90 text-xs mt-3 leading-relaxed">We have selected for you the trendiest and gourmet restaurants among our best rated places.</p>
-            </div>
-            <button
-              onClick={() => {
-                navigate({ to: "/restaurants", search: { vibe: "michelin" } });
-              }}
-              className="self-start text-[10px] font-bold tracking-wider text-pink-700 dark:text-pink-400 hover:underline flex items-center gap-1 mt-6 relative z-10"
-            >
-              SEE RESTAURANTS <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-        </div>
-      </section>
-
-      {/* FEATURED RESTAURANTS SLIDER */}
-      <section id="featured" className="border-t border-border bg-secondary/20 py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Trending now</p>
-              <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground leading-tight max-w-xl">
-                Featured Dubai Hotspots
-              </h2>
-            </div>
-            <Link to="/restaurants" className="hidden md:inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
-              Browse all 50 eateries →
-            </Link>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            {featured.map((r, i) => (
-              <Link 
-                key={r.name} 
-                to="/restaurants/$id" 
-                params={{ id: r.slug || "" }} 
-                className="group relative overflow-hidden rounded-3xl bg-card border border-border aspect-[4/5] shadow-sm hover:shadow-md transition-all block"
-              >
-                <div className="absolute inset-0">
-                  <img src={r.image} alt={r.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                <div className="absolute inset-0 p-6 flex flex-col justify-end text-white text-left">
-                  <div className="flex items-center gap-1.5">
-                    {r.michelin && (
-                      <span className="bg-amber-500 text-white font-bold text-[9px] px-1.5 py-0.5 rounded-sm uppercase tracking-wide">
-                        ★ Michelin
-                      </span>
-                    )}
-                    <span className="text-xs uppercase tracking-widest opacity-80">{r.cuisine}</span>
-                  </div>
-                  <h3 className="font-display text-3xl font-semibold mt-1.5">{r.name}</h3>
-                  <div className="mt-2 flex items-center gap-2 text-sm">
-                    <span className="font-bold">{r.rating.toFixed(1)} ★</span>
-                    <span className="opacity-70">({r.reviews})</span>
-                    <span className="opacity-70">· {r.area}</span>
-                  </div>
-                  <div className="text-sm opacity-90 mt-1.5 font-semibold">AED {r.priceMin}–{r.priceMax}</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* EXPLORE NEIGHBORHOODS - Visit Dubai Style */}
-      <section className="max-w-7xl mx-auto px-6 py-24">
-        <div className="text-center md:text-left mb-12">
-          <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Dubai neighborhood guide</p>
-          <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground max-w-xl leading-tight">
-            Explore eateries by district
-          </h2>
-          <p className="text-muted-foreground mt-2 text-sm max-w-lg">From the financial hub of DIFC to the beachside vibes of Palm Jumeirah.</p>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-4">
-          {[
-            { name: "DIFC", desc: "Corporate lunch spots, upscale lounges, and high-end fine dining.", count: "12 Venues", img: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=400" },
-            { name: "Palm Jumeirah", desc: "Seaside views, beachfront cafes, and legendary luxury beach clubs.", count: "9 Venues", img: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400" },
-            { name: "Downtown Dubai", desc: "Burj view terraces, tourist hotspots, and elegant lounges.", count: "10 Venues", img: "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=400" },
-            { name: "Jumeirah", desc: "Casual beachfront bistros, local coffee roasters, and family bistros.", count: "8 Venues", img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=400" },
-          ].map((n) => (
-            <button
-              key={n.name}
-              onClick={() => {
-                navigate({
-                  to: "/restaurants",
-                  search: { area: n.name }
-                });
-              }}
-              className="group relative overflow-hidden rounded-2xl aspect-[4/3] border border-border text-left transition-all hover:shadow-lg"
-            >
-              <img 
-                src={n.img} 
-                alt={n.name} 
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-              />
-              <div className="absolute inset-0 bg-black/60 group-hover:bg-black/55 transition-colors" />
-              <div className="absolute inset-0 p-5 flex flex-col justify-between text-white">
-                <span className="text-[10px] font-bold bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full self-start">
-                  {n.count}
-                </span>
-                <div>
-                  <h3 className="font-display font-bold text-lg">{n.name}</h3>
-                  <p className="text-[10px] text-white/80 mt-1 line-clamp-2 leading-relaxed">{n.desc}</p>
-                </div>
-              </div>
-            </button>
           ))}
         </div>
       </section>
