@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import heroImage from "@/assets/hero-dubai.png";
+import gourmetPastaPlate from "@/assets/gourmet-pasta-plate.png";
 import { enrichedRestaurants } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import { 
   Sparkles, 
   Search, 
+  MapPin,
   Heart, 
   ChevronRight, 
   Building2, 
@@ -41,7 +42,6 @@ function Landing() {
   const navigate = useNavigate();
 
   // Search form state
-  const [searchType, setSearchType] = useState<string>("All");
   const [searchArea, setSearchArea] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -61,7 +61,6 @@ function Landing() {
     navigate({
       to: "/restaurants",
       search: {
-        type: searchType === "All" ? undefined : searchType,
         area: searchArea === "All" ? undefined : searchArea,
         q: searchQuery || undefined,
       }
@@ -106,108 +105,85 @@ function Landing() {
         onClose={() => setIsRandomizerOpen(false)}
       />
 
-      {/* HERO SECTION */}
-      <section className="relative min-h-[90vh] overflow-hidden flex items-center pt-24 pb-16">
-        <img 
-          src={heroImage} 
-          alt="Dubai skyline at sunset with fine dining" 
-          className="absolute inset-0 w-full h-full object-cover" 
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/40 to-background" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-center md:text-left">
-          <div className="max-w-4xl">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20 backdrop-blur-md text-primary-foreground text-xs font-bold border border-primary/30 uppercase tracking-widest mb-6">
-              <Sparkles className="w-3.5 h-3.5" /> B2B Hospitality SaaS & Dining Intelligence
-            </span>
-            <h1 className="font-display text-5xl sm:text-7xl md:text-8xl font-semibold text-white leading-[0.95] tracking-tight">
-              Where are we eating? <br />
-              <span className="italic text-primary">Let’s Dubai-it.</span>
+      {/* HERO SECTION — Clean Emerald TheFork Style Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-8">
+        <div className="bg-[#005743] rounded-3xl p-6 sm:p-10 md:p-14 lg:p-16 relative overflow-hidden text-white shadow-2xl min-h-[380px] sm:min-h-[440px] flex items-center">
+          
+          {/* Main Hero Content */}
+          <div className="relative z-10 max-w-2xl w-full">
+            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white leading-[1.08] tracking-tight mb-8">
+              Discover and book the best restaurant
             </h1>
-            <p className="mt-6 text-base sm:text-xl text-white/90 max-w-xl leading-relaxed">
-              Explore 50 of Dubai's finest dining destinations. 100% Unbiased Organic Rankings, Esaad & Fazaa Privilege Filters, and Transparent Google-Style Venue Ads.
-            </p>
-          </div>
 
-          {/* Dynamic Horizontal Search Panel */}
-          <div className="mt-12 max-w-4xl bg-card/85 backdrop-blur-md border border-border p-5 rounded-3xl shadow-2xl">
-            <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+            {/* Pill Search Box */}
+            <form onSubmit={handleSearchSubmit} className="bg-white rounded-2xl sm:rounded-2xl p-2 sm:p-2.5 shadow-2xl flex flex-col md:flex-row items-center gap-2 border border-white/20">
               
-              {/* Eatery Type select */}
-              <div className="md:col-span-3 relative">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Eatery Scope</label>
-                <select
-                  value={searchType}
-                  onChange={(e) => setSearchType(e.target.value)}
-                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
-                >
-                  <option value="All">All Scope & Venues</option>
-                  <option value="restaurant">🍽️ Restaurants</option>
-                  <option value="cafe">☕ Cafes & Bakeries</option>
-                  <option value="bar">🍸 Bars & Lounges</option>
-                  <option value="nightclub">🕺 Nightclubs</option>
-                  <option value="beach_club">🏖️ Beach Clubs</option>
-                  <option value="private_chef">👨‍🍳 Private Chefs</option>
-                </select>
-              </div>
-
-              {/* Area select */}
-              <div className="md:col-span-3 relative">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">District / Area</label>
+              {/* Field 1: Location / District */}
+              <div className="flex items-center gap-2 px-3 py-2 w-full md:w-56 text-zinc-900 border-b md:border-b-0 md:border-r border-zinc-200 shrink-0">
+                <MapPin className="w-5 h-5 text-zinc-600 shrink-0" />
                 <select
                   value={searchArea}
                   onChange={(e) => setSearchArea(e.target.value)}
-                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
+                  className="w-full bg-transparent text-sm font-extrabold outline-none cursor-pointer text-zinc-900 truncate"
                 >
-                  <option value="All">All Dubai Districts</option>
+                  <option value="All">Dubai</option>
                   {areas.map((a) => (
                     <option key={a} value={a}>{a}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Keyword query */}
-              <div className="md:col-span-4 relative">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 text-left px-1">Cuisine or Privileges</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search e.g. sushi, Esaad, Fazaa..."
-                    className="w-full bg-background border border-border rounded-xl pl-9 pr-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
-                  />
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                </div>
+              {/* Field 2: Cuisine or restaurant name */}
+              <div className="flex items-center gap-2 px-3 py-2 flex-1 w-full text-zinc-900">
+                <Search className="w-5 h-5 text-zinc-400 shrink-0" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cuisine, restaurant name..."
+                  className="w-full bg-transparent text-sm font-medium text-zinc-900 placeholder:text-zinc-400 outline-none"
+                />
               </div>
 
-              {/* CTA Search Button */}
-              <div className="md:col-span-2 pt-5">
-                <button
-                  type="submit"
-                  className="w-full bg-primary text-primary-foreground font-bold text-xs py-3 rounded-xl hover:opacity-90 transition-opacity shadow-sm flex items-center justify-center gap-1.5"
-                >
-                  Let's Dubai-Eat
-                </button>
-              </div>
-
+              {/* SEARCH Button */}
+              <button
+                type="submit"
+                className="w-full md:w-auto bg-[#005743] hover:bg-[#004535] text-white font-black text-xs uppercase tracking-widest px-8 py-3.5 sm:py-4 rounded-xl transition-all shadow-md shrink-0 flex items-center justify-center gap-2"
+              >
+                SEARCH
+              </button>
             </form>
+
+            {/* Subtext badges */}
+            <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-white/80">
+              <span className="inline-flex items-center gap-1 font-bold text-amber-300">
+                <Sparkles className="w-3.5 h-3.5 fill-amber-300" /> 100% Verified Menus & Live Discounts
+              </span>
+              <span>·</span>
+              <button
+                type="button"
+                onClick={() => setIsRandomizerOpen(true)}
+                className="font-bold underline hover:text-white transition-colors"
+              >
+                Can't decide? Try Randomizer
+              </button>
+            </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-2">
-            <button
-              onClick={() => setIsRandomizerOpen(true)}
-              className="text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 px-4.5 py-2 rounded-full shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 fill-white text-white" /> Can't Decide? Let’s Dubai-it!
-            </button>
+          {/* Right Floating Gourmet Food Dish Peeking on Right Edge */}
+          <div className="absolute -right-16 sm:-right-10 top-1/2 -translate-y-1/2 hidden md:block w-[380px] lg:w-[480px] h-[380px] lg:h-[480px] pointer-events-none z-0">
+            <img 
+              src={gourmetPastaPlate} 
+              alt="Gourmet pasta dish plate" 
+              className="w-full h-full object-contain drop-shadow-2xl scale-110 translate-x-6"
+            />
           </div>
 
         </div>
       </section>
 
       {/* ── HOMEPAGE SPONSORED PRODUCTS / FEATURED PARTNERS SECTION ── */}
-      <section className="max-w-7xl mx-auto px-6 py-12">
+      <section className="max-w-7xl mx-auto px-6 py-10">
         <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 border border-amber-500/30 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-amber-500/20 pb-6 mb-6">
             <div>
