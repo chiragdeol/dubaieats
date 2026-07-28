@@ -1,4 +1,5 @@
 import { restaurants as rawRestaurants, Restaurant } from "../data/restaurants";
+import { resolveDistrict } from "./dubai-districts";
 
 export function getRestaurantSlug(name: string): string {
   return name
@@ -140,6 +141,7 @@ export const enrichedRestaurants: (Restaurant & { slug: string })[] = rawRestaur
     deliveryLinks,
     barType,
     eateryType,
-    slug: getRestaurantSlug(r.name)
+    slug: getRestaurantSlug(r.name),
+    district: resolveDistrict(r.area),
   };
 });

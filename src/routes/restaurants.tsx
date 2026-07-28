@@ -8,6 +8,7 @@ import { SponsoredDirectionsModal } from "@/components/sponsored-directions-moda
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { OwnerCta } from "@/components/owner-cta";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
+import { DUBAI_DISTRICTS, DUBAI_ZONES } from "@/lib/dubai-districts";
 import { 
   Phone, 
   MapPin, 
@@ -267,11 +268,12 @@ function Index() {
   const [selectedDirectionsRestaurant, setSelectedDirectionsRestaurant] = useState<Restaurant | null>(null);
   const [isRandomizerOpen, setIsRandomizerOpen] = useState<boolean>(false);
 
-  // Dynamic filter lists
-  const areas = useMemo(() => {
-    const set = new Set<string>();
-    enrichedRestaurants.forEach((r) => set.add(r.area));
-    return Array.from(set).sort();
+  // Districts — grouped by zone for dropdown
+  const districtsByZone = useMemo(() => {
+    return DUBAI_ZONES.map(zone => ({
+      zone,
+      districts: DUBAI_DISTRICTS.filter(d => d.zone === zone).map(d => d.name),
+    }));
   }, []);
 
   const cuisines = useMemo(() => {
@@ -307,7 +309,7 @@ function Index() {
         return false;
 
       if (selectedType !== "All" && r.eateryType !== selectedType.toLowerCase()) return false;
-      if (selectedArea !== "All" && r.area !== selectedArea) return false;
+      if (selectedArea !== "All" && r.district !== selectedArea) return false;
       if (selectedCuisine !== "All" && r.cuisine !== selectedCuisine) return false;
 
       if (selectedVibe !== "All") {
@@ -416,9 +418,8 @@ function Index() {
                 </select>
               </div>
 
-              {/* 2. Neighborhood */}
               <div className="text-left">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Neighborhood</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">District / Area</label>
                 <select
                   value={selectedArea}
                   onChange={(e) => {
@@ -427,9 +428,13 @@ function Index() {
                   }}
                   className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
                 >
-                  <option value="All">All Areas</option>
-                  {areas.map((a) => (
-                    <option key={a} value={a}>{a}</option>
+                  <option value="All">All Dubai Districts</option>
+                  {districtsByZone.map(({ zone, districts }) => (
+                    <optgroup key={zone} label={`── ${zone}`}>
+                      {districts.map(d => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>

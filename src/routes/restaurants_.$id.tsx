@@ -291,7 +291,7 @@ function RestaurantDetail() {
   const relatedRestaurants = useMemo(() => {
     if (!r) return [];
     return enrichedRestaurants
-      .filter((item) => item.slug !== r.slug && item.area === r.area)
+      .filter((item) => item.slug !== r.slug && item.district === r.district)
       .slice(0, 4);
   }, [r]);
 
