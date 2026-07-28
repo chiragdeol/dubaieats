@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { type Restaurant } from "@/data/restaurants";
 import { enrichedRestaurants } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
@@ -9,6 +9,7 @@ import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { OwnerCta } from "@/components/owner-cta";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import { DUBAI_DISTRICTS, DUBAI_ZONES } from "@/lib/dubai-districts";
+import { parseIntent, matchRestaurants, hasGemini, callGemini, type ChatMessage } from "@/lib/restaurant-ai";
 import { 
   Phone, 
   MapPin, 
@@ -268,6 +269,49 @@ function Index() {
   const [selectedDirectionsRestaurant, setSelectedDirectionsRestaurant] = useState<Restaurant | null>(null);
   const [isRandomizerOpen, setIsRandomizerOpen] = useState<boolean>(false);
 
+  // ── AI Filter state ──
+  const [aiQuery, setAiQuery] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiActiveIds, setAiActiveIds] = useState<string[] | null>(null); // null = AI not active
+  const [aiReplyText, setAiReplyText] = useState("");
+  const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const runAiFilter = async (q: string) => {
+    if (!q.trim()) { setAiActiveIds(null); setAiReplyText(""); return; }
+    setAiLoading(true);
+    try {
+      if (hasGemini) {
+        const history: ChatMessage[] = [{ role: "user", text: q }];
+        const { matchedIds, reply } = await callGemini(history);
+        setAiActiveIds(matchedIds.length > 0 ? matchedIds : []);
+        setAiReplyText(reply.replace(/\*\*/g, "").split("\n")[0]);
+      } else {
+        const intent = parseIntent(q);
+        const matched = matchRestaurants(intent, 25);
+        setAiActiveIds(matched.map(r => r.slug || ""));
+        const parts: string[] = [];
+        if (intent.cuisines.length) parts.push(intent.cuisines.join(" & "));
+        if (intent.districts.length) parts.push(`in ${intent.districts.join(", ")}`);
+        if (intent.maxPrice) parts.push(`under AED ${intent.maxPrice}`);
+        setAiReplyText(
+          matched.length > 0
+            ? `Showing ${matched.length} result${matched.length > 1 ? "s" : ""}${parts.length ? " for " + parts.join(" ") : ""}`
+            : "No exact match — try a different query"
+        );
+      }
+    } catch { setAiActiveIds(null); }
+    finally { setAiLoading(false); }
+  };
+
+  const handleAiInput = (val: string) => {
+    setAiQuery(val);
+    if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current);
+    if (!val.trim()) { setAiActiveIds(null); setAiReplyText(""); return; }
+    aiDebounceRef.current = setTimeout(() => runAiFilter(val), 650);
+  };
+
+  const clearAiFilter = () => { setAiQuery(""); setAiActiveIds(null); setAiReplyText(""); };
+
   // Districts — grouped by zone for dropdown
   const districtsByZone = useMemo(() => {
     return DUBAI_ZONES.map(zone => ({
@@ -294,36 +338,38 @@ function Index() {
   };
 
   const filteredAndSorted = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    
-    // Filter
-    let list = enrichedRestaurants.filter((r) => {
-      if (
-        q &&
-        !(
-          r.name.toLowerCase().includes(q) ||
-          r.cuisine.toLowerCase().includes(q) ||
-          r.area.toLowerCase().includes(q)
-        )
-      )
-        return false;
+    // When AI filter is active, use its matched IDs as the base list
+    let list = aiActiveIds !== null
+      ? enrichedRestaurants.filter(r => aiActiveIds.includes(r.slug || ""))
+      : (() => {
+          const q = query.trim().toLowerCase();
+          return enrichedRestaurants.filter((r) => {
+            if (
+              q &&
+              !(
+                r.name.toLowerCase().includes(q) ||
+                r.cuisine.toLowerCase().includes(q) ||
+                r.area.toLowerCase().includes(q)
+              )
+            )
+              return false;
 
-      if (selectedType !== "All" && r.eateryType !== selectedType.toLowerCase()) return false;
-      if (selectedArea !== "All" && r.district !== selectedArea) return false;
-      if (selectedCuisine !== "All" && r.cuisine !== selectedCuisine) return false;
+            if (selectedType !== "All" && r.eateryType !== selectedType.toLowerCase()) return false;
+            if (selectedArea !== "All" && r.district !== selectedArea) return false;
+            if (selectedCuisine !== "All" && r.cuisine !== selectedCuisine) return false;
 
-      if (selectedVibe !== "All") {
-        if (selectedVibe === "michelin" && !r.michelin) return false;
-        if (selectedVibe === "Burj View" && !r.seatingPerks?.includes("Burj View")) return false;
-        if (selectedVibe === "Beachfront" && !r.seatingPerks?.includes("Beachfront")) return false;
-        if (selectedVibe === "AC Terrace" && !r.seatingPerks?.includes("AC Terrace")) return false;
-        if (selectedVibe === "Business Lunch" && !r.occasions?.includes("Business Lunch")) return false;
-        if (selectedVibe === "Sunday Brunch" && !r.occasions?.includes("Sunday Brunch")) return false;
-        if (selectedVibe === "Kid Friendly" && !r.occasions?.includes("Kid Friendly")) return false;
-      }
-
-      return true;
-    });
+            if (selectedVibe !== "All") {
+              if (selectedVibe === "michelin" && !r.michelin) return false;
+              if (selectedVibe === "Burj View" && !r.seatingPerks?.includes("Burj View")) return false;
+              if (selectedVibe === "Beachfront" && !r.seatingPerks?.includes("Beachfront")) return false;
+              if (selectedVibe === "AC Terrace" && !r.seatingPerks?.includes("AC Terrace")) return false;
+              if (selectedVibe === "Business Lunch" && !r.occasions?.includes("Business Lunch")) return false;
+              if (selectedVibe === "Sunday Brunch" && !r.occasions?.includes("Sunday Brunch")) return false;
+              if (selectedVibe === "Kid Friendly" && !r.occasions?.includes("Kid Friendly")) return false;
+            }
+            return true;
+          });
+        })();
 
     // Sort
     if (sortBy === "rating-desc") {
@@ -338,7 +384,8 @@ function Index() {
     }
 
     return list;
-  }, [query, selectedType, selectedArea, selectedCuisine, selectedVibe, sortBy]);
+  }, [query, selectedType, selectedArea, selectedCuisine, selectedVibe, sortBy, aiActiveIds]);
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between">
@@ -380,8 +427,107 @@ function Index() {
             </button>
           </div>
 
+          {/* ── AI Gemini Filter Bar ── */}
+          <div
+            className="rounded-3xl border p-5 mb-5 relative overflow-hidden transition-all"
+            style={{
+              background: aiActiveIds !== null
+                ? "linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(234,88,12,0.08) 60%, rgba(190,24,93,0.06) 100%)"
+                : "linear-gradient(135deg, rgba(251,191,36,0.04) 0%, rgba(234,88,12,0.04) 60%, rgba(190,24,93,0.03) 100%)",
+              borderColor: aiActiveIds !== null ? "rgba(251,191,36,0.45)" : "rgba(251,191,36,0.18)",
+              boxShadow: aiActiveIds !== null ? "0 0 0 3px rgba(251,191,36,0.08)" : undefined,
+            }}
+          >
+            {/* Label row */}
+            <div className="flex items-center gap-2.5 mb-3">
+              <span className="text-lg leading-none">✨</span>
+              <span className="text-xs font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+                AI Filter
+              </span>
+              {hasGemini ? (
+                <span className="text-[10px] font-bold bg-amber-400/15 text-amber-600 dark:text-amber-300 border border-amber-400/25 px-2 py-0.5 rounded-full">
+                  Gemini
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full">
+                  Smart
+                </span>
+              )}
+              {aiActiveIds !== null && (
+                <button
+                  onClick={clearAiFilter}
+                  className="ml-auto flex items-center gap-1 text-[11px] font-bold text-muted-foreground hover:text-foreground border border-border rounded-full px-3 py-1.5 transition-colors hover:border-primary/30"
+                >
+                  ✕ Clear AI filter
+                </button>
+              )}
+            </div>
+
+            {/* Input */}
+            <div className="relative">
+              <input
+                value={aiQuery}
+                onChange={e => handleAiInput(e.target.value)}
+                placeholder={hasGemini
+                  ? "Ask Gemini — e.g. \"Best sushi in Marina under AED 200 with alcohol\""
+                  : "Describe what you want — e.g. \"Japanese food near JBR with a Burj view\""
+                }
+                className="w-full bg-background border rounded-2xl pl-11 pr-12 py-3.5 text-sm font-medium outline-none transition-all text-foreground placeholder:text-muted-foreground"
+                style={{
+                  borderColor: aiQuery ? "rgba(251,191,36,0.55)" : undefined,
+                  boxShadow: aiQuery ? "0 0 0 3px rgba(251,191,36,0.1)" : undefined,
+                }}
+              />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">🔍</span>
+              {/* Loading dots */}
+              {aiLoading && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-1">
+                  {[0,1,2].map(i => (
+                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* AI reply / result count badge */}
+            {aiReplyText && (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-sm">🤖</span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {aiReplyText}
+                  {aiActiveIds !== null && aiActiveIds.length > 0 && (
+                    <span className="ml-2 font-extrabold text-amber-600 dark:text-amber-400">
+                      · {aiActiveIds.length} restaurant{aiActiveIds.length > 1 ? "s" : ""} found
+                    </span>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {/* Hint chips */}
+            {!aiQuery && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {[
+                  "Sushi in Dubai Marina 🍣",
+                  "Burj Khalifa view 🏙️",
+                  "Lebanese under AED 100 💰",
+                  "Michelin restaurants ⭐",
+                  "Delivery near JVC 🛵",
+                ].map(hint => (
+                  <button
+                    key={hint}
+                    onClick={() => handleAiInput(hint)}
+                    className="text-[11px] font-semibold px-3 py-1.5 rounded-full border border-amber-400/20 text-amber-700 dark:text-amber-400 hover:bg-amber-400/10 hover:border-amber-400/40 transition-all"
+                  >
+                    {hint}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Top Level Horizontal Filters Bar */}
-          <div className="bg-card border border-border/80 p-5 rounded-3xl shadow-sm mb-8 space-y-4">
+          <div className={`bg-card border border-border/80 p-5 rounded-3xl shadow-sm mb-8 space-y-4 transition-opacity duration-200 ${aiActiveIds !== null ? "opacity-35 pointer-events-none select-none" : "opacity-100"}`}>
             
             {/* Row 1: Search text input */}
             <div className="relative w-full">
