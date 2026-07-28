@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState, useRef } from "react";
-import { type Restaurant } from "@/data/restaurants";
-import { enrichedRestaurants } from "../lib/restaurants-enriched";
+import { enrichedRestaurants, type EnrichedRestaurant, type PrivilegeCategory } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SponsoredDirectionsModal } from "@/components/sponsored-directions-modal";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
+import { DepositModal } from "@/components/deposit-modal";
 import { OwnerCta } from "@/components/owner-cta";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import { DUBAI_DISTRICTS, DUBAI_ZONES } from "@/lib/dubai-districts";
@@ -21,7 +21,12 @@ import {
   Calendar,
   Sparkles,
   UtensilsCrossed,
-  MessageSquare
+  MessageSquare,
+  BadgePercent,
+  ShieldCheck,
+  Building2,
+  TrendingUp,
+  ExternalLink
 } from "lucide-react";
 
 type RestaurantsSearch = {
@@ -29,6 +34,7 @@ type RestaurantsSearch = {
   cuisine?: string;
   area?: string;
   vibe?: string;
+  discount?: string;
   q?: string;
 };
 
@@ -39,6 +45,7 @@ export const Route = createFileRoute("/restaurants")({
       cuisine: (search.cuisine as string) || undefined,
       area: (search.area as string) || undefined,
       vibe: (search.vibe as string) || undefined,
+      discount: (search.discount as string) || undefined,
       q: (search.q as string) || undefined,
     };
   },
@@ -53,99 +60,86 @@ function shareUrl(name: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " Dubai")}`;
 }
 
-const barTypeLabels: Record<string, string> = {
-  "rooftop-skyline": "🏙️ Rooftop & Skyline Lounge",
-  "beach-waterfront": "🏖️ Beach Club & Waterfront",
-  "speakeasy": "🕵️ Speakeasy & Hidden Bar",
-  "skypool": "🏊 Skypool & Infinity Pool Bar",
-  "jazz-live-music": "🎷 Jazz & Live Music Bar",
-  "dinner-show": "💃 Dinner Show & Cabaret",
-  "hifi-listening": "📻 Hi-Fi & Vinyl Listening Bar",
-  "activity-arcade": "👾 Activity & Arcade Bar",
-  "karaoke": "🎤 Karaoke Room",
-  "cocktail-mixology": "🍸 Cocktail & Mixology",
-  "cigar-whisky": "🥃 Cigar & Whisky Lounge",
-  "shisha-hookah": "💨 Shisha Lounge",
-  "wine-tapas": "🍷 Wine & Tapas",
-  "izakaya-sake": "🍶 Izakaya & Sake Bar",
-  "sports-bar": "⚽ Sports Bar",
-  "pubs": "🍺 British & Irish Pub",
-  "gastropub": "🍽️ Gastropub",
-  "hotel-lobby": "🛋️ Hotel Lounge"
-};
-
-function getSecondImage(name: string): string {
-  const foodImages = [
-    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500",
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
-    "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=500",
-    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500",
-    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500",
-    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500",
-    "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=500",
-    "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=500",
-    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500",
-    "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=500",
-  ];
-  const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return foodImages[hash % foodImages.length];
-}
-
-function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r: Restaurant) => void }) {
-  const secondaryImg = getSecondImage(r.name);
+function GmbCard({
+  r,
+  onOpenDirections,
+  onOpenDeposit
+}: {
+  r: EnrichedRestaurant;
+  onOpenDirections: (r: EnrichedRestaurant) => void;
+  onOpenDeposit: (r: EnrichedRestaurant) => void;
+}) {
+  const [bookmarked, setBookmarked] = useState(false);
   const liveStatus = isCurrentlyOpenInDubai(r.hours);
-  const cleanPhone = r.phone.replace(/[^0-9]/g, "");
-  const whatsappUrl = `https://wa.me/${cleanPhone}?text=Hi!%20I'd%20like%20to%20check%20table%20availability%20for%20${encodeURIComponent(r.name)}%20via%20Dubai-Eat.`;
+
+  const whatsappMessage = `Hi ${r.name}, I found your venue on Dubai Eats Explorer. I'd like to ask about table availability and current offers.`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: r.name,
-        text: `Check out ${r.name} in Dubai!`,
-        url: r.website,
+        title: `${r.name} - Dubai Eats Explorer`,
+        text: `Check out ${r.name} in ${r.area} on Dubai Eats Explorer!`,
+        url: window.location.origin + `/restaurants/${r.slug}`,
       }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(shareUrl(r.name));
+      navigator.clipboard.writeText(window.location.origin + `/restaurants/${r.slug}`);
       alert("Link copied to clipboard!");
     }
   };
 
   return (
-    <article className="bg-card border border-border/85 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between text-left relative group">
+    <article className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group relative text-left">
+      
+      {/* Top Banner Image with badges */}
       <div>
-        {/* Card header image block */}
-        <Link to="/restaurants/$id" params={{ id: r.slug || "" }} className="relative aspect-[16/10] w-full overflow-hidden shrink-0 bg-secondary block">
-          <img 
-            src={r.image} 
-            alt={r.name} 
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" 
+        <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+          <img
+            src={r.image}
+            alt={r.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
           
-          {/* Overlay badges */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-            {r.michelin && (
-              <span className="bg-rose-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-0.5 shadow-sm">
-                ★ Michelin
+          {/* Top badges */}
+          <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+            <div className="flex flex-wrap gap-1">
+              {r.isSponsored && (
+                <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-md">
+                  [SPONSORED]
+                </span>
+              )}
+              {r.michelin && (
+                <span className="bg-rose-600 text-white font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-md flex items-center gap-0.5">
+                  <Star className="w-2.5 h-2.5 fill-white" /> Michelin Guide
+                </span>
+              )}
+              <span className="bg-black/60 backdrop-blur-xs text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full">
+                AED {r.priceMin}–{r.priceMax}
               </span>
-            )}
-            {r.barType && (
-              <span className="bg-purple-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
-                🍸 Bar/Vibe
-              </span>
-            )}
+            </div>
+
+            <button 
+              onClick={() => setBookmarked(!bookmarked)}
+              className="p-2 rounded-full bg-black/40 backdrop-blur-xs text-white hover:bg-black/60 transition-colors"
+              aria-label="Bookmark"
+            >
+              <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? "fill-amber-400 text-amber-400" : ""}`} />
+            </button>
           </div>
 
-          <div className="absolute bottom-3 right-3 text-white text-xs font-bold drop-shadow-md">
-            AED {r.priceMin}–{r.priceMax}
+          {/* Bottom Overlay Info */}
+          <div className="absolute bottom-3 left-3 right-3 text-white">
+            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-300">
+              <MapPin className="w-3 h-3 text-amber-400" /> {r.district}
+            </div>
           </div>
-        </Link>
+        </div>
 
+        {/* Content Body */}
         <div className="p-5">
-          {/* Title */}
-          <h2 className="font-sans text-lg font-bold text-foreground leading-snug tracking-tight hover:text-primary transition-colors">
-            <Link to="/restaurants/$id" params={{ id: r.slug || "" }}>
+          <h2 className="font-display text-lg font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
+            <Link to="/restaurants/$id" params={{ id: r.slug }}>
               {r.name}
             </Link>
           </h2>
@@ -171,7 +165,6 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
             </a>
           </div>
 
-          {/* Logistics & Area */}
           <p className="text-xs text-muted-foreground mt-1">
             {r.cuisine} · {r.area}
           </p>
@@ -186,8 +179,22 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
             <span className="text-muted-foreground font-medium">{r.hours}</span>
           </div>
 
+          {/* Accepted Privilege Cards */}
+          {r.discounts && r.discounts.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-3">
+              {r.discounts.slice(0, 3).map((disc) => (
+                <span key={disc} className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                  💳 {disc}
+                </span>
+              ))}
+              {r.discounts.length > 3 && (
+                <span className="text-[9px] font-bold text-muted-foreground">+{r.discounts.length - 3} more</span>
+              )}
+            </div>
+          )}
+
           {/* Perks Tags list */}
-          <div className="flex flex-wrap gap-1 mt-3.5">
+          <div className="flex flex-wrap gap-1 mt-2">
             {r.liquor === "Licensed" && (
               <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/15">
                 🍷 Licensed
@@ -198,19 +205,14 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
                 {perk === "Burj View" ? "🏙️" : perk === "Beachfront" ? "🏖️" : "🪑"} {perk}
               </span>
             ))}
-            {r.logistics?.includes("Complimentary Valet") && (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/15">
-                🚗 Free Valet
-              </span>
-            )}
           </div>
         </div>
       </div>
 
       {/* Button controls */}
-      <div className="px-5 pb-5 shrink-0 border-t border-border/50 pt-4 space-y-2.5 bg-secondary/10">
+      <div className="px-5 pb-5 shrink-0 border-t border-border/50 pt-4 space-y-2 bg-secondary/10">
         
-        {/* Primary Booking buttons */}
+        {/* Primary Booking & VIP Deposit buttons */}
         <div className="grid grid-cols-2 gap-2">
           <a 
             href={r.bookingPlatform?.url || r.website} 
@@ -222,15 +224,13 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
             <span>Book Table</span>
           </a>
 
-          <a 
-            href={whatsappUrl} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl py-2 flex items-center justify-center gap-1 text-xs font-bold transition-all text-center"
+          <button
+            onClick={() => onOpenDeposit(r)}
+            className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90 rounded-xl py-2 flex items-center justify-center gap-1 text-xs font-extrabold shadow-xs transition-all text-center"
           >
-            <MessageSquare className="h-3.5 w-3.5 text-emerald-500 fill-current" />
-            <span>WhatsApp</span>
-          </a>
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span>VIP Deposit</span>
+          </button>
         </div>
 
         {/* Quick action icons */}
@@ -241,8 +241,8 @@ function GmbCard({ r, onOpenDirections }: { r: Restaurant; onOpenDirections: (r:
           <button onClick={() => onOpenDirections(r)} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
             <MapPin className="w-3.5 h-3.5 text-primary" /> Map
           </button>
-          <a href={r.website} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
-            <Globe className="w-3.5 h-3.5 text-primary" /> Site
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-emerald-500 transition-colors flex items-center gap-1 text-[10px] font-bold">
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-500" /> WhatsApp
           </a>
           <button onClick={handleShare} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
             <Share2 className="w-3.5 h-3.5 text-primary" /> Share
@@ -264,15 +264,17 @@ function Index() {
   const [selectedArea, setSelectedArea] = useState<string>(search.area || "All");
   const [selectedCuisine, setSelectedCuisine] = useState<string>(search.cuisine || "All");
   const [selectedVibe, setSelectedVibe] = useState<string>(search.vibe || "All");
+  const [selectedDiscount, setSelectedDiscount] = useState<string>(search.discount || "All");
   const [sortBy, setSortBy] = useState<string>("rating-desc");
 
-  const [selectedDirectionsRestaurant, setSelectedDirectionsRestaurant] = useState<Restaurant | null>(null);
+  const [selectedDirectionsRestaurant, setSelectedDirectionsRestaurant] = useState<EnrichedRestaurant | null>(null);
+  const [selectedDepositRestaurant, setSelectedDepositRestaurant] = useState<EnrichedRestaurant | null>(null);
   const [isRandomizerOpen, setIsRandomizerOpen] = useState<boolean>(false);
 
   // ── AI Filter state ──
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiActiveIds, setAiActiveIds] = useState<string[] | null>(null); // null = AI not active
+  const [aiActiveIds, setAiActiveIds] = useState<string[] | null>(null);
   const [aiReplyText, setAiReplyText] = useState("");
   const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -337,8 +339,8 @@ function Index() {
     });
   };
 
+  // Organic unbiased filtering logic
   const filteredAndSorted = useMemo(() => {
-    // When AI filter is active, use its matched IDs as the base list
     let list = aiActiveIds !== null
       ? enrichedRestaurants.filter(r => aiActiveIds.includes(r.slug || ""))
       : (() => {
@@ -354,9 +356,13 @@ function Index() {
             )
               return false;
 
-            if (selectedType !== "All" && r.eateryType !== selectedType.toLowerCase()) return false;
+            if (selectedType !== "All" && r.eateryType !== selectedType) return false;
             if (selectedArea !== "All" && r.district !== selectedArea) return false;
             if (selectedCuisine !== "All" && r.cuisine !== selectedCuisine) return false;
+
+            if (selectedDiscount !== "All" && (!r.discounts || !r.discounts.includes(selectedDiscount as any))) {
+              return false;
+            }
 
             if (selectedVibe !== "All") {
               if (selectedVibe === "michelin" && !r.michelin) return false;
@@ -364,14 +370,18 @@ function Index() {
               if (selectedVibe === "Beachfront" && !r.seatingPerks?.includes("Beachfront")) return false;
               if (selectedVibe === "AC Terrace" && !r.seatingPerks?.includes("AC Terrace")) return false;
               if (selectedVibe === "Business Lunch" && !r.occasions?.includes("Business Lunch")) return false;
-              if (selectedVibe === "Sunday Brunch" && !r.occasions?.includes("Sunday Brunch")) return false;
+              if (selectedVibe === "Sunday Brunch" && (!r.lifestyleTags?.includes("Sunday Brunch") && !r.occasions?.includes("Sunday Brunch"))) return false;
+              if (selectedVibe === "Ladies Night" && !r.lifestyleTags?.includes("Ladies Night")) return false;
+              if (selectedVibe === "Shisha" && !r.lifestyleTags?.includes("Shisha")) return false;
+              if (selectedVibe === "Pool Pass" && !r.lifestyleTags?.includes("Pool Pass")) return false;
+              if (selectedVibe === "Ramadan Special" && !r.lifestyleTags?.includes("Ramadan Special")) return false;
               if (selectedVibe === "Kid Friendly" && !r.occasions?.includes("Kid Friendly")) return false;
             }
             return true;
           });
         })();
 
-    // Sort
+    // Pure organic sorting (100% unbiased)
     if (sortBy === "rating-desc") {
       list.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === "reviews-desc") {
@@ -384,8 +394,12 @@ function Index() {
     }
 
     return list;
-  }, [query, selectedType, selectedArea, selectedCuisine, selectedVibe, sortBy, aiActiveIds]);
+  }, [query, selectedType, selectedArea, selectedCuisine, selectedVibe, selectedDiscount, sortBy, aiActiveIds]);
 
+  // Separate Sponsored items for transparent Google-style ad placement
+  const sponsoredVenues = useMemo(() => {
+    return enrichedRestaurants.filter(r => r.isSponsored).slice(0, 1);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between">
@@ -395,6 +409,12 @@ function Index() {
         <SponsoredDirectionsModal
           targetRestaurant={selectedDirectionsRestaurant}
           onClose={() => setSelectedDirectionsRestaurant(null)}
+        />
+
+        <DepositModal
+          restaurant={selectedDepositRestaurant}
+          isOpen={!!selectedDepositRestaurant}
+          onClose={() => setSelectedDepositRestaurant(null)}
         />
 
         <DubaiItRandomizerModal
@@ -412,19 +432,28 @@ function Index() {
                 <Sparkles className="w-3.5 h-3.5" /> Food cravings? Let's Dubai-it.
               </div>
               <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-foreground leading-tight">
-                Eateries & Dining in Dubai
+                Eateries, Venues & Privileges in Dubai
               </h1>
               <p className="text-muted-foreground mt-1 text-sm">
-                Discover verified menus, licensed status, valet, and live reservation platforms.
+                100% Unbiased Organic Search · Verified Menus · Esaad & Fazaa Privileges · DET Dubai Data Sync
               </p>
             </div>
             
-            <button
-              onClick={() => setIsRandomizerOpen(true)}
-              className="bg-amber-500 text-white font-bold text-xs px-5 py-3 rounded-full hover:bg-amber-600 transition-colors shadow-sm flex items-center gap-1.5 self-start"
-            >
-              <Sparkles className="w-4 h-4 fill-white" /> Let’s Dubai-it Randomizer
-            </button>
+            <div className="flex gap-3 self-start">
+              <Link
+                to="/merchant"
+                className="bg-zinc-900 dark:bg-zinc-800 text-white font-extrabold text-xs px-4 py-3 rounded-full hover:bg-zinc-800 transition-colors shadow-sm flex items-center gap-1.5"
+              >
+                <Building2 className="w-4 h-4 text-amber-400" /> Merchant Portal
+              </Link>
+
+              <button
+                onClick={() => setIsRandomizerOpen(true)}
+                className="bg-amber-500 text-white font-bold text-xs px-5 py-3 rounded-full hover:bg-amber-600 transition-colors shadow-sm flex items-center gap-1.5"
+              >
+                <Sparkles className="w-4 h-4 fill-white" /> Let’s Dubai-it Randomizer
+              </button>
+            </div>
           </div>
 
           {/* ── AI Gemini Filter Bar ── */}
@@ -438,19 +467,18 @@ function Index() {
               boxShadow: aiActiveIds !== null ? "0 0 0 3px rgba(251,191,36,0.08)" : undefined,
             }}
           >
-            {/* Label row */}
             <div className="flex items-center gap-2.5 mb-3">
               <span className="text-lg leading-none">✨</span>
               <span className="text-xs font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400">
-                AI Filter
+                AI Search & Natural Language Filter
               </span>
               {hasGemini ? (
                 <span className="text-[10px] font-bold bg-amber-400/15 text-amber-600 dark:text-amber-300 border border-amber-400/25 px-2 py-0.5 rounded-full">
-                  Gemini
+                  Gemini AI
                 </span>
               ) : (
                 <span className="text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full">
-                  Smart
+                  Smart AI Engine
                 </span>
               )}
               {aiActiveIds !== null && (
@@ -463,13 +491,12 @@ function Index() {
               )}
             </div>
 
-            {/* Input */}
             <div className="relative">
               <input
                 value={aiQuery}
                 onChange={e => handleAiInput(e.target.value)}
                 placeholder={hasGemini
-                  ? "Ask Gemini — e.g. \"Best sushi in Marina under AED 200 with alcohol\""
+                  ? "Ask Gemini — e.g. \"Best sushi in Marina under AED 200 accepting Esaad card\""
                   : "Describe what you want — e.g. \"Japanese food near JBR with a Burj view\""
                 }
                 className="w-full bg-background border rounded-2xl pl-11 pr-12 py-3.5 text-sm font-medium outline-none transition-all text-foreground placeholder:text-muted-foreground"
@@ -479,7 +506,6 @@ function Index() {
                 }}
               />
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg pointer-events-none">🔍</span>
-              {/* Loading dots */}
               {aiLoading && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-1">
                   {[0,1,2].map(i => (
@@ -489,7 +515,6 @@ function Index() {
               )}
             </div>
 
-            {/* AI reply / result count badge */}
             {aiReplyText && (
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-sm">🤖</span>
@@ -501,27 +526,6 @@ function Index() {
                     </span>
                   )}
                 </p>
-              </div>
-            )}
-
-            {/* Hint chips */}
-            {!aiQuery && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {[
-                  "Sushi in Dubai Marina 🍣",
-                  "Burj Khalifa view 🏙️",
-                  "Lebanese under AED 100 💰",
-                  "Michelin restaurants ⭐",
-                  "Delivery near JVC 🛵",
-                ].map(hint => (
-                  <button
-                    key={hint}
-                    onClick={() => handleAiInput(hint)}
-                    className="text-[11px] font-semibold px-3 py-1.5 rounded-full border border-amber-400/20 text-amber-700 dark:text-amber-400 hover:bg-amber-400/10 hover:border-amber-400/40 transition-all"
-                  >
-                    {hint}
-                  </button>
-                ))}
               </div>
             )}
           </div>
@@ -544,11 +548,11 @@ function Index() {
             </div>
 
             {/* Row 2: Dropdown selectors */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
               
-              {/* 1. Eatery Type */}
+              {/* 1. Scope & Eatery Type */}
               <div className="text-left">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Eatery Type</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Eatery Scope</label>
                 <select
                   value={selectedType}
                   onChange={(e) => {
@@ -557,13 +561,19 @@ function Index() {
                   }}
                   className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
                 >
-                  <option value="All">All Eatery Types</option>
+                  <option value="All">All Venue Types</option>
                   <option value="restaurant">🍽️ Restaurants</option>
-                  <option value="bar">🍸 Bars & Lounges</option>
                   <option value="cafe">☕ Cafes & Bakeries</option>
+                  <option value="bar">🍸 Bars & Lounges</option>
+                  <option value="nightclub">🕺 Nightclubs</option>
+                  <option value="beach_club">🏖️ Beach Clubs</option>
+                  <option value="private_chef">👨‍🍳 Private Chefs</option>
+                  <option value="caterer">🍱 Caterers</option>
+                  <option value="popup">🎪 Pop-ups</option>
                 </select>
               </div>
 
+              {/* 2. District */}
               <div className="text-left">
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">District / Area</label>
                 <select
@@ -603,9 +613,45 @@ function Index() {
                 </select>
               </div>
 
-              {/* 4. Experience & Perks */}
+              {/* 4. Discounts & Privileges Filter */}
               <div className="text-left">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Vibe / Experience</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1 px-1 flex items-center gap-1">
+                  <BadgePercent className="w-3 h-3" /> Privileges / Card
+                </label>
+                <select
+                  value={selectedDiscount}
+                  onChange={(e) => {
+                    setSelectedDiscount(e.target.value);
+                    updateFilter({ discount: e.target.value === "All" ? undefined : e.target.value });
+                  }}
+                  className="w-full bg-background border border-amber-500/30 rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500/20 text-foreground cursor-pointer"
+                >
+                  <option value="All">All Cards & Apps</option>
+                  <optgroup label="── Government & Corporate">
+                    <option value="Esaad">Esaad Card</option>
+                    <option value="Fazaa">Fazaa Card</option>
+                    <option value="Emirates Platinum">Emirates Platinum</option>
+                  </optgroup>
+                  <optgroup label="── Subscriptions & Apps">
+                    <option value="The Entertainer">The Entertainer</option>
+                    <option value="Supper Club">Supper Club</option>
+                    <option value="BOGO (Buy 1 Get 1)">Buy One Get One (BOGO)</option>
+                  </optgroup>
+                  <optgroup label="── Bank Credit Cards">
+                    <option value="Emirates NBD">Emirates NBD</option>
+                    <option value="HSBC">HSBC Deals</option>
+                    <option value="FAB">FAB Cards</option>
+                    <option value="Mashreq">Mashreq Privilege</option>
+                  </optgroup>
+                  <optgroup label="── VIP Concierge">
+                    <option value="Concierge VIP">Concierge VIP Perks</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              {/* 5. Lifestyle & Experience */}
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Lifestyle & Tags</label>
                 <select
                   value={selectedVibe}
                   onChange={(e) => {
@@ -614,26 +660,28 @@ function Index() {
                   }}
                   className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
                 >
-                  <option value="All">All Vibes</option>
+                  <option value="All">All Lifestyles</option>
                   <option value="michelin">⭐ Michelin Guide</option>
-                  <option value="Burj View">🏙️ Burj Khalifa View</option>
-                  <option value="Beachfront">🏖️ Beachfront Dining</option>
-                  <option value="AC Terrace">🪑 AC Terrace Seating</option>
-                  <option value="Business Lunch">💼 Business Lunch</option>
                   <option value="Sunday Brunch">🥂 Sunday Brunch</option>
-                  <option value="Kid Friendly">🍼 Kid Friendly</option>
+                  <option value="Ladies Night">💃 Ladies Night</option>
+                  <option value="Shisha">💨 Shisha Lounge</option>
+                  <option value="Pool Pass">🏊 Pool Pass</option>
+                  <option value="Ramadan Special">🌙 Ramadan Special</option>
+                  <option value="Burj View">🏙️ Burj Khalifa View</option>
+                  <option value="Beachfront">🏖️ Beachfront</option>
+                  <option value="AC Terrace">🪑 AC Terrace</option>
                 </select>
               </div>
 
-              {/* 5. Sort options */}
+              {/* 6. Sort options */}
               <div className="text-left">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Sort by</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 px-1">Sort (Unbiased)</label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
                 >
-                  <option value="rating-desc">Highest Rated</option>
+                  <option value="rating-desc">Highest Rated (Organic)</option>
                   <option value="reviews-desc">Most Reviewed</option>
                   <option value="price-asc">Price: Low to High</option>
                   <option value="price-desc">Price: High to Low</option>
@@ -646,8 +694,8 @@ function Index() {
 
           {/* Results Summary Counter */}
           <div className="text-left text-xs font-bold text-muted-foreground flex items-center justify-between mb-6">
-            <span>Showing {filteredAndSorted.length} matching eateries</span>
-            {(selectedType !== "All" || selectedArea !== "All" || selectedCuisine !== "All" || selectedVibe !== "All" || query) && (
+            <span>Showing {filteredAndSorted.length} matching eateries (100% Unbiased Organic Ranking)</span>
+            {(selectedType !== "All" || selectedArea !== "All" || selectedCuisine !== "All" || selectedVibe !== "All" || selectedDiscount !== "All" || query) && (
               <button
                 onClick={() => {
                   setQuery("");
@@ -655,6 +703,7 @@ function Index() {
                   setSelectedArea("All");
                   setSelectedCuisine("All");
                   setSelectedVibe("All");
+                  setSelectedDiscount("All");
                   navigate({ to: "/restaurants" });
                 }}
                 className="text-primary hover:underline cursor-pointer"
@@ -664,6 +713,35 @@ function Index() {
             )}
           </div>
 
+          {/* Transparent Google-Style Sponsored Ad Slot */}
+          {sponsoredVenues.length > 0 && !query && selectedDiscount === "All" && (
+            <div className="mb-8 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent border border-amber-500/30 rounded-3xl p-5 text-left relative overflow-hidden">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  [SPONSORED AD]
+                </span>
+                <span className="text-xs font-bold text-muted-foreground">Transparent Ad Placement · Separated from Organic Rankings</span>
+              </div>
+              {sponsoredVenues.map(s => (
+                <div key={s.slug} className="flex flex-col sm:flex-row items-center gap-4 bg-card/80 backdrop-blur-xs p-4 rounded-2xl border border-border">
+                  <img src={s.image} alt={s.name} className="w-full sm:w-32 h-24 rounded-xl object-cover" />
+                  <div className="flex-1">
+                    <h4 className="font-extrabold text-base text-foreground">{s.name}</h4>
+                    <p className="text-xs text-muted-foreground">{s.cuisine} · {s.district} · AED {s.priceMin}–{s.priceMax}</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1">✨ {s.sponsoredBannerText}</p>
+                  </div>
+                  <Link
+                    to="/restaurants/$id"
+                    params={{ id: s.slug }}
+                    className="bg-amber-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl hover:bg-amber-600 transition-colors shrink-0"
+                  >
+                    View Sponsored Venue
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Main Catalog Grid */}
           {filteredAndSorted.length === 0 ? (
             <div className="text-center py-24 text-muted-foreground bg-card border border-border rounded-3xl">
@@ -672,19 +750,25 @@ function Index() {
               <p className="text-xs text-muted-foreground mt-1">Try resetting your filters or adjusting search keyword.</p>
             </div>
           ) : (
-            /* Cards grid - spans full width */
+            /* Cards grid - 3 cards per row */
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAndSorted.map((r) => (
-                <GmbCard key={r.name} r={r} onOpenDirections={setSelectedDirectionsRestaurant} />
+                <GmbCard
+                  key={r.name}
+                  r={r}
+                  onOpenDirections={setSelectedDirectionsRestaurant}
+                  onOpenDeposit={setSelectedDepositRestaurant}
+                />
               ))}
             </div>
           )}
 
+          <div className="mt-16">
+            <OwnerCta />
+          </div>
+
         </div>
-
       </div>
-
-      <OwnerCta />
 
       <SiteFooter />
     </div>

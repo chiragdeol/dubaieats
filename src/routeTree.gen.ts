@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JoinRouteImport } from './routes/join'
+import { Route as MerchantRouteImport } from './routes/merchant'
 import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as RestaurantsIdRouteImport } from './routes/restaurants_.$id'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const JoinRoute = JoinRouteImport.update({
   id: '/join',
   path: '/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MerchantRoute = MerchantRouteImport.update({
+  id: '/merchant',
+  path: '/merchant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RestaurantsRoute = RestaurantsRouteImport.update({
@@ -38,12 +44,14 @@ const RestaurantsIdRoute = RestaurantsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
+  '/merchant': typeof MerchantRoute
   '/restaurants': typeof RestaurantsRoute
   '/restaurants/$id': typeof RestaurantsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
+  '/merchant': typeof MerchantRoute
   '/restaurants': typeof RestaurantsRoute
   '/restaurants/$id': typeof RestaurantsIdRoute
 }
@@ -51,20 +59,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
+  '/merchant': typeof MerchantRoute
   '/restaurants': typeof RestaurantsRoute
   '/restaurants_/$id': typeof RestaurantsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/join' | '/restaurants' | '/restaurants/$id'
+  fullPaths: '/' | '/join' | '/merchant' | '/restaurants' | '/restaurants/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/join' | '/restaurants' | '/restaurants/$id'
-  id: '__root__' | '/' | '/join' | '/restaurants' | '/restaurants_/$id'
+  to: '/' | '/join' | '/merchant' | '/restaurants' | '/restaurants/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/join'
+    | '/merchant'
+    | '/restaurants'
+    | '/restaurants_/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JoinRoute: typeof JoinRoute
+  MerchantRoute: typeof MerchantRoute
   RestaurantsRoute: typeof RestaurantsRoute
   RestaurantsIdRoute: typeof RestaurantsIdRoute
 }
@@ -83,6 +99,13 @@ declare module '@tanstack/react-router' {
       path: '/join'
       fullPath: '/join'
       preLoaderRoute: typeof JoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/merchant': {
+      id: '/merchant'
+      path: '/merchant'
+      fullPath: '/merchant'
+      preLoaderRoute: typeof MerchantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/restaurants': {
@@ -105,6 +128,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JoinRoute: JoinRoute,
+  MerchantRoute: MerchantRoute,
   RestaurantsRoute: RestaurantsRoute,
   RestaurantsIdRoute: RestaurantsIdRoute,
 }
