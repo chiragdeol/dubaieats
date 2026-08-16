@@ -59,19 +59,19 @@ function JoinPartners() {
       <div>
         <SiteHeader />
 
-        <div className="max-w-4xl mx-auto px-6 py-20">
+        <div className="max-w-7xl mx-auto px-6 py-16 lg:px-10">
           
           {!submitted ? (
             <div>
               {/* Header block */}
-              <div className="text-center max-w-2xl mx-auto mb-16">
-                <span className="text-[10px] uppercase font-extrabold tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+              <div className="text-center max-w-4xl mx-auto mb-12 rounded-3xl bg-[#005743] px-6 py-14 text-white shadow-xl sm:px-12">
+                <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#005743] bg-[#f3cf68] px-3 py-1 rounded-full">
                   🤝 Dubai-Eat Partner Network
                 </span>
-                <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-foreground mt-4 leading-tight">
+                <h1 className="font-display text-4xl sm:text-6xl font-extrabold text-white mt-4 leading-tight">
                   List your restaurant on Dubai-Eat
                 </h1>
-                <p className="text-muted-foreground text-sm mt-3 leading-relaxed">
+                <p className="text-white/80 text-sm mt-3 leading-relaxed max-w-2xl mx-auto">
                   Join Dubai's premium directory. Connect with high-value tourists and local diners seeking verified bookings, amenities, and delivery options.
                 </p>
               </div>

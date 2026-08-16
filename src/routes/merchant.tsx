@@ -42,7 +42,7 @@ function MerchantDashboardPage() {
 
         <main className="max-w-6xl mx-auto px-6 py-12">
           {/* Header Banner */}
-          <div className="bg-gradient-to-r from-zinc-900 via-amber-950 to-orange-950 border border-amber-500/20 text-white rounded-3xl p-8 sm:p-12 mb-12 shadow-2xl relative overflow-hidden">
+          <div className="bg-gradient-to-r from-[#005743] via-[#00755c] to-[#0f4f62] border border-[#168b8b]/30 text-white rounded-3xl p-8 sm:p-12 mb-12 shadow-2xl relative overflow-hidden">
             <div className="relative z-10 max-w-2xl">
               <div className="inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/30 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-4">
                 <Building2 className="w-3.5 h-3.5" /> Merchant & Venue Portal

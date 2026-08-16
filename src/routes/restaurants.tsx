@@ -89,11 +89,11 @@ function GmbCard({
   };
 
   return (
-    <article className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group relative text-left">
+    <article className="bg-white border border-[#dce2e2] rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col lg:flex-row justify-between group relative text-left">
       
       {/* Top Banner Image with badges */}
-      <div>
-        <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+      <div className="lg:flex lg:min-w-0 lg:flex-1">
+        <div className="relative aspect-[16/10] overflow-hidden bg-muted lg:h-auto lg:w-44 lg:shrink-0 lg:aspect-auto">
           <img
             src={r.image}
             alt={r.name}
@@ -137,7 +137,7 @@ function GmbCard({
         </div>
 
         {/* Content Body */}
-        <div className="p-5">
+        <div className="p-4 lg:min-w-0 lg:flex-1">
           <h2 className="font-display text-lg font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
             <Link to="/restaurants/$id" params={{ id: r.slug }}>
               {r.name}
@@ -210,7 +210,7 @@ function GmbCard({
       </div>
 
       {/* Button controls */}
-      <div className="px-5 pb-5 shrink-0 border-t border-border/50 pt-4 space-y-2 bg-secondary/10">
+      <div className="px-4 pb-4 shrink-0 border-t border-border/50 pt-3 space-y-2 bg-[#f4f8f6] lg:w-40 lg:border-l lg:border-t-0">
         
         {/* Primary Booking & VIP Deposit buttons */}
         <div className="grid grid-cols-2 gap-2">
@@ -402,7 +402,7 @@ function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-between">
+    <div className="min-h-screen bg-[#f8f6f1] text-[#172d3d] flex flex-col justify-between">
       <div>
         <SiteHeader />
 
@@ -422,43 +422,50 @@ function Index() {
           onClose={() => setIsRandomizerOpen(false)}
         />
 
+        <div className="border-b border-[#dce2e2] bg-white shadow-sm">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-3 lg:flex-row lg:items-center">
+            <form onSubmit={(event) => { event.preventDefault(); updateFilter({ q: query || undefined }); }} className="flex min-w-0 flex-1 overflow-hidden rounded-lg border border-[#cfd9d8] bg-white">
+              <label className="flex items-center gap-2 border-r border-[#dce2e2] px-4 py-2.5 text-sm font-semibold lg:w-64">
+                <MapPin className="h-4 w-4 shrink-0 text-[#172d3d]" />
+                <select value={selectedArea} onChange={(event) => { setSelectedArea(event.target.value); updateFilter({ area: event.target.value === "All" ? undefined : event.target.value }); }} className="w-full bg-transparent outline-none">
+                  <option value="All">Dubai</option>
+                  {districtsByZone.flatMap(({ districts }) => districts).map((district) => <option key={district} value={district}>{district}</option>)}
+                </select>
+              </label>
+              <label className="flex min-w-0 flex-1 items-center gap-2 px-4 py-2.5">
+                <Search className="h-4 w-4 shrink-0 text-[#172d3d]" />
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cuisine, restaurant name..." className="w-full text-sm italic outline-none placeholder:text-slate-400" />
+              </label>
+              <button className="bg-[#005f52] px-6 text-xs font-bold uppercase text-white hover:bg-[#004d43]">Search</button>
+            </form>
+            <Link to="/join" className="hidden shrink-0 text-sm font-semibold text-[#005f52] lg:block">For owners</Link>
+            <Link to="/restaurants" className="shrink-0 text-sm font-semibold text-[#005f52]">Log in</Link>
+          </div>
+          <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-6 pb-3 text-xs font-semibold whitespace-nowrap">
+            <button onClick={() => { setSelectedDiscount("All"); setSelectedVibe("All"); }} className="rounded-full bg-[#064e68] px-4 py-2 text-white">⚙ All filters</button>
+            <button onClick={() => setSelectedDiscount("The Entertainer")} className="rounded-full border border-[#172d3d] px-4 py-2">Special offers</button>
+            <button onClick={() => setSortBy("rating-desc")} className="rounded-full border border-[#d5dddd] px-4 py-2">☆ Best rated</button>
+            <button onClick={() => setSelectedCuisine("All")} className="rounded-full border border-[#d5dddd] px-4 py-2">🍴 Cuisine⌄</button>
+            <button onClick={() => setSelectedArea("All")} className="rounded-full border border-[#d5dddd] px-4 py-2">Neighbourhood⌄</button>
+            <button onClick={() => setSelectedDiscount("All")} className="rounded-full border border-[#d5dddd] px-4 py-2">Privileges</button>
+          </div>
+        </div>
+
         {/* Catalog Main Panel */}
         <div className="max-w-7xl mx-auto px-6 py-12">
           
           {/* Header Title Section */}
-          <div className="border-b border-border/60 pb-8 mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6 text-left">
-            <div>
-              <div className="text-xs font-bold text-primary uppercase tracking-widest mb-1 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" /> Food cravings? Let's Dubai-it.
-              </div>
-              <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-foreground leading-tight">
-                Eateries, Venues & Privileges in Dubai
-              </h1>
-              <p className="text-muted-foreground mt-1 text-sm">
-                100% Unbiased Organic Search · Verified Menus · Esaad & Fazaa Privileges · DET Dubai Data Sync
-              </p>
-            </div>
-            
-            <div className="flex gap-3 self-start">
-              <Link
-                to="/merchant"
-                className="bg-zinc-900 dark:bg-zinc-800 text-white font-extrabold text-xs px-4 py-3 rounded-full hover:bg-zinc-800 transition-colors shadow-sm flex items-center gap-1.5"
-              >
-                <Building2 className="w-4 h-4 text-amber-400" /> Merchant Portal
-              </Link>
-
-              <button
-                onClick={() => setIsRandomizerOpen(true)}
-                className="bg-amber-500 text-white font-bold text-xs px-5 py-3 rounded-full hover:bg-amber-600 transition-colors shadow-sm flex items-center gap-1.5"
-              >
-                <Sparkles className="w-4 h-4 fill-white" /> Let’s Dubai-it Randomizer
-              </button>
+          <div className="mb-6 border-b border-[#dce2e2] pb-4 text-left">
+            <div className="mb-4 flex items-center gap-2 text-xs text-slate-500"><Link to="/" className="text-[#00796b]">⌂</Link><span>›</span><span>Dubai restaurants</span><span>›</span><span>Best restaurants in Dubai</span></div>
+            <div className="flex flex-wrap items-baseline gap-3">
+              <h1 className="font-display text-3xl font-bold tracking-tight text-[#172d3d] sm:text-4xl">The best restaurants in Dubai</h1>
+              <span className="text-sm text-slate-500">{filteredAndSorted.length} restaurants</span>
             </div>
           </div>
 
           {/* ── AI Gemini Filter Bar ── */}
           <div
-            className="rounded-3xl border p-5 mb-5 relative overflow-hidden transition-all"
+            className="rounded-xl border border-[#b9d6cb] bg-[#e8f1ef] p-4 mb-5 relative overflow-hidden transition-all"
             style={{
               background: aiActiveIds !== null
                 ? "linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(234,88,12,0.08) 60%, rgba(190,24,93,0.06) 100%)"
@@ -531,7 +538,7 @@ function Index() {
           </div>
 
           {/* Top Level Horizontal Filters Bar */}
-          <div className={`bg-card border border-border/80 p-5 rounded-3xl shadow-sm mb-8 space-y-4 transition-opacity duration-200 ${aiActiveIds !== null ? "opacity-35 pointer-events-none select-none" : "opacity-100"}`}>
+          <div className={`bg-white border border-[#dce2e2] p-4 rounded-xl shadow-sm mb-8 space-y-4 transition-opacity duration-200 ${aiActiveIds !== null ? "opacity-35 pointer-events-none select-none" : "opacity-100"}`}>
             
             {/* Row 1: Search text input */}
             <div className="relative w-full">
@@ -751,15 +758,25 @@ function Index() {
             </div>
           ) : (
             /* Cards grid - 3 cards per row */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAndSorted.map((r) => (
-                <GmbCard
-                  key={r.name}
-                  r={r}
-                  onOpenDirections={setSelectedDirectionsRestaurant}
-                  onOpenDeposit={setSelectedDepositRestaurant}
+            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.82fr)]">
+              <div className="space-y-3">
+                {filteredAndSorted.map((r) => (
+                  <GmbCard
+                    key={r.name}
+                    r={r}
+                    onOpenDirections={setSelectedDirectionsRestaurant}
+                    onOpenDeposit={setSelectedDepositRestaurant}
+                  />
+                ))}
+              </div>
+              <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-[#dce2e2] bg-[#e8f1ef] shadow-sm lg:block">
+                <iframe
+                  title="Dubai restaurant map"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=55.094%2C25.065%2C55.32%2C25.3&layer=mapnik"
+                  className="h-full w-full border-0"
+                  loading="lazy"
                 />
-              ))}
+              </aside>
             </div>
           )}
 

@@ -1,520 +1,80 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { ArrowUpRight, ChevronRight, MapPin, Search, SlidersHorizontal, Sparkles, Star, Utensils, Waves, Wine, X } from "lucide-react";
 import gourmetPastaPlate from "@/assets/gourmet-pasta-plate.png";
-import { enrichedRestaurants } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { OwnerCta } from "@/components/owner-cta";
-import { useMemo, useState } from "react";
-import { 
-  Sparkles, 
-  Search, 
-  MapPin,
-  Heart, 
-  ChevronRight, 
-  Building2, 
-  ShieldCheck, 
-  TrendingUp, 
-  CreditCard, 
-  Award, 
-  CheckCircle2,
-  BadgePercent,
-  Star,
-  ExternalLink,
-  MessageSquare,
-  Calendar
-} from "lucide-react";
+import { enrichedRestaurants } from "@/lib/restaurants-enriched";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dubai Eats — Food cravings? Let's Dubai-it at Dubai-Eat" },
-      { name: "description", content: "Discover, compare and reserve tables at 50 of Dubai's most iconic restaurants — ratings, price ranges, Michelin awards and live Google links." },
+      { title: "Dubai Eats — Discover the extraordinary" },
+      { name: "description", content: "Discover Dubai's best restaurants, cafes, beach clubs and nightlife with objective search and local privileges." },
     ],
   }),
   component: Landing,
 });
 
+const moods = [
+  { id: "Beachfront", title: "Sea-side tables", copy: "Sunset dining with a view", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&q=85", icon: Waves },
+  { id: "Burj View", title: "Iconic views", copy: "Dinner under the Dubai skyline", image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=900&q=85", icon: Star },
+  { id: "Sunday Brunch", title: "The brunch edit", copy: "Long lunches, made memorable", image: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=900&q=85", icon: Utensils },
+  { id: "Ladies Night", title: "After dark", copy: "Dubai's best nightlife spots", image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=900&q=85", icon: Wine },
+];
+
+const districts = ["Downtown Dubai", "DIFC", "Palm Jumeirah", "Dubai Marina", "Jumeirah", "Old Dubai"];
+const privileges = ["Esaad", "Fazaa", "The Entertainer", "BOGO", "Emirates NBD", "Concierge perks"];
+
 function Landing() {
-  const featured = enrichedRestaurants.slice(0, 3);
-  const cuisines = Array.from(new Set(enrichedRestaurants.map((r) => r.cuisine.split(" ")[0]))).slice(0, 8);
-  const [isRandomizerOpen, setIsRandomizerOpen] = useState<boolean>(false);
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [area, setArea] = useState("All");
+  const [selectedPrivileges, setSelectedPrivileges] = useState<string[]>([]);
+  const [randomizerOpen, setRandomizerOpen] = useState(false);
 
-  // Search form state
-  const [searchArea, setSearchArea] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const areas = useMemo(() => Array.from(new Set(enrichedRestaurants.map((r) => r.area))).sort(), []);
+  const featured = useMemo(() => enrichedRestaurants.filter((r) => !r.isSponsored).slice(0, 4), []);
+  const moodPhotos = useMemo(() => enrichedRestaurants.filter((r) => !r.isSponsored).slice(4, 8), []);
 
-  const areas = useMemo(() => {
-    const set = new Set<string>();
-    enrichedRestaurants.forEach((r) => set.add(r.area));
-    return Array.from(set).sort();
-  }, []);
-
-  // Filter sponsored venues for homepage ad placement
-  const homepageSponsoredVenues = useMemo(() => {
-    return enrichedRestaurants.filter(r => r.isSponsored).slice(0, 2);
-  }, []);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate({
-      to: "/restaurants",
-      search: {
-        area: searchArea === "All" ? undefined : searchArea,
-        q: searchQuery || undefined,
-      }
-    });
+  const submitSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    navigate({ to: "/restaurants", search: { area: area === "All" ? undefined : area, q: query || undefined, discount: selectedPrivileges[0] || undefined } });
   };
 
-  const handleInspirationClick = (vibe: string) => {
-    navigate({
-      to: "/restaurants",
-      search: {
-        vibe: vibe,
-      }
-    });
-  };
-
-  // Curated list for the "Restaurants chosen for you" section
-  const chosenRestaurants = useMemo(() => {
-    const selectedNames = ["Zuma", "LPM Restaurant", "Pierchic", "Ossiano"];
-    const found = enrichedRestaurants.filter(r => selectedNames.some(name => r.name.toLowerCase().includes(name.toLowerCase())));
-    
-    const deals = [
-      { badge: "Up to -50% - Dubai-Eat Festival", tag: "Insider" },
-      { badge: "Up to -50% - Food bill", tag: "Insider" },
-      { badge: "Up to -30%", tag: "Popular" },
-      { badge: "Up to -30% - Early Bird", tag: "Insider" }
-    ];
-
-    return found.slice(0, 4).map((r, index) => ({
-      ...r,
-      deal: deals[index % deals.length].badge,
-      tag: deals[index % deals.length].tag,
-      customRating: (r.rating * 2).toFixed(1)
-    }));
-  }, []);
+  const togglePrivilege = (value: string) => setSelectedPrivileges((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
 
   return (
-    <div className="min-h-screen bg-background text-left">
+    <div className="min-h-screen bg-[#f8f6f1] text-[#172d3d]">
       <SiteHeader />
-
-      <DubaiItRandomizerModal
-        isOpen={isRandomizerOpen}
-        onClose={() => setIsRandomizerOpen(false)}
-      />
-
-      {/* HERO SECTION — Clean Emerald TheFork Style Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-8">
-        <div className="bg-[#005743] rounded-3xl p-6 sm:p-10 md:p-14 lg:p-16 relative overflow-hidden text-white shadow-2xl min-h-[380px] sm:min-h-[440px] flex items-center">
-          
-          {/* Main Hero Content */}
-          <div className="relative z-10 max-w-2xl w-full">
-            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white leading-[1.08] tracking-tight mb-8">
-              Discover and book the best restaurant
-            </h1>
-
-            {/* Pill Search Box */}
-            <form onSubmit={handleSearchSubmit} className="bg-white rounded-2xl sm:rounded-2xl p-2 sm:p-2.5 shadow-2xl flex flex-col md:flex-row items-center gap-2 border border-white/20">
-              
-              {/* Field 1: Location / District */}
-              <div className="flex items-center gap-2 px-3 py-2 w-full md:w-56 text-zinc-900 border-b md:border-b-0 md:border-r border-zinc-200 shrink-0">
-                <MapPin className="w-5 h-5 text-zinc-600 shrink-0" />
-                <select
-                  value={searchArea}
-                  onChange={(e) => setSearchArea(e.target.value)}
-                  className="w-full bg-transparent text-sm font-extrabold outline-none cursor-pointer text-zinc-900 truncate"
-                >
-                  <option value="All">Dubai</option>
-                  {areas.map((a) => (
-                    <option key={a} value={a}>{a}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Field 2: Cuisine or restaurant name */}
-              <div className="flex items-center gap-2 px-3 py-2 flex-1 w-full text-zinc-900">
-                <Search className="w-5 h-5 text-zinc-400 shrink-0" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cuisine, restaurant name..."
-                  className="w-full bg-transparent text-sm font-medium text-zinc-900 placeholder:text-zinc-400 outline-none"
-                />
-              </div>
-
-              {/* SEARCH Button */}
-              <button
-                type="submit"
-                className="w-full md:w-auto bg-[#005743] hover:bg-[#004535] text-white font-black text-xs uppercase tracking-widest px-8 py-3.5 sm:py-4 rounded-xl transition-all shadow-md shrink-0 flex items-center justify-center gap-2"
-              >
-                SEARCH
-              </button>
-            </form>
-
-            {/* Subtext badges */}
-            <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-white/80">
-              <span className="inline-flex items-center gap-1 font-bold text-amber-300">
-                <Sparkles className="w-3.5 h-3.5 fill-amber-300" /> 100% Verified Menus & Live Discounts
-              </span>
-              <span>·</span>
-              <button
-                type="button"
-                onClick={() => setIsRandomizerOpen(true)}
-                className="font-bold underline hover:text-white transition-colors"
-              >
-                Can't decide? Try Randomizer
-              </button>
-            </div>
-          </div>
-
-          {/* Right Floating Gourmet Food Dish Peeking on Right Edge */}
-          <div className="absolute -right-16 sm:-right-10 top-1/2 -translate-y-1/2 hidden md:block w-[380px] lg:w-[480px] h-[380px] lg:h-[480px] pointer-events-none z-0">
-            <img 
-              src={gourmetPastaPlate} 
-              alt="Gourmet pasta dish plate" 
-              className="w-full h-full object-contain drop-shadow-2xl scale-110 translate-x-6"
-            />
-          </div>
-
-        </div>
-      </section>
-
-      {/* ── HOMEPAGE SPONSORED PRODUCTS / FEATURED PARTNERS SECTION ── */}
-      <section className="max-w-7xl mx-auto px-6 py-10">
-        <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 border border-amber-500/30 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-amber-500/20 pb-6 mb-6">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="bg-amber-500 text-white font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                  [FEATURED SPONSORED PRODUCTS]
-                </span>
-                <span className="text-xs font-bold text-muted-foreground">Transparent Ad Placement</span>
-              </div>
-              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-foreground">
-                Featured Partner Venues & Direct Booking Privileges
-              </h2>
-            </div>
-            <Link
-              to="/merchant"
-              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl hover:opacity-95 transition-opacity shrink-0"
-            >
-              <Building2 className="w-4 h-4" /> Feature Your Venue Here
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {homepageSponsoredVenues.map(s => (
-              <div key={s.slug} className="bg-card border border-border rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4">
-                <div className="flex items-start gap-4">
-                  <img src={s.image} alt={s.name} className="w-24 h-24 rounded-xl object-cover shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/25 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
-                        SPONSORED
-                      </span>
-                      <span className="text-xs font-bold text-muted-foreground">{s.district}</span>
-                    </div>
-                    <h3 className="font-extrabold text-lg text-foreground mt-1 truncate">{s.name}</h3>
-                    <p className="text-xs text-muted-foreground truncate">{s.cuisine} · AED {s.priceMin}–{s.priceMax}</p>
-                    {s.discounts && s.discounts.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {s.discounts.slice(0, 2).map(disc => (
-                          <span key={disc} className="text-[9px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/20">
-                            💳 {disc}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-3">
-                  <p className="text-xs font-bold text-amber-600 dark:text-amber-400">✨ {s.sponsoredBannerText}</p>
-                  <Link
-                    to="/restaurants/$id"
-                    params={{ id: s.slug }}
-                    className="bg-primary text-primary-foreground font-bold text-xs px-4 py-2 rounded-xl hover:opacity-90 transition-opacity shrink-0 flex items-center gap-1"
-                  >
-                    View Partner <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* QUICK INSPIRATION GRID */}
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="text-center md:text-left mb-10">
-          <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">Curated selections</p>
-          <h2 className="font-display text-4xl sm:text-5xl font-semibold text-foreground max-w-2xl leading-tight">
-            Discover Dubai's ultimate culinary vibes.
-          </h2>
-          <p className="text-muted-foreground mt-2 text-sm max-w-lg">Click any category below to instantly find eateries matching your specific mood.</p>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
-          {[
-            { id: "michelin", label: "Michelin Starred", icon: "⭐", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=300" },
-            { id: "Burj View", label: "Burj Khalifa View", icon: "🏙️", img: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=300" },
-            { id: "Beachfront", label: "Beachfront Dining", icon: "🏖️", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300" },
-            { id: "Business Lunch", label: "Business Lunches", icon: "💼", img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=300" },
-            { id: "Sunday Brunch", label: "Sunday Brunches", icon: "🥂", img: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=300" },
-            { id: "Kid Friendly", label: "Kid Friendly Sites", icon: "🍼", img: "https://images.unsplash.com/photo-1566275529824-cdc6d5867be3?w=300" },
-          ].map((c) => (
-            <button
-              key={c.id}
-              onClick={() => handleInspirationClick(c.id)}
-              className="group relative overflow-hidden rounded-2xl aspect-[3/4] border border-border bg-card text-left transition-all hover:shadow-lg hover:-translate-y-1"
-            >
-              <img 
-                src={c.img} 
-                alt={c.label} 
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                <span className="text-xl mb-1 block">{c.icon}</span>
-                <h3 className="font-display font-semibold text-sm leading-snug">{c.label}</h3>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ── B2B SAAS PLATFORM SHOWCASE SECTION ── */}
-      <section className="bg-gradient-to-br from-zinc-950 via-zinc-900 to-amber-950 text-white py-20 px-6 my-12 border-y border-amber-500/20">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/30 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider">
-              <Building2 className="w-4 h-4" /> B2B Hospitality SaaS Product
-            </div>
-            <h2 className="font-display text-4xl sm:text-5xl font-black text-white leading-tight">
-              Powered by Dubai Eats SaaS Merchant Engine
-            </h2>
-            <p className="text-white/80 text-sm sm:text-base leading-relaxed">
-              Dubai Eats is built as an end-to-end B2B SaaS platform for restaurants, cafes, beach clubs, and hospitality venues across Dubai.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-1">
-                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase">
-                  <ShieldCheck className="w-4 h-4" /> DET Dubai Open Data Sync
-                </div>
-                <p className="text-xs text-white/70">Automated licensing, commercial register validation, and open data indexing.</p>
-              </div>
-
-              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-1">
-                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase">
-                  <BadgePercent className="w-4 h-4" /> Privilege Card Portal
-                </div>
-                <p className="text-xs text-white/70">Manage accepted Esaad, Fazaa, Entertainer & Bank card promotion matrices.</p>
-              </div>
-
-              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-1">
-                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase">
-                  <TrendingUp className="w-4 h-4" /> Google-Style Ad Server
-                </div>
-                <p className="text-xs text-white/70">Transparent sponsored listings and high-visibility hero display banner auctions.</p>
-              </div>
-
-              <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-1">
-                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase">
-                  <CreditCard className="w-4 h-4" /> Deposit & Lead Gateway
-                </div>
-                <p className="text-xs text-white/70">Integrated Stripe & Telr checkout for VIP table deposits & private chef commissions.</p>
+      <main>
+        <section className="relative mx-auto max-w-[1400px] px-4 pb-12 pt-16 sm:px-6 lg:px-10">
+          <div className="relative min-h-[430px] overflow-hidden rounded-[22px] bg-[#005f52] text-white shadow-sm sm:min-h-[570px]">
+            <div className="relative z-10 mx-auto flex min-h-[430px] max-w-5xl items-center px-8 py-16 sm:min-h-[570px] sm:px-16 lg:px-24">
+              <div className="w-full max-w-2xl">
+                <h1 className="font-display max-w-2xl text-5xl font-semibold leading-[1.05] tracking-[-.035em] sm:text-7xl lg:text-[4.5rem]">Discover and book the best restaurant</h1>
+                <form onSubmit={submitSearch} className="mt-12 flex flex-col overflow-hidden rounded-2xl bg-white p-2 text-[#172d3d] shadow-xl sm:flex-row sm:items-center sm:rounded-xl">
+                  <label className="flex items-center gap-3 border-b border-slate-200 px-4 py-3 sm:w-72 sm:border-b-0 sm:border-r"><MapPin className="h-5 w-5 shrink-0 text-slate-500" /><select value={area} onChange={(e) => setArea(e.target.value)} className="w-full bg-transparent text-sm font-semibold outline-none"><option value="All">Dubai</option>{areas.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+                  <label className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3"><Search className="h-5 w-5 shrink-0 text-slate-700" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cuisine, restaurant name..." className="w-full text-sm italic outline-none placeholder:text-slate-400" /></label>
+                  <button className="rounded-xl bg-[#00796b] px-8 py-3.5 text-sm font-bold uppercase text-white transition hover:bg-[#006456]">Search</button>
+                </form>
               </div>
             </div>
-
-            <div className="pt-4">
-              <Link
-                to="/merchant"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-extrabold text-sm px-8 py-4 rounded-2xl shadow-xl hover:opacity-95 transition-opacity"
-              >
-                Access Merchant & SaaS Portal →
-              </Link>
-            </div>
+            <img src={gourmetPastaPlate} alt="Gourmet pasta dish" className="absolute bottom-[-8%] right-[-10%] hidden h-[82%] w-[48%] object-contain object-left drop-shadow-2xl lg:block" />
           </div>
-
-          <div className="lg:col-span-5 bg-card/10 backdrop-blur-md border border-white/15 p-6 rounded-3xl space-y-4">
-            <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
-              <Award className="w-5 h-5 text-amber-400" /> SaaS Merchant Features
-            </h3>
-            <ul className="space-y-3 text-xs text-white/80">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span><strong>100% Unbiased Organic Ranking:</strong> Verified algorithms.</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span><strong>Transparent Ad Badges:</strong> Clearly labeled `[SPONSORED]`.</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span><strong>AI WhatsApp Lead Engine:</strong> Direct pre-filled inquiries.</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span><strong>District Coverage:</strong> 60+ Dubai communities indexed.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION: Restaurants chosen for you */}
-      <section className="max-w-7xl mx-auto px-6 py-16 border-t border-border/60">
-        <div className="flex justify-between items-end mb-10">
-          <div>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-              Restaurants chosen for you
-            </h2>
-          </div>
-          <Link to="/restaurants" className="text-sm font-semibold text-primary hover:underline flex items-center gap-0.5">
-            See all <ChevronRight className="w-4.5 h-4.5" />
-          </Link>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {chosenRestaurants.map((r) => (
-            <div key={r.name} className="bg-card border border-border/80 rounded-2xl overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between">
-              <div>
-                <Link to="/restaurants/$id" params={{ id: r.slug || "" }} className="relative aspect-[4/3] w-full overflow-hidden block">
-                  <img src={r.image} alt={r.name} className="w-full h-full object-cover" />
-                  
-                  <span className="absolute top-3 left-3 bg-white/95 text-primary text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 dark:bg-zinc-900 dark:text-amber-400">
-                    👑 {r.tag}
-                  </span>
-
-                  <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-muted-foreground hover:text-rose-500 transition-colors shadow-xs dark:bg-zinc-900/80">
-                    <Heart className="w-4 h-4" />
-                  </button>
-                </Link>
-
-                <div className="p-4">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-display font-bold text-base text-foreground leading-snug line-clamp-1 hover:text-primary transition-colors">
-                      <Link to="/restaurants/$id" params={{ id: r.slug || "" }}>
-                        {r.name}
-                      </Link>
-                    </h3>
-                    <div className="text-right shrink-0">
-                      <span className="inline-block bg-emerald-500 text-white font-extrabold text-xs px-1.5 py-0.5 rounded-md">
-                        {r.customRating}
-                      </span>
-                      <p className="text-[9px] text-muted-foreground mt-0.5">({r.reviews})</p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {r.area}
-                  </p>
-                  
-                  <p className="text-xs font-medium text-foreground mt-1.5">
-                    {r.cuisine} · ~AED {r.priceMin}
-                  </p>
-                </div>
-              </div>
-
-              <div className="px-4 pb-4">
-                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-extrabold py-2 px-3 rounded-lg flex items-center justify-between">
-                  <span>{r.deal}</span>
-                </div>
-              </div>
-
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* PRIVATE CHEF ON DEMAND */}
-      <section className="bg-amber-500/10 border-y border-amber-500/20 py-20 px-6 my-16">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <span className="text-[10px] uppercase font-bold tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-              👑 Dubai Luxury Dining Concierge
-            </span>
-            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mt-4 leading-tight">
-              Private Chef on Demand
-            </h2>
-            <p className="text-muted-foreground text-sm sm:text-base mt-4 leading-relaxed">
-              Skip the dining room crowd. Hire a Michelin-tier Private Chef for a bespoke culinary experience in your villa, luxury penthouse, yacht party, or dinner cruise in Dubai.
-            </p>
-            <div className="mt-6 space-y-4">
-              <div className="bg-card border border-amber-500/20 p-4 rounded-2xl flex items-center justify-between gap-4">
-                <div>
-                  <h4 className="font-bold text-sm text-foreground">👨‍🍳 Splidu</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">Vetted chefs providing end-to-end dining, bespoke tablescaping, and complete clean-up.</p>
-                </div>
-                <a
-                  href="https://splidu.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs transition-colors"
-                >
-                  Book Splidu
-                </a>
-              </div>
-              
-              <div className="bg-card border border-amber-500/20 p-4 rounded-2xl flex items-center justify-between gap-4">
-                <div>
-                  <h4 className="font-bold text-sm text-foreground">🍳 myCHEF Dubai</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">Connects you with licensed private chefs, custom menus, and high-end caterers.</p>
-                </div>
-                <a
-                  href="https://mychef.ae"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs transition-colors"
-                >
-                  Book myCHEF
-                </a>
-              </div>
-            </div>
-            
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="https://wa.me/971562730030?text=Hi!%20I'd%20like%20to%20inquire%20about%20booking%20a%20Private%20Chef%20on%20Demand%20in%20Dubai."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-bold px-7 py-3.5 text-sm shadow-md transition-all"
-              >
-                💬 Let's Dubai-it on WhatsApp
-              </a>
-            </div>
-          </div>
-          <div className="relative rounded-3xl overflow-hidden shadow-xl aspect-video border border-amber-500/20">
-            <img
-              src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800"
-              alt="Professional private chef prepping elegant dishes in Dubai kitchen"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute bottom-4 left-4 text-white text-xs font-semibold bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full">
-              🧑‍🍳 Elite Dubai Culinary Guild
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="rounded-3xl bg-foreground text-background p-12 sm:p-20 text-center">
-          <h2 className="font-display text-4xl sm:text-6xl font-semibold leading-tight max-w-3xl mx-auto">
-            Your next reservation is <span className="italic text-accent">waiting</span>.
-          </h2>
-          <Link to="/restaurants" className="inline-block mt-10 rounded-full bg-accent text-accent-foreground px-8 py-4 text-sm font-semibold hover:opacity-90 transition-opacity">
-            Explore all 50 restaurants →
-          </Link>
-        </div>
-      </section>
-
-      <OwnerCta />
-
+        </section>
+        <section className="mx-auto max-w-7xl px-6 pb-20 pt-32 lg:px-10"><div className="mb-10 flex items-end justify-between gap-4"><div><p className="mb-3 text-xs font-bold uppercase tracking-[.25em] text-[#168b8b]">Start exploring</p><h2 className="font-display text-4xl leading-tight sm:text-5xl">Find your kind of Dubai.</h2></div><Link to="/restaurants" className="hidden items-center gap-1 text-sm font-bold text-[#e45d43] sm:flex">See all experiences <ArrowUpRight className="h-4 w-4" /></Link></div><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{moods.map(({ id, title, copy, image, icon: Icon }, moodIndex) => <button key={id} onClick={() => navigate({ to: "/restaurants", search: { vibe: id } })} className="group relative aspect-[.88] overflow-hidden rounded-2xl text-left text-white"><img src={moodPhotos[moodIndex]?.image ?? image} alt={title} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#0d2938]/90 via-[#0d2938]/10 to-transparent" /><div className="absolute bottom-0 p-6"><Icon className="mb-10 h-5 w-5 text-[#f2c45c]" /><h3 className="font-display text-2xl">{title}</h3><p className="mt-1 text-sm text-white/75">{copy}</p></div></button>)}</div></section>
+        <section className="bg-[#e8f1ef] py-20"><div className="mx-auto max-w-7xl px-6 lg:px-10"><div className="mb-10 flex items-end justify-between"><div><p className="mb-3 text-xs font-bold uppercase tracking-[.25em] text-[#168b8b]">The local edit</p><h2 className="font-display text-4xl sm:text-5xl">Places worth knowing.</h2></div><Link to="/restaurants" className="flex items-center gap-1 text-sm font-bold text-[#e45d43]">Browse all <ChevronRight className="h-4 w-4" /></Link></div><div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">{featured.map((restaurant) => <article key={restaurant.slug} className="overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><Link to="/restaurants/$id" params={{ id: restaurant.slug }}><div className="relative aspect-[4/3]"><img src={restaurant.image} alt={restaurant.name} className="h-full w-full object-cover" /><span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold text-[#168b8b]">ORGANIC PICK</span></div><div className="p-5"><div className="flex items-start justify-between gap-3"><h3 className="font-display text-xl">{restaurant.name}</h3><span className="flex items-center gap-1 rounded-md bg-[#168b8b] px-1.5 py-1 text-xs font-bold text-white"><Star className="h-3 w-3 fill-current" /> {restaurant.rating}</span></div><p className="mt-2 text-sm text-slate-500">{restaurant.cuisine} · {restaurant.district}</p><p className="mt-4 text-xs font-bold uppercase tracking-wider text-[#e45d43]">Explore venue <ArrowUpRight className="ml-1 inline h-3 w-3" /></p></div></Link></article>)}</div></div></section>
+        <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10"><div className="mb-8 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[.25em] text-[#168b8b]">Dubai Eats offers</p><h2 className="font-display text-4xl sm:text-5xl">Good food, better privileges.</h2></div><Link to="/restaurants" className="flex items-center gap-1 text-sm font-bold text-[#e45d43]">See all offers <ChevronRight className="h-4 w-4" /></Link></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{featured.map((restaurant) => <Link key={`offer-${restaurant.slug}`} to="/restaurants/$id" params={{ id: restaurant.slug }} className="group overflow-hidden rounded-2xl border border-[#dce2e2] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><div className="relative aspect-[1.35]"><img src={restaurant.image} alt={restaurant.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /><span className="absolute bottom-3 left-3 rounded-md bg-[#b7ff9d] px-2 py-1 text-[10px] font-bold text-[#075b45]">Verified venue</span></div><div className="p-4"><h3 className="font-display text-lg">{restaurant.name}</h3><p className="mt-1 text-xs text-slate-500">{restaurant.cuisine} · {restaurant.area}</p><p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-[#168b8b]">Explore offer <ArrowUpRight className="ml-1 inline h-3 w-3" /></p></div></Link>)}</div></section>
+        <section className="bg-white py-16"><div className="mx-auto max-w-7xl px-6 lg:px-10"><div className="mb-8 flex items-end justify-between"><div><p className="mb-2 text-xs font-bold uppercase tracking-[.25em] text-[#168b8b]">Pick your plate</p><h2 className="font-display text-4xl sm:text-5xl">What are you craving?</h2></div><Link to="/restaurants" className="flex items-center gap-1 text-sm font-bold text-[#e45d43]">Browse cuisines <ChevronRight className="h-4 w-4" /></Link></div><div className="grid grid-cols-3 gap-3 sm:grid-cols-6">{["European", "Japanese", "Italian", "Indian", "Arabic", "Seafood"].map((cuisine) => <button key={cuisine} onClick={() => navigate({ to: "/restaurants", search: { cuisine } })} className="group rounded-2xl border border-slate-100 bg-[#f8f6f1] p-3 text-center transition hover:-translate-y-1 hover:border-[#168b8b] hover:bg-[#e8f1ef]"><div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#d6eee8]"><img src={featured[0]?.image} alt="" className="h-full w-full object-cover opacity-85 transition group-hover:scale-110" /></div><span className="text-xs font-bold text-[#172d3d]">{cuisine}</span></button>)}</div></div></section>
+        <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10"><div className="mb-8"><p className="mb-2 text-xs font-bold uppercase tracking-[.25em] text-[#168b8b]">Simple dining discovery</p><h2 className="font-display text-4xl sm:text-5xl">How Dubai Eats works</h2></div><div className="grid gap-4 md:grid-cols-4">{[{ icon: "⌕", title: "Search", copy: "Tell us your cuisine, area or occasion." }, { icon: "◇", title: "Compare", copy: "See ratings, prices, tags and privileges." }, { icon: "♡", title: "Choose", copy: "Find an organic recommendation that fits." }, { icon: "✓", title: "Book", copy: "Go directly to the venue's booking link." }].map((step) => <div key={step.title} className="rounded-2xl border border-[#dce2e2] bg-white p-5 shadow-sm"><div className="mb-8 text-3xl font-bold text-[#168b8b]">{step.icon}</div><h3 className="font-display text-xl">{step.title}</h3><p className="mt-2 text-sm leading-relaxed text-slate-500">{step.copy}</p></div>)}</div></section>
+        <section className="mx-auto max-w-7xl px-6 py-24 lg:px-10"><div className="grid gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center"><div><p className="mb-3 text-xs font-bold uppercase tracking-[.25em] text-[#168b8b]">Explore by neighbourhood</p><h2 className="font-display text-5xl leading-none sm:text-6xl">Every corner has a story.</h2><p className="mt-6 max-w-md leading-relaxed text-slate-600">From the old souks of Deira to the bright lights of DIFC, find a table in the part of Dubai that feels like you.</p><Link to="/restaurants" className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#172d3d] px-6 py-3 text-sm font-bold text-white">Explore Dubai <ArrowUpRight className="h-4 w-4" /></Link></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{districts.map((district, index) => <Link key={district} to="/restaurants" search={{ area: district }} className={`group relative flex min-h-32 items-end overflow-hidden rounded-2xl p-4 ${index === 0 ? "bg-[#168b8b] text-white" : "bg-white text-[#172d3d] shadow-sm"}`}><span className="relative z-10 font-display text-xl leading-tight">{district}</span><ArrowUpRight className="absolute right-4 top-4 h-4 w-4 opacity-50 transition group-hover:translate-x-1 group-hover:-translate-y-1" /></Link>)}</div></div></section>
+        <section className="bg-[#172d3d] px-6 py-20 text-white"><div className="mx-auto max-w-7xl lg:px-10"><div className="grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:items-center"><div><p className="mb-4 text-xs font-bold uppercase tracking-[.25em] text-[#f2c45c]">A better way to discover</p><h2 className="font-display text-5xl leading-none sm:text-6xl">Good places.<br /><em className="text-[#f2c45c]">No pay-to-play.</em></h2><p className="mt-6 max-w-md text-white/70">Organic results are relevance-driven. When a venue is promoted, we tell you clearly. Your search should work for you.</p></div><div className="grid gap-4 sm:grid-cols-2"><div className="rounded-2xl border border-white/15 bg-white/5 p-6"><div className="mb-10 text-3xl">◎</div><h3 className="font-display text-2xl">Objective search</h3><p className="mt-2 text-sm leading-relaxed text-white/60">Ratings, relevance and verified details shape every organic result.</p></div><div className="rounded-2xl border border-white/15 bg-white/5 p-6"><div className="mb-10 text-3xl">✦</div><h3 className="font-display text-2xl">Real privileges</h3><p className="mt-2 text-sm leading-relaxed text-white/60">Filter by cards, memberships and offers you already use.</p></div></div></div></div></section>
+        <OwnerCta />
+      </main>
+      <DubaiItRandomizerModal isOpen={randomizerOpen} onClose={() => setRandomizerOpen(false)} />
       <SiteFooter />
     </div>
   );

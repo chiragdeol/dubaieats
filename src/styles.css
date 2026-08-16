@@ -143,7 +143,7 @@
     font-family: 'Jost', 'Inter', system-ui, sans-serif;
   }
   .font-display {
-    font-family: 'Jost', sans-serif;
+    font-family: 'Jost', 'Inter', system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
 

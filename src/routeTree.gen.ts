@@ -10,8 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AiSearchRouteImport } from './routes/ai-search'
+import { Route as DealsRouteImport } from './routes/deals'
 import { Route as JoinRouteImport } from './routes/join'
+import { Route as MapRouteImport } from './routes/map'
 import { Route as MerchantRouteImport } from './routes/merchant'
+import { Route as PollRouteImport } from './routes/poll'
 import { Route as RestaurantsRouteImport } from './routes/restaurants'
 import { Route as RestaurantsIdRouteImport } from './routes/restaurants_.$id'
 
@@ -20,14 +25,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiSearchRoute = AiSearchRouteImport.update({
+  id: '/ai-search',
+  path: '/ai-search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DealsRoute = DealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinRoute = JoinRouteImport.update({
   id: '/join',
   path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MerchantRoute = MerchantRouteImport.update({
   id: '/merchant',
   path: '/merchant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PollRoute = PollRouteImport.update({
+  id: '/poll',
+  path: '/poll',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RestaurantsRoute = RestaurantsRouteImport.update({
@@ -43,44 +73,89 @@ const RestaurantsIdRoute = RestaurantsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/ai-search': typeof AiSearchRoute
+  '/deals': typeof DealsRoute
   '/join': typeof JoinRoute
+  '/map': typeof MapRoute
   '/merchant': typeof MerchantRoute
+  '/poll': typeof PollRoute
   '/restaurants': typeof RestaurantsRoute
   '/restaurants/$id': typeof RestaurantsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/ai-search': typeof AiSearchRoute
+  '/deals': typeof DealsRoute
   '/join': typeof JoinRoute
+  '/map': typeof MapRoute
   '/merchant': typeof MerchantRoute
+  '/poll': typeof PollRoute
   '/restaurants': typeof RestaurantsRoute
   '/restaurants/$id': typeof RestaurantsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/ai-search': typeof AiSearchRoute
+  '/deals': typeof DealsRoute
   '/join': typeof JoinRoute
+  '/map': typeof MapRoute
   '/merchant': typeof MerchantRoute
+  '/poll': typeof PollRoute
   '/restaurants': typeof RestaurantsRoute
   '/restaurants_/$id': typeof RestaurantsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/join' | '/merchant' | '/restaurants' | '/restaurants/$id'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/ai-search'
+    | '/deals'
+    | '/join'
+    | '/map'
+    | '/merchant'
+    | '/poll'
+    | '/restaurants'
+    | '/restaurants/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/join' | '/merchant' | '/restaurants' | '/restaurants/$id'
+  to:
+    | '/'
+    | '/admin'
+    | '/ai-search'
+    | '/deals'
+    | '/join'
+    | '/map'
+    | '/merchant'
+    | '/poll'
+    | '/restaurants'
+    | '/restaurants/$id'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/ai-search'
+    | '/deals'
     | '/join'
+    | '/map'
     | '/merchant'
+    | '/poll'
     | '/restaurants'
     | '/restaurants_/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  AiSearchRoute: typeof AiSearchRoute
+  DealsRoute: typeof DealsRoute
   JoinRoute: typeof JoinRoute
+  MapRoute: typeof MapRoute
   MerchantRoute: typeof MerchantRoute
+  PollRoute: typeof PollRoute
   RestaurantsRoute: typeof RestaurantsRoute
   RestaurantsIdRoute: typeof RestaurantsIdRoute
 }
@@ -94,6 +169,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-search': {
+      id: '/ai-search'
+      path: '/ai-search'
+      fullPath: '/ai-search'
+      preLoaderRoute: typeof AiSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deals': {
+      id: '/deals'
+      path: '/deals'
+      fullPath: '/deals'
+      preLoaderRoute: typeof DealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join': {
       id: '/join'
       path: '/join'
@@ -101,11 +197,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/merchant': {
       id: '/merchant'
       path: '/merchant'
       fullPath: '/merchant'
       preLoaderRoute: typeof MerchantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/poll': {
+      id: '/poll'
+      path: '/poll'
+      fullPath: '/poll'
+      preLoaderRoute: typeof PollRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/restaurants': {
@@ -127,8 +237,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  AiSearchRoute: AiSearchRoute,
+  DealsRoute: DealsRoute,
   JoinRoute: JoinRoute,
+  MapRoute: MapRoute,
   MerchantRoute: MerchantRoute,
+  PollRoute: PollRoute,
   RestaurantsRoute: RestaurantsRoute,
   RestaurantsIdRoute: RestaurantsIdRoute,
 }

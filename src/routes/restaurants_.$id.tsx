@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { enrichedRestaurants } from "../lib/restaurants-enriched";
+import { enrichedRestaurants, type EnrichedRestaurant } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { OwnerCta } from "@/components/owner-cta";
+import { DigitalMenu } from "@/components/digital-menu";
+import { DepositModal } from "@/components/deposit-modal";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import {
   Star,
@@ -30,6 +32,11 @@ import {
   Briefcase,
   Wine,
   ArrowRight,
+  ShieldCheck,
+  BadgePercent,
+  Dog,
+  Accessibility,
+  Shirt
 } from "lucide-react";
 
 export const Route = createFileRoute("/restaurants_/$id")({
@@ -39,14 +46,14 @@ export const Route = createFileRoute("/restaurants_/$id")({
       meta: [
         {
           title: restaurant
-            ? `${restaurant.name} — Review & Delivery in Dubai`
-            : "Dubai-Eat Restaurant Details",
+            ? `${restaurant.name} — Review, Menu, Deals & Booking in Dubai`
+            : "Dubai Eat Restaurant Details",
         },
         {
           name: "description",
           content:
             restaurant?.address ||
-            "Check out menus, prices, ratings and delivery links on Dubai-Eat.",
+            "Check out digital menus, dish search, Fazaa & Esaad deals, ratings and reservations on Dubai Eat.",
         },
       ],
     };
@@ -55,7 +62,7 @@ export const Route = createFileRoute("/restaurants_/$id")({
 });
 
 /* ─────────────────────────────────────────────
-   Helper: generate a large photo pool (gallery)
+   Helper: generate photo pool
 ───────────────────────────────────────────── */
 function buildGallery(name: string): string[] {
   const allPhotos = [
@@ -79,214 +86,36 @@ function buildGallery(name: string): string[] {
     "https://images.unsplash.com/photo-1425421669292-0c3da3b8f529?w=800",
     "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800",
     "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800",
-    "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800",
-    "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800",
-    "https://images.unsplash.com/photo-1562802378-063ec186a863?w=800",
-    "https://images.unsplash.com/photo-1555244162-803834f70033?w=800",
-    "https://images.unsplash.com/photo-1544025162-d76694265947?w=800",
-    "https://images.unsplash.com/photo-1559847844-5315695dadae?w=800",
-    "https://images.unsplash.com/photo-1574484284002-952d92456975?w=800",
-    "https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=800",
-    "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800",
-    "https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?w=800",
   ];
-  const hash = name
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  // Rotate the pool based on restaurant name hash so each restaurant has a unique order
-  const rotated = [
-    ...allPhotos.slice(hash % allPhotos.length),
-    ...allPhotos.slice(0, hash % allPhotos.length),
-  ];
-  return rotated;
-}
-
-/* ─────────────────────────────────────────────
-   Helper: sample menu by cuisine
-───────────────────────────────────────────── */
-function getSampleMenu(
-  cuisine: string
-): { category: string; items: { name: string; desc: string; price: string }[] }[] {
-  const c = cuisine.toLowerCase();
-  if (c.includes("japanese") || c.includes("sushi"))
-    return [
-      {
-        category: "Starters",
-        items: [
-          { name: "Edamame", desc: "Sea salt or spicy chili garlic", price: "AED 32" },
-          { name: "Yellowtail Sashimi", desc: "Green chili, ponzu, garlic", price: "AED 95" },
-          { name: "Shrimp Tempura", desc: "Light batter, dashi dipping sauce", price: "AED 75" },
-        ],
-      },
-      {
-        category: "Mains",
-        items: [
-          { name: "Miso Black Cod", desc: "Sweet miso glaze, hoba leaf", price: "AED 235" },
-          { name: "Spicy Beef Tenderloin", desc: "Sesame, red chili, sweet soy", price: "AED 210" },
-          { name: "Premium Sushi Platter", desc: "10 nigiri & maki rolls", price: "AED 180" },
-        ],
-      },
-      {
-        category: "Desserts",
-        items: [
-          { name: "Chocolate Fondant", desc: "Caramel center, vanilla ice cream", price: "AED 65" },
-          { name: "Mochi Ice Cream", desc: "Coconut, mango, matcha selection", price: "AED 45" },
-        ],
-      },
-    ];
-  if (c.includes("italian") || c.includes("pizza") || c.includes("pasta"))
-    return [
-      {
-        category: "Antipasti",
-        items: [
-          { name: "Burrata Pugliese", desc: "Heirloom tomatoes, basil, EVOO", price: "AED 85" },
-          { name: "Calamari Fritti", desc: "Spicy marinara, garlic aioli", price: "AED 75" },
-        ],
-      },
-      {
-        category: "Primi & Secondi",
-        items: [
-          { name: "Truffle Tagliolini", desc: "Black summer truffles, butter sauce", price: "AED 165" },
-          { name: "Wood-Fired Diavola", desc: "San Marzano, spicy salami, fior di latte", price: "AED 95" },
-          { name: "Branzino al Forno", desc: "Cherry tomatoes, capers, white wine", price: "AED 185" },
-        ],
-      },
-      {
-        category: "Dolci",
-        items: [
-          { name: "Tiramisu", desc: "Espresso-soaked ladyfingers, mascarpone", price: "AED 50" },
-          { name: "Sicilian Cannoli", desc: "Ricotta, chocolate chips, pistachios", price: "AED 40" },
-        ],
-      },
-    ];
-  return [
-    {
-      category: "Starters",
-      items: [
-        { name: "Chef's Signature Soup", desc: "Seasonal, sourdough bread", price: "AED 45" },
-        { name: "Seared Scallops", desc: "Parsnip puree, crispy pancetta", price: "AED 90" },
-      ],
-    },
-    {
-      category: "Mains",
-      items: [
-        { name: "Angus Ribeye 300g", desc: "Truffle fries, peppercorn sauce", price: "AED 245" },
-        { name: "Salmon Fillet", desc: "Asparagus, baby potatoes, lemon butter", price: "AED 175" },
-        { name: "Wild Mushroom Risotto", desc: "Chanterelles, aged parmesan", price: "AED 120" },
-      ],
-    },
-    {
-      category: "Desserts",
-      items: [
-        { name: "Warm Apple Tart", desc: "Vanilla ice cream, caramel", price: "AED 55" },
-        { name: "Chocolate Lava Cake", desc: "Liquid center, raspberry coulis", price: "AED 60" },
-      ],
-    },
-  ];
+  const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return [...allPhotos.slice(hash % allPhotos.length), ...allPhotos.slice(0, hash % allPhotos.length)];
 }
 
 function callUrl(phone: string) {
   return `tel:${phone.replace(/\s+/g, "")}`;
 }
+
 function mapsUrl(name: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " Dubai")}`;
 }
 
-/* ─────────────────────────────────────────────
-   Sub-component: Full-screen Gallery Modal
-───────────────────────────────────────────── */
-function GalleryModal({
-  photos,
-  startIndex,
-  onClose,
-}: {
-  photos: string[];
-  startIndex: number;
-  onClose: () => void;
-}) {
-  const [current, setCurrent] = useState(startIndex);
-  const prev = () => setCurrent((c) => (c === 0 ? photos.length - 1 : c - 1));
-  const next = () => setCurrent((c) => (c === photos.length - 1 ? 0 : c + 1));
-
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/95 flex flex-col"
-      onClick={onClose}
-    >
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-6 py-4 shrink-0"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <span className="text-white text-sm font-bold">
-          {current + 1} / {photos.length}
-        </span>
-        <button
-          onClick={onClose}
-          className="text-white hover:text-gray-300 transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Main image */}
-      <div
-        className="flex-1 flex items-center justify-center relative px-16"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={prev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition-colors"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <img
-          src={photos[current]}
-          alt={`Photo ${current + 1}`}
-          className="max-h-[70vh] max-w-full object-contain rounded-xl"
-        />
-        <button
-          onClick={next}
-          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition-colors"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Thumbnail strip */}
-      <div
-        className="flex gap-2 overflow-x-auto px-6 py-4 shrink-0 scrollbar-hide"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {photos.map((p, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-colors ${
-              i === current ? "border-amber-400" : "border-transparent opacity-50 hover:opacity-75"
-            }`}
-          >
-            <img src={p} alt="" className="w-full h-full object-cover" />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   Main component
-───────────────────────────────────────────── */
 function RestaurantDetail() {
   const { id } = Route.useParams();
   const [activeTab, setActiveTab] = useState<"menu" | "about" | "info">("menu");
-  const [galleryOpen, setGalleryOpen] = useState(false);
-  const [galleryStart, setGalleryStart] = useState(0);
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
 
-  const r = useMemo(
-    () => enrichedRestaurants.find((item) => item.slug === id),
-    [id]
-  );
+  // Gallery lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const r = useMemo(() => {
+    return enrichedRestaurants.find((item) => item.slug === id) || null;
+  }, [id]);
+
+  const gallery = useMemo(() => {
+    if (!r) return [];
+    return [r.image, ...buildGallery(r.name)];
+  }, [r]);
 
   const relatedRestaurants = useMemo(() => {
     if (!r) return [];
@@ -299,19 +128,15 @@ function RestaurantDetail() {
     return (
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <SiteHeader />
-        <div className="max-w-4xl mx-auto px-6 py-24 text-center">
-          <UtensilsCrossed className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <h1 className="font-display text-3xl font-extrabold text-foreground">
-            Restaurant Not Found
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            The restaurant you're looking for does not exist in our directory.
-          </p>
+        <div className="py-24 text-center">
+          <UtensilsCrossed className="h-16 w-16 mx-auto text-muted-foreground/40 mb-4" />
+          <h2 className="text-2xl font-bold text-foreground">Venue Not Found</h2>
+          <p className="text-muted-foreground text-sm mt-1">This restaurant listing could not be found.</p>
           <Link
             to="/restaurants"
-            className="inline-block mt-6 rounded-full bg-primary text-primary-foreground px-6 py-3 font-semibold text-xs"
+            className="inline-block mt-6 px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-bold text-xs"
           >
-            Back to Catalog
+            Browse All Eateries
           </Link>
         </div>
         <SiteFooter />
@@ -319,88 +144,122 @@ function RestaurantDetail() {
     );
   }
 
-  const gallery = [r.image, ...buildGallery(r.name)];
   const liveStatus = isCurrentlyOpenInDubai(r.hours);
-  const cleanPhone = r.phone.replace(/[^0-9]/g, "");
-  const whatsappUrl = `https://wa.me/${cleanPhone}?text=Hi!%20I'd%20like%20to%20check%20table%20availability%20for%20${encodeURIComponent(r.name)}%20via%20Dubai-Eat.`;
-  const sampleMenu = getSampleMenu(r.cuisine);
+  const whatsappUrl = `https://wa.me/971562730030?text=Hi%20${encodeURIComponent(r.name)}%2C%20I%20found%20your%20venue%20on%20Dubai%20Eat.%20I%27d%20like%20to%20inquire%20about%20table%20availability.`;
 
-  const openGallery = (idx: number) => {
-    setGalleryStart(idx);
-    setGalleryOpen(true);
+  const openGallery = (idx = 0) => {
+    setLightboxIndex(idx);
+    setLightboxOpen(true);
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background text-left">
       <SiteHeader />
 
-      {/* Gallery Modal */}
-      {galleryOpen && (
-        <GalleryModal
-          photos={gallery}
-          startIndex={galleryStart}
-          onClose={() => setGalleryOpen(false)}
-        />
+      <DepositModal
+        restaurant={r}
+        isOpen={isDepositOpen}
+        onClose={() => setIsDepositOpen(false)}
+      />
+
+      {/* ── PHOTO GALLERY LIGHTBOX ── */}
+      {lightboxOpen && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4">
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 p-2 text-white/80 hover:text-white rounded-full bg-white/10"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={gallery[lightboxIndex]}
+            alt={`${r.name} photo`}
+            className="max-h-[80vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl"
+          />
+          <div className="flex items-center gap-4 mt-4">
+            <button
+              onClick={() => setLightboxIndex((prev) => (prev > 0 ? prev - 1 : gallery.length - 1))}
+              className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className="text-white text-xs font-bold">{lightboxIndex + 1} / {gallery.length}</span>
+            <button
+              onClick={() => setLightboxIndex((prev) => (prev < gallery.length - 1 ? prev + 1 : 0))}
+              className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       )}
 
-      {/* ── HERO PHOTO COLLAGE (TheFork Style) ── */}
-      <section className="max-w-7xl mx-auto px-6 pt-8">
-        <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[420px] rounded-3xl overflow-hidden">
-          {/* Large main photo */}
-          <button
+      {/* ── HERO BANNER PHOTOS GRID ── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 h-[340px] sm:h-[420px] rounded-3xl overflow-hidden shadow-md relative">
+          <div
             onClick={() => openGallery(0)}
-            className="col-span-2 row-span-2 relative overflow-hidden group bg-secondary"
+            className="md:col-span-2 h-full relative cursor-pointer group overflow-hidden bg-muted"
           >
             <img
               src={gallery[0]}
               alt={r.name}
-              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-          </button>
-          {/* 4 smaller photos */}
-          {gallery.slice(1, 5).map((ph, i) => (
-            <button
-              key={i}
-              onClick={() => openGallery(i + 1)}
-              className="relative overflow-hidden group bg-secondary"
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <span className="absolute bottom-4 left-4 text-white text-xs font-bold bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5">
+              👑 Main Showcase
+            </span>
+          </div>
+
+          <div
+            onClick={() => openGallery(1)}
+            className="hidden md:block h-full relative cursor-pointer group overflow-hidden bg-muted"
+          >
+            <img
+              src={gallery[1]}
+              alt={`${r.name} dining room`}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+
+          <div className="hidden md:grid grid-rows-2 gap-2.5 h-full">
+            <div
+              onClick={() => openGallery(2)}
+              className="relative cursor-pointer group overflow-hidden bg-muted"
             >
               <img
-                src={ph}
-                alt={`${r.name} photo ${i + 2}`}
-                className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                src={gallery[2]}
+                alt={`${r.name} dish`}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              {/* "See all photos" overlay on last visible tile */}
-              {i === 3 && (
-                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white">
-                  <span className="text-2xl font-extrabold">{gallery.length}+</span>
-                  <span className="text-xs font-bold mt-0.5">See all photos</span>
-                </div>
-              )}
-            </button>
-          ))}
+            </div>
+            <div
+              onClick={() => openGallery(3)}
+              className="relative cursor-pointer group overflow-hidden bg-muted"
+            >
+              <img
+                src={gallery[3]}
+                alt={`${r.name} dish preview`}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-extrabold text-xs">
+                +{gallery.length - 4} More Photos
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── MAIN LAYOUT ── */}
-      <main className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
-
-        {/* ── LEFT COLUMN ── */}
-        <div className="lg:col-span-8 space-y-10 text-left">
-
-          {/* TITLE BLOCK (TheFork style) */}
-          <div className="space-y-3">
-            {/* Breadcrumb */}
-            <nav className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-              <span>/</span>
-              <Link to="/restaurants" className="hover:text-primary transition-colors">Restaurants</Link>
-              <span>/</span>
-              <span className="text-foreground font-semibold">{r.name}</span>
-            </nav>
-
-            {/* Badge row */}
-            <div className="flex flex-wrap gap-2">
+      {/* ── MAIN CONTENT & SIDEBAR ── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Left column */}
+        <div className="lg:col-span-8 space-y-8">
+          
+          {/* Header Title Info */}
+          <div className="space-y-4 border-b border-border pb-6">
+            <div className="flex flex-wrap items-center gap-2">
               {r.michelin && (
                 <span className="inline-flex items-center gap-1 bg-rose-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   <Award className="w-3 h-3 fill-current" /> Michelin Selected
@@ -412,15 +271,14 @@ function RestaurantDetail() {
                 </span>
               )}
               <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
-                ✅ Verified Listing
+                ✅ DET Dubai Verified
               </span>
             </div>
 
-            <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight leading-none">
+            <h1 className="font-display text-4xl sm:text-5xl font-black text-foreground tracking-tight leading-none">
               {r.name}
             </h1>
 
-            {/* Rating row */}
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <div className="flex items-center gap-1.5">
                 <span className="bg-emerald-500 text-white font-extrabold text-sm px-2.5 py-0.5 rounded-lg">
@@ -431,19 +289,12 @@ function RestaurantDetail() {
                     <Star
                       key={i}
                       className={`h-3.5 w-3.5 ${
-                        i < Math.floor(r.rating)
-                          ? "fill-amber-500 text-amber-500"
-                          : "text-gray-300 dark:text-zinc-700"
+                        i < Math.floor(r.rating) ? "fill-amber-500 text-amber-500" : "text-gray-300 dark:text-zinc-700"
                       }`}
                     />
                   ))}
                 </div>
-                <a
-                  href={mapsUrl(r.name)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary font-semibold hover:underline"
-                >
+                <a href={mapsUrl(r.name)} target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">
                   {r.reviews} reviews
                 </a>
               </div>
@@ -453,11 +304,9 @@ function RestaurantDetail() {
               <span className="text-muted-foreground">~AED {r.priceMin}–{r.priceMax} pp</span>
             </div>
 
-            {/* Address row */}
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-primary" />
-                {r.address}
+                <MapPin className="w-3.5 h-3.5 text-primary" /> {r.address}
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-primary" />
@@ -470,326 +319,215 @@ function RestaurantDetail() {
               </span>
             </div>
 
-            {/* Action row */}
-            <div className="flex gap-3 pt-1">
-              <button
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({ title: r.name, url: window.location.href }).catch(() => {});
-                  } else {
-                    navigator.clipboard.writeText(window.location.href);
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground border border-border rounded-full px-3 py-1.5 transition-colors"
-              >
-                <Share2 className="w-3.5 h-3.5" /> Share
-              </button>
-              <button className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-rose-500 border border-border rounded-full px-3 py-1.5 transition-colors">
-                <Heart className="w-3.5 h-3.5" /> Save
-              </button>
-              <button
-                onClick={() => openGallery(0)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary border border-border rounded-full px-3 py-1.5 transition-colors"
-              >
-                📷 {gallery.length}+ Photos
-              </button>
-            </div>
+            {/* Accepted Privileges Cards Banner */}
+            {r.discounts && r.discounts.length > 0 && (
+              <div className="bg-amber-500/10 border border-amber-500/25 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-extrabold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
+                  <BadgePercent className="w-4 h-4" /> Accepted Privilege Cards & Special Rates
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {r.discounts.map(d => (
+                    <span key={d} className="bg-background border border-amber-500/30 text-foreground font-bold text-xs px-3 py-1 rounded-xl shadow-2xs">
+                      💳 {d}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── TABS ── */}
-          <div>
-            <div className="flex border-b border-border gap-1">
-              {(["menu", "about", "info"] as const).map((tab) => (
+          <div className="space-y-6">
+            <div className="flex border-b border-border gap-2">
+              {[
+                { id: "menu", label: "🍽️ Digital Menu & Dishes" },
+                { id: "about", label: "📋 Practical Info & Policies" },
+                { id: "info", label: "📍 Location & Contact" }
+              ].map(t => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`py-3 px-5 font-bold text-xs uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-                    activeTab === tab
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id as any)}
+                  className={`py-3 px-5 font-bold text-xs uppercase tracking-wider border-b-2 transition-all ${
+                    activeTab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {tab === "menu" ? "🍽️ Menu" : tab === "about" ? "💬 Details" : "📍 Location"}
+                  {t.label}
                 </button>
               ))}
             </div>
 
-            {/* TAB: MENU */}
+            {/* TAB: DIGITAL MENU */}
             {activeTab === "menu" && (
-              <div className="space-y-8 pt-8">
-                <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
-                  <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Menu items and prices are compiled from Google Maps listings and official restaurant websites. Prices may vary — please confirm with the venue.
-                  </p>
-                </div>
+              <DigitalMenu restaurantName={r.name} items={r.digitalMenu || []} />
+            )}
 
-                {sampleMenu.map((cat) => (
-                  <div key={cat.category}>
-                    <h3 className="font-display font-extrabold text-lg text-foreground mb-4 pb-2 border-b border-border/60">
-                      {cat.category}
-                    </h3>
-                    <div className="space-y-5">
-                      {cat.items.map((item) => (
-                        <div key={item.name} className="flex justify-between items-start gap-6 group">
-                          <div>
-                            <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
-                              {item.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                              {item.desc}
-                            </p>
-                          </div>
-                          <span className="font-extrabold text-sm text-foreground whitespace-nowrap shrink-0">
-                            {item.price}
-                          </span>
-                        </div>
+            {/* TAB: PRACTICAL INFO & POLICIES (PDF Section 2) */}
+            {activeTab === "about" && (
+              <div className="space-y-8">
+                
+                {/* Practical Information Matrix */}
+                <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+                  <h3 className="font-display font-extrabold text-xl text-foreground flex items-center gap-2 border-b border-border pb-4">
+                    <ShieldCheck className="w-5 h-5 text-primary" /> Practical Information & Venue Policies
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-muted/40 p-4 rounded-2xl border border-border space-y-1">
+                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                        <Car className="w-4 h-4" /> Valet & Parking
+                      </div>
+                      <p className="text-xs font-extrabold text-foreground">{r.valetInfo.type} Parking</p>
+                      <p className="text-[11px] text-muted-foreground">{r.valetInfo.cost}</p>
+                    </div>
+
+                    <div className="bg-muted/40 p-4 rounded-2xl border border-border space-y-1">
+                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                        <Shirt className="w-4 h-4" /> Dress Code
+                      </div>
+                      <p className="text-xs font-extrabold text-foreground">{r.dressCode}</p>
+                      <p className="text-[11px] text-muted-foreground">Smart attire encouraged; swimwear restricted indoors.</p>
+                    </div>
+
+                    <div className="bg-muted/40 p-4 rounded-2xl border border-border space-y-1">
+                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                        <Baby className="w-4 h-4" /> Child & Age Policy
+                      </div>
+                      <p className="text-xs font-extrabold text-foreground">{r.childPolicy}</p>
+                      <p className="text-[11px] text-muted-foreground">Children under 12 must be accompanied by an adult.</p>
+                    </div>
+
+                    <div className="bg-muted/40 p-4 rounded-2xl border border-border space-y-1">
+                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                        <Dog className="w-4 h-4" /> Pet Policy
+                      </div>
+                      <p className="text-xs font-extrabold text-foreground">{r.petPolicy}</p>
+                      <p className="text-[11px] text-muted-foreground">Water bowls available on outdoor terrace upon request.</p>
+                    </div>
+
+                    <div className="bg-muted/40 p-4 rounded-2xl border border-border space-y-1">
+                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                        <Accessibility className="w-4 h-4" /> Wheelchair Accessibility
+                      </div>
+                      <p className="text-xs font-extrabold text-foreground">{r.accessibility}</p>
+                      <p className="text-[11px] text-muted-foreground">Step-free access & accessible washrooms available.</p>
+                    </div>
+
+                    <div className="bg-muted/40 p-4 rounded-2xl border border-border space-y-1">
+                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                        <Wine className="w-4 h-4" /> Alcohol & Shisha
+                      </div>
+                      <p className="text-xs font-extrabold text-foreground">{r.liquor}</p>
+                      <p className="text-[11px] text-muted-foreground">{r.logistics?.includes("Shisha Available") ? "Shisha lounge available outdoors" : "Non-shisha venue"}</p>
+                    </div>
+                  </div>
+
+                  {/* Dietary Certifications */}
+                  <div className="pt-2">
+                    <h4 className="font-extrabold text-sm text-foreground mb-2">Dietary Certifications & Options</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {r.dietaryTags.map(tag => (
+                        <span key={tag} className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs px-3 py-1 rounded-xl">
+                          ✓ {tag}
+                        </span>
                       ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
 
-            {/* TAB: ABOUT / DETAILS */}
-            {activeTab === "about" && (
-              <div className="space-y-8 pt-8">
-                {/* Quick info grid (TheFork style) */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {[
-                    { icon: "🍽️", label: "Cuisine", val: r.cuisine },
-                    { icon: "💰", label: "Avg. bill", val: `AED ${r.priceMin}–${r.priceMax}` },
-                    { icon: "📍", label: "Neighborhood", val: r.area },
-                    { icon: "🕐", label: "Hours", val: r.hours },
-                    { icon: "🍷", label: "Alcohol", val: r.liquor || "Non-Licensed" },
-                    { icon: "⭐", label: "Rating", val: `${(r.rating * 2).toFixed(1)} / 10` },
-                  ].map((s) => (
-                    <div
-                      key={s.label}
-                      className="bg-secondary/30 border border-border/60 rounded-2xl p-4 space-y-1"
-                    >
-                      <p className="text-lg">{s.icon}</p>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        {s.label}
-                      </p>
-                      <p className="font-bold text-xs text-foreground">{s.val}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Amenities */}
-                <div>
-                  <h3 className="font-display font-extrabold text-lg text-foreground mb-4 pb-2 border-b border-border/60">
-                    Amenities & Perks
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {[
-                      {
-                        ok: r.liquor === "Licensed",
-                        icon: <Wine className="w-4 h-4" />,
-                        label: "Licensed (Alcohol)",
-                      },
-                      {
-                        ok: r.seatingPerks?.includes("Burj View"),
-                        icon: "🏙️",
-                        label: "Burj Khalifa View",
-                      },
-                      {
-                        ok: r.seatingPerks?.includes("Beachfront"),
-                        icon: "🏖️",
-                        label: "Beachfront Dining",
-                      },
-                      {
-                        ok: r.seatingPerks?.includes("AC Terrace"),
-                        icon: <Wind className="w-4 h-4" />,
-                        label: "AC Terrace Seating",
-                      },
-                      {
-                        ok: r.logistics?.includes("Complimentary Valet"),
-                        icon: <Car className="w-4 h-4" />,
-                        label: "Free Valet Parking",
-                      },
-                      {
-                        ok: r.occasions?.includes("Kid Friendly"),
-                        icon: <Baby className="w-4 h-4" />,
-                        label: "Kid Friendly",
-                      },
-                      {
-                        ok: r.occasions?.includes("Business Lunch"),
-                        icon: <Briefcase className="w-4 h-4" />,
-                        label: "Business Lunch",
-                      },
-                      {
-                        ok: r.logistics?.includes("Shisha Available"),
-                        icon: "💨",
-                        label: "Shisha Available",
-                      },
-                      {
-                        ok: r.occasions?.includes("Sunday Brunch"),
-                        icon: "🥂",
-                        label: "Sunday Brunch",
-                      },
-                    ].map((a) => (
-                      <div
-                        key={a.label}
-                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-colors ${
-                          a.ok
-                            ? "bg-primary/10 border-primary/25 text-primary"
-                            : "bg-secondary/15 border-border/40 text-muted-foreground/50 line-through"
-                        }`}
-                      >
-                        <span>{typeof a.icon === "string" ? a.icon : a.icon}</span>
-                        <span>{a.label}</span>
-                        {a.ok && <CheckCircle2 className="w-3.5 h-3.5 ml-auto shrink-0" />}
+                  {/* Awards */}
+                  {r.awardsList.length > 0 && (
+                    <div className="pt-2">
+                      <h4 className="font-extrabold text-sm text-foreground mb-2">Awards & Recognition</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {r.awardsList.map(a => (
+                          <span key={a} className="bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 font-extrabold text-xs px-3 py-1 rounded-xl flex items-center gap-1">
+                            <Award className="w-3.5 h-3.5" /> {a}
+                          </span>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* TAB: LOCATION */}
+            {/* TAB: LOCATION & CONTACT */}
             {activeTab === "info" && (
-              <div className="space-y-8 pt-8">
-                {/* Hours card */}
-                <div className="bg-secondary/20 rounded-2xl border border-border/80 p-6 space-y-4">
-                  <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-primary" /> Opening Hours
+              <div className="space-y-6">
+                <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm">
+                  <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-primary" /> Venue Location & Directions
                   </h3>
-                  <div className="space-y-2">
-                    {[
-                      "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
-                    ].map((day) => (
-                      <div
-                        key={day}
-                        className="flex justify-between text-xs py-1 border-b border-border/30 last:border-0"
-                      >
-                        <span className="font-semibold text-foreground">{day}</span>
-                        <span className="text-muted-foreground">{r.hours}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${liveStatus.isOpen ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"}`}>
-                    <span className={`w-2 h-2 rounded-full ${liveStatus.isOpen ? "bg-emerald-500" : "bg-rose-500"}`} />
-                    {liveStatus.isOpen ? "Open right now in Dubai" : "Currently closed"}
-                  </div>
-                </div>
-
-                {/* Map embed placeholder */}
-                <div className="rounded-2xl overflow-hidden border border-border shadow-sm">
-                  <div className="bg-secondary/30 p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-sm text-foreground">{r.name}</p>
-                      <p className="text-xs text-muted-foreground">{r.address}</p>
-                    </div>
+                  <p className="text-xs text-muted-foreground">{r.address}</p>
+                  
+                  <div className="bg-muted/30 border border-border rounded-2xl p-6 text-center space-y-3">
+                    <MapPin className="w-10 h-10 text-primary mx-auto" />
+                    <p className="font-bold text-sm text-foreground">{r.name} in {r.district}</p>
                     <a
                       href={mapsUrl(r.name)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-primary text-primary-foreground font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5"
+                      className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground font-extrabold text-xs px-6 py-3 rounded-xl shadow-xs"
                     >
-                      <MapPin className="w-3.5 h-3.5" /> Get Directions
+                      <MapPin className="w-3.5 h-3.5" /> Open in Google Maps Navigation
                     </a>
                   </div>
-                  <div className="h-64 bg-secondary/20 flex flex-col items-center justify-center text-center p-8 space-y-2">
-                    <MapPin className="w-10 h-10 text-primary" />
-                    <p className="font-bold text-sm text-foreground">Map Navigation</p>
-                    <p className="text-xs text-muted-foreground max-w-xs">
-                      Click "Get Directions" above to open this restaurant in Google Maps for turn-by-turn navigation.
-                    </p>
-                  </div>
-                </div>
 
-                {/* Contact info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <a
-                    href={callUrl(r.phone)}
-                    className="flex items-center gap-3 p-4 bg-secondary/20 border border-border/60 rounded-2xl hover:border-primary/30 transition-colors group"
-                  >
-                    <Phone className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Phone</p>
-                      <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{r.phone}</p>
-                    </div>
-                  </a>
-                  <a
-                    href={r.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 bg-secondary/20 border border-border/60 rounded-2xl hover:border-primary/30 transition-colors group"
-                  >
-                    <Globe className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Website</p>
-                      <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors truncate max-w-[160px]">
-                        {r.website.replace(/^https?:\/\//, "").split("/")[0]}
-                      </p>
-                    </div>
-                  </a>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
+                    <a
+                      href={callUrl(r.phone)}
+                      className="flex items-center gap-3 p-4 bg-muted/40 border border-border rounded-2xl hover:border-primary/40 transition-colors"
+                    >
+                      <Phone className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Phone</p>
+                        <p className="font-bold text-xs text-foreground">{r.phone}</p>
+                      </div>
+                    </a>
+
+                    <a
+                      href={r.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-4 bg-muted/40 border border-border rounded-2xl hover:border-primary/40 transition-colors"
+                    >
+                      <Globe className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Official Website</p>
+                        <p className="font-bold text-xs text-foreground truncate max-w-[180px]">{r.website}</p>
+                      </div>
+                    </a>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-
-          {/* ── PHOTO GALLERY STRIP ── */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display font-extrabold text-xl text-foreground">
-                📷 Photos ({gallery.length}+)
-              </h2>
-              <button
-                onClick={() => openGallery(0)}
-                className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
-              >
-                View all <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-              {gallery.slice(0, 15).map((ph, i) => (
-                <button
-                  key={i}
-                  onClick={() => openGallery(i)}
-                  className={`relative overflow-hidden rounded-xl bg-secondary group ${
-                    i === 0 ? "col-span-2 row-span-2 aspect-square" : "aspect-square"
-                  }`}
-                >
-                  <img
-                    src={ph}
-                    alt={`${r.name} photo ${i + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {i === 14 && (
-                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white">
-                      <span className="text-xl font-extrabold">+{gallery.length - 14}</span>
-                      <span className="text-[10px] font-bold">more</span>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* ── RIGHT SIDEBAR ── */}
+        {/* ── RIGHT SIDEBAR: RESERVATIONS, DEPOSIT & DELIVERY (PDF Section 3 & 4) ── */}
         <div className="lg:col-span-4">
-          <div className="sticky top-24 space-y-4">
-            <div className="bg-card border border-border/90 rounded-3xl p-6 shadow-lg space-y-5">
+          <div className="sticky top-24 space-y-5">
+            
+            {/* Reservation Gateway Card */}
+            <div className="bg-card border border-border/90 rounded-3xl p-6 shadow-xl space-y-5 text-left">
               <div>
-                <h3 className="font-display font-extrabold text-lg text-foreground">
-                  Reserve a Table
+                <h3 className="font-display font-black text-xl text-foreground">
+                  Table Reservations
                 </h3>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  We redirect you directly to the venue's official booking platform — no middleman.
+                <p className="text-xs text-muted-foreground mt-1">
+                  Direct official booking links with zero booking commission fees.
                 </p>
               </div>
 
-              {/* Open/Closed status pill */}
-              <div className={`flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl border ${liveStatus.isOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" : "bg-rose-500/10 border-rose-500/20 text-rose-700 dark:text-rose-400"}`}>
+              {/* Status Pill */}
+              <div className={`flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl border ${
+                liveStatus.isOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" : "bg-rose-500/10 border-rose-500/20 text-rose-700 dark:text-rose-400"
+              }`}>
                 <span className={`w-2 h-2 rounded-full animate-pulse ${liveStatus.isOpen ? "bg-emerald-500" : "bg-rose-500"}`} />
                 {liveStatus.isOpen ? "Open Now · " : "Currently Closed · "}
                 <span className="font-normal">{r.hours}</span>
               </div>
 
+              {/* Multi-Platform Reservation Options (PDF Section 4: SevenRooms, EatApp, ReserveOut, OpenTable, WhatsApp) */}
               <div className="space-y-2.5">
                 <a
                   href={r.bookingPlatform?.url || r.website}
@@ -798,31 +536,42 @@ function RestaurantDetail() {
                   className="w-full bg-primary text-primary-foreground hover:opacity-90 rounded-xl py-3.5 flex items-center justify-center gap-2 text-xs font-extrabold shadow-sm transition-all text-center"
                 >
                   <Calendar className="h-4 w-4" />
-                  Reserve via {r.bookingPlatform?.name || "Official Website"}
+                  Book via {r.bookingPlatform?.name || "Official Engine"}
                 </a>
+
+                {/* VIP Table Deposit Modal Trigger */}
+                <button
+                  onClick={() => setIsDepositOpen(true)}
+                  className="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white hover:opacity-95 rounded-xl py-3.5 flex items-center justify-center gap-2 text-xs font-extrabold shadow-sm transition-all"
+                >
+                  <ShieldCheck className="h-4 w-4 fill-white" />
+                  VIP Table Deposit (Stripe / Telr)
+                </button>
+
+                {/* WhatsApp Fallback */}
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl py-3.5 flex items-center justify-center gap-2 text-xs font-extrabold transition-all text-center"
                 >
-                  <MessageSquare className="h-4 w-4 fill-current" />
-                  💬 WhatsApp Concierge
+                  <MessageSquare className="h-4 w-4 fill-current text-emerald-500" />
+                  WhatsApp Direct Concierge
                 </a>
               </div>
 
-              {/* Delivery section */}
-              <div className="border-t border-border/50 pt-4 space-y-3">
+              {/* Delivery Hub Matrix (PDF Section 3: Keeta, Deliveroo, Talabat, Careem Food, Noon Food) */}
+              <div className="border-t border-border/50 pt-4 space-y-2.5">
                 <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                  🛵 Order Delivery
+                  🛵 Online Food Delivery Links
                 </p>
                 <div className="grid grid-cols-5 gap-1.5">
                   {[
+                    { href: r.deliveryLinks?.keeta, emoji: "⏺️", label: "Keeta", color: "text-sky-600 dark:text-sky-400", bg: "bg-sky-500/10 border-sky-500/25" },
                     { href: r.deliveryLinks?.deliveroo, emoji: "🛵", label: "Deliveroo", color: "text-[#00cdbc]", bg: "bg-[#00cdbc]/10 border-[#00cdbc]/25" },
                     { href: r.deliveryLinks?.talabat, emoji: "🚚", label: "Talabat", color: "text-[#ff5a00]", bg: "bg-[#ff5a00]/10 border-[#ff5a00]/25" },
-                    { href: r.deliveryLinks?.noon, emoji: "🟡", label: "Noon", color: "text-yellow-700 dark:text-yellow-400", bg: "bg-yellow-500/10 border-yellow-400/25" },
                     { href: r.deliveryLinks?.careem, emoji: "🟢", label: "Careem", color: "text-[#47a13c] dark:text-[#5ce74f]", bg: "bg-green-500/10 border-green-500/25" },
-                    { href: r.deliveryLinks?.keeta, emoji: "⏺️", label: "Keeta", color: "text-sky-600 dark:text-sky-400", bg: "bg-sky-500/10 border-sky-500/25" },
+                    { href: r.deliveryLinks?.noon, emoji: "🟡", label: "Noon", color: "text-yellow-700 dark:text-yellow-400", bg: "bg-yellow-500/10 border-yellow-400/25" },
                   ].map((d) => (
                     <a
                       key={d.label}
@@ -838,31 +587,19 @@ function RestaurantDetail() {
                   ))}
                 </div>
               </div>
-
-              {/* Utility links */}
-              <div className="border-t border-border/50 pt-4 flex justify-between text-xs font-bold text-muted-foreground">
-                <a href={callUrl(r.phone)} className="flex items-center gap-1.5 hover:text-primary transition-colors">
-                  <Phone className="w-3.5 h-3.5 text-primary" /> Call
-                </a>
-                <a href={mapsUrl(r.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-                  <MapPin className="w-3.5 h-3.5 text-primary" /> Map
-                </a>
-                <a href={r.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-                  <Globe className="w-3.5 h-3.5 text-primary" /> Website
-                </a>
-              </div>
             </div>
+
           </div>
         </div>
       </main>
 
-      {/* ── RELATED RESTAURANTS IN SAME AREA ── */}
+      {/* ── RELATED RESTAURANTS IN SAME DISTRICT ── */}
       {relatedRestaurants.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 py-12 border-t border-border/60">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 border-t border-border/60">
           <div className="flex items-end justify-between mb-8">
             <div>
               <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" /> Also in {r.area}
+                <Sparkles className="w-3.5 h-3.5" /> Also in {r.district}
               </p>
               <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-foreground">
                 More restaurants nearby
@@ -870,10 +607,10 @@ function RestaurantDetail() {
             </div>
             <Link
               to="/restaurants"
-              search={{ area: r.area }}
+              search={{ area: r.district }}
               className="text-xs font-bold text-primary hover:underline hidden md:flex items-center gap-1"
             >
-              See all in {r.area} <ArrowRight className="w-3.5 h-3.5" />
+              See all in {r.district} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -890,7 +627,6 @@ function RestaurantDetail() {
                     alt={rel.name}
                     className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                   <div className="absolute bottom-2 right-2 bg-emerald-500 text-white font-extrabold text-xs px-1.5 py-0.5 rounded-md">
                     {(rel.rating * 2).toFixed(1)}
                   </div>
@@ -908,9 +644,7 @@ function RestaurantDetail() {
         </section>
       )}
 
-      {/* ── OWNER CTA ── */}
       <OwnerCta />
-
       <SiteFooter />
     </div>
   );
