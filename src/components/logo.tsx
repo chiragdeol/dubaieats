@@ -1,7 +1,7 @@
 import React from "react";
 
 export function DubaiEatsLogo({ 
-  className = "h-10 sm:h-12 w-auto", 
+  className = "h-9 sm:h-11 md:h-12 w-auto max-w-[220px] sm:max-w-[260px]", 
   alt = "Dubai Eats — Discover • Indulge • Repeat" 
 }: { 
   className?: string; 
@@ -17,10 +17,10 @@ export function DubaiEatsLogo({
   );
 }
 
-export function GovernmentDubaiLogo({ className = "h-10 sm:h-12 w-auto" }: { className?: string }) {
+export function GovernmentDubaiLogo({ className = "h-9 sm:h-11 md:h-12 w-auto max-w-[220px] sm:max-w-[260px]" }: { className?: string }) {
   return <DubaiEatsLogo className={className} />;
 }
 
-export function VisitDubaiLogo({ className = "h-10 sm:h-12 w-auto" }: { className?: string }) {
+export function VisitDubaiLogo({ className = "h-9 sm:h-11 md:h-12 w-auto max-w-[220px] sm:max-w-[260px]" }: { className?: string }) {
   return <DubaiEatsLogo className={className} />;
 }
