@@ -17,7 +17,6 @@ import {
   Building2,
   Users
 } from "lucide-react";
-import gourmetPastaPlate from "@/assets/gourmet-pasta-plate.png";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
@@ -72,15 +71,32 @@ function Landing() {
 
       <main>
         
-        {/* ── MAJESTIC PALATE HERO BANNER ── */}
+        {/* ── MAJESTIC PALATE HERO BANNER WITH BACKGROUND VIDEO ── */}
         <section className="relative mx-auto max-w-[1440px] px-4 pb-12 pt-8 sm:px-6 lg:px-10">
-          <div className="relative min-h-[460px] sm:min-h-[560px] overflow-hidden rounded-[32px] bg-[#1A1A1A] text-white shadow-2xl border border-[#2E2E2E]">
+          <div className="relative min-h-[480px] sm:min-h-[580px] overflow-hidden rounded-[32px] bg-[#1A1A1A] text-white shadow-2xl border border-[#2E2E2E]">
             
-            {/* Background Decorative Gold Rings */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#D4AF37]/5 rounded-full blur-2xl pointer-events-none" />
+            {/* Background Autoplay Looping Video */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover opacity-50 scale-105"
+              >
+                <source src="/hero-video.mp4" type="video/mp4" />
+                <source src="/792cd443c4.mp4" type="video/mp4" />
+              </video>
+              {/* Cinematic Dark & Gold Gradient Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A] via-[#1A1A1A]/85 to-[#1A1A1A]/40" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-[#1A1A1A]/30" />
+            </div>
 
-            <div className="relative z-10 mx-auto flex min-h-[460px] sm:min-h-[560px] max-w-5xl items-center px-6 py-14 sm:px-14 lg:px-16">
+            {/* Background Decorative Gold Rings */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[#D4AF37]/15 rounded-full blur-3xl pointer-events-none z-1" />
+            <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none z-1" />
+
+            <div className="relative z-10 mx-auto flex min-h-[480px] sm:min-h-[580px] max-w-5xl items-center px-6 py-14 sm:px-14 lg:px-16">
               <div className="w-full max-w-2xl space-y-6">
                 
                 <div className="inline-flex items-center gap-2 bg-[#D4AF37]/15 border border-[#D4AF37]/30 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-[#D4AF37] font-heading">
@@ -88,18 +104,18 @@ function Landing() {
                   Majestic Palate Dubai Dining Guide
                 </div>
 
-                <h1 className="font-display max-w-2xl text-4xl sm:text-6xl lg:text-[4rem] font-black leading-[1.08] tracking-tight text-white">
+                <h1 className="font-display max-w-2xl text-4xl sm:text-6xl lg:text-[4rem] font-black leading-[1.08] tracking-tight text-white drop-shadow-md">
                   Discover and book the best restaurants in Dubai
                 </h1>
 
-                <p className="text-[#A3A3A3] text-sm sm:text-base leading-relaxed max-w-xl font-normal">
+                <p className="text-[#E5E5E5] text-sm sm:text-base leading-relaxed max-w-xl font-normal drop-shadow-sm">
                   Explore thousands of verified venues, authentic Emirati flavours, Michelin dining, and exclusive Fazaa & Esaad privileges.
                 </p>
 
                 {/* Majestic Palate Search Bar */}
                 <form
                   onSubmit={submitSearch}
-                  className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center bg-white p-2 text-[#1A1A1A] shadow-2xl rounded-2xl sm:rounded-full border border-slate-200"
+                  className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center bg-white p-2 text-[#1A1A1A] shadow-2xl rounded-2xl sm:rounded-full border border-slate-200 backdrop-blur-md"
                 >
                   <label className="flex items-center gap-2.5 px-4 py-3 border-b sm:border-b-0 sm:border-r border-slate-200 sm:w-64">
                     <MapPin className="h-4 w-4 shrink-0 text-[#D4AF37]" />
@@ -134,14 +150,14 @@ function Landing() {
                 </form>
 
                 {/* Quick discovery pills */}
-                <div className="flex flex-wrap items-center gap-2 pt-2 text-xs font-semibold text-white/80 font-heading">
-                  <span className="text-white/60">Trending:</span>
+                <div className="flex flex-wrap items-center gap-2 pt-2 text-xs font-semibold text-white/90 font-heading">
+                  <span className="text-white/70">Trending:</span>
                   {["DIFC Fine Dining", "Burj Khalifa View", "Fazaa Deals", "Beach Clubs"].map(t => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => navigate({ to: "/restaurants", search: { q: t } })}
-                      className="bg-white/10 hover:bg-[#D4AF37] hover:text-[#1A1A1A] text-white px-3 py-1 rounded-full text-[11px] font-bold border border-white/15 transition-all cursor-pointer"
+                      className="bg-black/40 hover:bg-[#D4AF37] hover:text-[#1A1A1A] text-white px-3 py-1 rounded-full text-[11px] font-bold border border-white/20 transition-all cursor-pointer backdrop-blur-sm"
                     >
                       {t}
                     </button>
@@ -150,13 +166,6 @@ function Landing() {
 
               </div>
             </div>
-
-            {/* Hero Image Plate */}
-            <img
-              src={gourmetPastaPlate}
-              alt="Dubai gourmet dining"
-              className="absolute bottom-[-10%] right-[-8%] hidden h-[88%] w-[48%] object-contain object-left drop-shadow-2xl lg:block pointer-events-none"
-            />
           </div>
         </section>
 
