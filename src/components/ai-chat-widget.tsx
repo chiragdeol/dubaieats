@@ -10,7 +10,20 @@ import {
   type ChatMessage,
   type EnrichedRestaurant,
 } from "@/lib/restaurant-ai";
-import { Star, Send, X, ChevronDown, ExternalLink, Bot, Sparkles, RefreshCw, Maximize2 } from "lucide-react";
+import { enrichedRestaurants } from "@/lib/restaurants-enriched";
+import { 
+  Star, 
+  Send, 
+  X, 
+  ChevronDown, 
+  ExternalLink, 
+  Bot, 
+  Sparkles, 
+  RefreshCw, 
+  Maximize2,
+  Minimize2,
+  Compass
+} from "lucide-react";
 
 /* ────────────────────────────────────────────────
    Types
@@ -31,35 +44,35 @@ function ChatRestaurantCard({ r }: { r: EnrichedRestaurant }) {
     <Link
       to="/restaurants/$id"
       params={{ id: r.slug || "" }}
-      className="flex gap-3 p-3 bg-white/5 hover:bg-white/12 border border-white/10 hover:border-amber-400/30 rounded-xl transition-all group"
+      className="flex gap-3 p-3 bg-white/5 hover:bg-white/12 border border-white/10 hover:border-[#D4AF37]/40 rounded-2xl transition-all group shadow-sm text-left"
     >
-      <div className="w-20 h-16 rounded-lg overflow-hidden shrink-0 bg-white/10">
+      <div className="w-20 h-16 rounded-xl overflow-hidden shrink-0 bg-white/10">
         <img src={r.image} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-bold text-sm text-white leading-tight truncate group-hover:text-amber-300 transition-colors">
+        <p className="font-bold text-sm text-white leading-tight truncate group-hover:text-[#D4AF37] transition-colors font-heading">
           {r.name}
         </p>
-        <p className="text-xs text-white/60 mt-0.5 truncate">{r.cuisine} · {r.district}</p>
-        <div className="flex items-center gap-2.5 mt-1.5">
-          <span className="flex items-center gap-1 text-xs text-amber-400 font-bold">
-            <Star className="w-3 h-3 fill-amber-400" />
+        <p className="text-xs text-white/60 mt-0.5 truncate font-sans">{r.cuisine} · {r.district}</p>
+        <div className="flex items-center gap-2.5 mt-1.5 font-sans">
+          <span className="flex items-center gap-1 text-xs text-[#D4AF37] font-bold font-heading">
+            <Star className="w-3 h-3 fill-[#D4AF37]" />
             {r.rating.toFixed(1)}
           </span>
           <span className="text-xs text-white/50">AED {r.priceMin}–{r.priceMax}</span>
           {r.michelin && (
-            <span className="text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/20 px-1.5 py-0.5 rounded-full font-bold">
+            <span className="text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded-full font-bold font-heading">
               Michelin
             </span>
           )}
           {r.liquor === "Licensed" && (
-            <span className="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/20 px-1.5 py-0.5 rounded-full font-bold">
+            <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded-full font-bold font-heading">
               Licensed
             </span>
           )}
         </div>
       </div>
-      <ExternalLink className="w-3.5 h-3.5 text-white/30 group-hover:text-amber-400 shrink-0 mt-1 transition-colors" />
+      <ExternalLink className="w-3.5 h-3.5 text-white/30 group-hover:text-[#D4AF37] shrink-0 mt-1 transition-colors" />
     </Link>
   );
 }
@@ -73,7 +86,7 @@ function TypingDots() {
       {[0, 1, 2].map(i => (
         <span
           key={i}
-          className="w-2.5 h-2.5 rounded-full bg-amber-400/70 animate-bounce"
+          className="w-2 h-2 rounded-full bg-[#D4AF37] animate-bounce"
           style={{ animationDelay: `${i * 0.15}s` }}
         />
       ))}
@@ -87,10 +100,10 @@ function TypingDots() {
 function BotText({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return (
-    <p className="text-sm text-white/90 leading-relaxed">
+    <p className="text-xs sm:text-sm text-white/90 leading-relaxed font-sans">
       {parts.map((part, i) =>
         part.startsWith("**") ? (
-          <strong key={i} className="text-white font-bold">
+          <strong key={i} className="text-white font-bold font-heading">
             {part.slice(2, -2)}
           </strong>
         ) : (
@@ -102,51 +115,57 @@ function BotText({ text }: { text: string }) {
 }
 
 /* ────────────────────────────────────────────────
-   Main Widget
+   Main AI Chat Widget Component
 ──────────────────────────────────────────────── */
 export function AiChatWidget() {
   const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false); // full-width expanded mode
+  const [expanded, setExpanded] = useState(false);
   const [inputVal, setInputVal] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<BotMessage[]>([
     {
       id: "welcome",
       role: "bot",
       text: hasGemini
-        ? "Hi! I'm your **Dubai Eats AI** — powered by Gemini ✨\n\nTell me what you're craving, where in Dubai you are, or how much you'd like to spend — I'll find the perfect spot instantly! 🍽️"
-        : "Hi! I'm your **Dubai Eats** food finder 🍽️\n\nTell me what you're craving — cuisine, neighbourhood, budget, or vibe — and I'll find the perfect spot right away!",
+        ? "Welcome to **Dubai Eats AI Concierge** ✨\n\nI can recommend fine dining in DIFC, romantic rooftop lounges in Marina, family spots with kids menus, or verified discount tables. What are you in the mood for?"
+        : "Welcome to **Dubai Eats AI** 🍽️\n\nTell me what you're craving — cuisine, district, budget, or occasion — and I'll find the best verified tables!",
     },
   ]);
   const [geminiHistory, setGeminiHistory] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom
+  // Auto-scroll on new messages
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (open) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, open]);
 
-  // Focus input when opening
+  // Focus input when opened
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 150);
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 150);
+    }
   }, [open]);
 
-  const addMessage = (msg: Omit<BotMessage, "id">) => {
-    const id = Math.random().toString(36).slice(2);
+  const addMessage = useCallback((msg: Omit<BotMessage, "id">) => {
+    const id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
     setMessages(prev => [...prev, { ...msg, id }]);
     return id;
-  };
+  }, []);
 
   const updateMessage = useCallback((id: string, patch: Partial<BotMessage>) => {
     setMessages(prev => prev.map(m => m.id === id ? { ...m, ...patch } : m));
   }, []);
 
-  const sendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
+  const sendMessage = async (textToSend?: string) => {
+    const text = (textToSend ?? inputVal).trim();
+    if (!text || isLoading) return;
+
     setInputVal("");
     setIsLoading(true);
-
     addMessage({ role: "user", text });
     const botId = addMessage({ role: "bot", text: "", loading: true });
 
@@ -154,7 +173,6 @@ export function AiChatWidget() {
       if (hasGemini) {
         const newHistory: ChatMessage[] = [...geminiHistory, { role: "user", text }];
         const { reply, matchedIds } = await callGemini(newHistory);
-        const { enrichedRestaurants } = await import("@/lib/restaurants-enriched");
         const restaurants = matchedIds.length > 0
           ? matchedIds.map(id => enrichedRestaurants.find(r => r.slug === id)).filter(Boolean) as EnrichedRestaurant[]
           : undefined;
@@ -164,7 +182,7 @@ export function AiChatWidget() {
         const intent = parseIntent(text);
         const matched = matchRestaurants(intent);
         const reply = buildReply(matched, intent);
-        await new Promise(r => setTimeout(r, 700));
+        await new Promise(r => setTimeout(r, 600));
         updateMessage(botId, {
           text: reply,
           loading: false,
@@ -173,7 +191,7 @@ export function AiChatWidget() {
       }
     } catch (err) {
       console.error(err);
-      updateMessage(botId, { text: "Sorry, something went wrong. Please try again! 🙏", loading: false });
+      updateMessage(botId, { text: "I encountered an error connecting to our dining database. Please try again! 🙏", loading: false });
     } finally {
       setIsLoading(false);
     }
@@ -191,97 +209,121 @@ export function AiChatWidget() {
       id: "welcome",
       role: "bot",
       text: hasGemini
-        ? "Hi! I'm your **Dubai Eats AI** — powered by Gemini ✨\n\nTell me what you're craving! 🍽️"
-        : "Hi! I'm your **Dubai Eats** food finder 🍽️\n\nWhat are you craving?",
+        ? "Welcome to **Dubai Eats AI Concierge** ✨\n\nWhat are you craving today?"
+        : "Welcome to **Dubai Eats AI** 🍽️\n\nTell me what you're craving — cuisine, district, budget, or occasion!",
     }]);
     setGeminiHistory([]);
     setInputVal("");
   };
 
   // Panel dimensions
-  const panelWidth = expanded ? "min(560px, calc(100vw - 24px))" : "min(440px, calc(100vw - 24px))";
-  const messagesMaxHeight = expanded ? "460px" : "380px";
+  const panelWidth = expanded ? "min(600px, calc(100vw - 32px))" : "min(440px, calc(100vw - 32px))";
+  const messagesMaxHeight = expanded ? "480px" : "390px";
 
   return (
     <>
-      {/* ── Floating Button ── */}
+      {/* ── 1. LUXURY AI FLOATING BUTTON (LEFT SIDE) ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        aria-label="Open food finder"
-        className={`fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 ${
-          open
-            ? "bg-zinc-800 text-white scale-90"
-            : "scale-100 hover:scale-110"
+        aria-label="Ask Dubai Eats AI"
+        className={`fixed bottom-6 left-6 z-50 group flex items-center gap-3 px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 backdrop-blur-md cursor-pointer border border-[#D4AF37]/50 hover:border-[#D4AF37] ${
+          open 
+            ? "bg-[#1A1A1A] text-white scale-95 shadow-inner" 
+            : "bg-[#1A1A1A]/95 text-white hover:scale-105 hover:bg-[#1A1A1A]"
         }`}
-        style={open ? undefined : {
-          background: "linear-gradient(135deg, #f59e0b 0%, #ea580c 55%, #be185d 100%)",
-          boxShadow: "0 0 0 5px rgba(251,191,36,0.2), 0 10px 40px rgba(249,115,22,0.55)",
+        style={{
+          boxShadow: open 
+            ? "0 4px 20px rgba(0,0,0,0.6)" 
+            : "0 8px 30px rgba(212, 175, 55, 0.32), 0 0 0 1px rgba(212, 175, 55, 0.4)",
         }}
       >
+        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#9C7D1A] via-[#D4AF37] to-[#F3E5AB] flex items-center justify-center shadow-md relative shrink-0">
+          <Sparkles className="w-4 h-4 text-[#1A1A1A] animate-pulse" />
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#1A1A1A]" />
+        </div>
+
+        <div className="flex flex-col text-left pr-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37] font-heading leading-none flex items-center gap-1">
+            AI Food Finder
+          </span>
+          <span className="text-xs font-semibold text-white font-sans leading-tight mt-0.5">
+            Ask Dubai Eats ✨
+          </span>
+        </div>
+
         {open ? (
-          <ChevronDown className="w-6 h-6 text-white" />
+          <X className="w-4 h-4 text-white/70 hover:text-white ml-1 shrink-0" />
         ) : (
-          <span style={{ fontSize: 28, lineHeight: 1 }}>🍽️</span>
+          <span className="text-[9px] bg-[#D4AF37]/20 text-[#D4AF37] font-bold px-2 py-0.5 rounded-full font-heading border border-[#D4AF37]/30 shrink-0">
+            AI
+          </span>
         )}
       </button>
 
-      {/* Pulse ring */}
+      {/* Subtle pulse ring behind left button */}
       {!open && (
         <span
-          className="fixed bottom-6 right-6 z-40 w-16 h-16 rounded-full animate-ping opacity-25 pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(251,191,36,0.7), rgba(249,115,22,0.4))" }}
+          className="fixed bottom-6 left-6 z-40 w-12 h-12 rounded-full animate-ping opacity-25 pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(212, 175, 55, 0.8), rgba(212, 175, 55, 0.2))" }}
         />
       )}
 
-      {/* ── Chat Panel ── */}
+      {/* ── 2. CHAT PANEL (ANCHORED BOTTOM-LEFT) ── */}
       <div
-        className={`fixed bottom-28 right-6 z-50 flex flex-col rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 origin-bottom-right ${
-          open ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
+        className={`fixed bottom-24 left-6 z-50 flex flex-col rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 origin-bottom-left text-left ${
+          open ? "opacity-100 scale-100 pointer-events-auto translate-y-0" : "opacity-0 scale-95 pointer-events-none translate-y-4"
         }`}
         style={{
           width: panelWidth,
-          background: "linear-gradient(160deg, #1c1917 0%, #09090b 100%)",
-          border: "1px solid rgba(255,255,255,0.09)",
+          background: "linear-gradient(160deg, #1C1917 0%, #121212 100%)",
+          border: "1px solid rgba(212, 175, 55, 0.3)",
+          boxShadow: "0 25px 60px -15px rgba(0,0,0,0.8), 0 0 35px rgba(212, 175, 55, 0.15)"
         }}
       >
         {/* Header */}
         <div
-          className="flex items-center justify-between px-5 py-4 shrink-0"
-          style={{ background: "linear-gradient(90deg, #92400e 0%, #c2410c 50%, #9d174d 100%)" }}
+          className="flex items-center justify-between px-5 py-4 shrink-0 border-b border-white/10"
+          style={{ background: "linear-gradient(90deg, #1A1A1A 0%, #2A2416 50%, #1A1A1A 100%)" }}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-xl shadow-inner">
-              🍽️
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#9C7D1A] via-[#D4AF37] to-[#F3E5AB] flex items-center justify-center text-xl shadow-md text-[#1A1A1A]">
+              ✨
             </div>
             <div>
-              <p className="font-extrabold text-white text-base leading-none">Dubai Eats AI</p>
-              <p className="text-xs text-white/65 mt-0.5 flex items-center gap-1">
+              <p className="font-extrabold text-white text-base leading-none font-heading flex items-center gap-1.5">
+                <span>Dubai Eats AI</span>
+                <span className="text-[9px] bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-1.5 py-0.5 rounded-full font-bold">
+                  2026 Concierge
+                </span>
+              </p>
+              <p className="text-[11px] text-white/60 mt-1 flex items-center gap-1 font-sans">
                 {hasGemini ? (
-                  <><Sparkles className="w-3 h-3" /> Powered by Gemini</>
+                  <><Sparkles className="w-3 h-3 text-[#D4AF37]" /> Powered by Google Gemini</>
                 ) : (
-                  <><Bot className="w-3 h-3" /> Smart Food Finder · {enrichedRestaurants.length} restaurants</>
+                  <><Bot className="w-3 h-3 text-[#D4AF37]" /> Instant Table & Food Matcher ({enrichedRestaurants.length} Venues)</>
                 )}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => setExpanded(e => !e)}
-              title={expanded ? "Compact mode" : "Expand"}
-              className="text-white/50 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+              title={expanded ? "Compact view" : "Expand view"}
+              className="text-white/60 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10 cursor-pointer"
             >
-              <Maximize2 className="w-4 h-4" />
+              {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>
             <button
               onClick={resetChat}
-              title="New conversation"
-              className="text-white/50 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+              title="Reset conversation"
+              className="text-white/60 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10 cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
             <button
               onClick={() => setOpen(false)}
-              className="text-white/50 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+              className="text-white/60 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -290,14 +332,14 @@ export function AiChatWidget() {
 
         {/* Messages */}
         <div
-          className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide"
+          className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide font-sans"
           style={{ minHeight: 0, maxHeight: messagesMaxHeight }}
         >
           {messages.map(msg => (
             <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               {msg.role === "bot" ? (
-                <div className="max-w-[92%] space-y-3">
-                  <div className="bg-white/7 border border-white/8 rounded-2xl rounded-tl-sm px-4 py-3">
+                <div className="max-w-[92%] space-y-3 text-left">
+                  <div className="bg-white/7 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 shadow-inner">
                     {msg.loading ? (
                       <TypingDots />
                     ) : (
@@ -314,8 +356,8 @@ export function AiChatWidget() {
                 </div>
               ) : (
                 <div
-                  className="max-w-[82%] px-4 py-3 rounded-2xl rounded-tr-sm text-sm text-white font-medium leading-relaxed"
-                  style={{ background: "linear-gradient(135deg, #92400e, #c2410c)" }}
+                  className="max-w-[82%] px-4 py-3 rounded-2xl rounded-tr-sm text-xs sm:text-sm text-[#1A1A1A] font-semibold leading-relaxed shadow-md text-left"
+                  style={{ background: "linear-gradient(135deg, #D4AF37 0%, #F5ECD4 100%)" }}
                 >
                   {msg.text}
                 </div>
@@ -325,14 +367,19 @@ export function AiChatWidget() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Suggested prompts */}
+        {/* Suggested Quick Prompts */}
         {messages.length === 1 && (
           <div className="px-4 pb-3 flex flex-wrap gap-2">
-            {SUGGESTED_PROMPTS.slice(0, expanded ? 6 : 4).map(prompt => (
+            {[
+              "Find sushi in Dubai Marina 🍣",
+              "Michelin restaurants in DIFC 🏆",
+              "Romantic dinner with Burj Khalifa view 🏙️",
+              "Fazaa 20% discount dining 💳"
+            ].map(prompt => (
               <button
                 key={prompt}
                 onClick={() => sendMessage(prompt)}
-                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-white/15 text-white/65 hover:text-white hover:border-amber-500/60 hover:bg-amber-500/10 transition-all"
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-white/15 text-white/75 hover:text-white hover:border-[#D4AF37] hover:bg-[#D4AF37]/15 transition-all cursor-pointer font-heading"
               >
                 {prompt}
               </button>
@@ -341,30 +388,29 @@ export function AiChatWidget() {
         )}
 
         {/* Input */}
-        <div className="px-4 pb-4 pt-2 shrink-0">
+        <div className="px-4 pb-4 pt-2 shrink-0 border-t border-white/5">
           <div
-            className="flex items-center gap-3 rounded-2xl border px-4 py-3"
-            style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.13)" }}
+            className="flex items-center gap-3 rounded-2xl border px-4 py-2.5 transition-all focus-within:border-[#D4AF37]"
+            style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.15)" }}
           >
             <input
               ref={inputRef}
               value={inputVal}
               onChange={e => setInputVal(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="What are you craving? E.g. sushi in Marina 🍣"
+              placeholder="What are you craving? E.g. Wagyu in DIFC 🍽️"
               disabled={isLoading}
-              className="flex-1 bg-transparent text-sm text-white placeholder:text-white/30 outline-none disabled:opacity-50"
+              className="flex-1 bg-transparent text-xs sm:text-sm text-white placeholder:text-white/40 outline-none disabled:opacity-50 font-sans"
             />
             <button
               onClick={() => sendMessage(inputVal)}
               disabled={!inputVal.trim() || isLoading}
-              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all disabled:opacity-35 shrink-0"
-              style={{ background: "linear-gradient(135deg, #92400e, #c2410c)" }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 shrink-0 cursor-pointer shadow-md bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A]"
             >
-              <Send className="w-4 h-4 text-white" />
+              <Send className="w-3.5 h-3.5" />
             </button>
           </div>
-          <p className="text-[10px] text-white/25 text-center mt-2">
+          <p className="text-[10px] text-white/30 text-center mt-2 font-sans">
             Try: "Japanese food near Marina under AED 200 with alcohol"
           </p>
         </div>
@@ -372,6 +418,3 @@ export function AiChatWidget() {
     </>
   );
 }
-
-// Need to import this for the bot label
-import { enrichedRestaurants } from "@/lib/restaurants-enriched";
