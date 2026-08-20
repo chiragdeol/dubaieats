@@ -222,11 +222,11 @@ export function AiChatWidget() {
 
   return (
     <>
-      {/* ── 1. LUXURY AI FLOATING BUTTON (LEFT SIDE) ── */}
+      {/* ── 1. LUXURY AI FLOATING BUTTON (RIGHT SIDE) ── */}
       <button
         onClick={() => setOpen(o => !o)}
         aria-label="Ask Dubai Eats AI"
-        className={`fixed bottom-6 left-6 z-50 group flex items-center gap-3 px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 backdrop-blur-md cursor-pointer border border-[#D4AF37]/50 hover:border-[#D4AF37] ${
+        className={`fixed bottom-6 right-6 z-50 group flex items-center gap-3 px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 backdrop-blur-md cursor-pointer border border-[#D4AF37]/50 hover:border-[#D4AF37] ${
           open 
             ? "bg-[#1A1A1A] text-white scale-95 shadow-inner" 
             : "bg-[#1A1A1A]/95 text-white hover:scale-105 hover:bg-[#1A1A1A]"
@@ -260,17 +260,17 @@ export function AiChatWidget() {
         )}
       </button>
 
-      {/* Subtle pulse ring behind left button */}
+      {/* Subtle pulse ring behind right button */}
       {!open && (
         <span
-          className="fixed bottom-6 left-6 z-40 w-12 h-12 rounded-full animate-ping opacity-25 pointer-events-none"
+          className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full animate-ping opacity-25 pointer-events-none"
           style={{ background: "radial-gradient(circle, rgba(212, 175, 55, 0.8), rgba(212, 175, 55, 0.2))" }}
         />
       )}
 
-      {/* ── 2. CHAT PANEL (ANCHORED BOTTOM-LEFT) ── */}
+      {/* ── 2. CHAT PANEL (ANCHORED BOTTOM-RIGHT) ── */}
       <div
-        className={`fixed bottom-24 left-6 z-50 flex flex-col rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 origin-bottom-left text-left ${
+        className={`fixed bottom-24 right-6 z-50 flex flex-col rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 origin-bottom-right text-left ${
           open ? "opacity-100 scale-100 pointer-events-auto translate-y-0" : "opacity-0 scale-95 pointer-events-none translate-y-4"
         }`}
         style={{
