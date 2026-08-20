@@ -26,7 +26,9 @@ import {
   ShieldCheck,
   Building2,
   TrendingUp,
-  ExternalLink
+  ExternalLink,
+  Tag,
+  Heart
 } from "lucide-react";
 
 type RestaurantsSearch = {
@@ -72,181 +74,171 @@ function GmbCard({
   const [bookmarked, setBookmarked] = useState(false);
   const liveStatus = isCurrentlyOpenInDubai(r.hours);
 
-  const whatsappMessage = `Hi ${r.name}, I found your venue on Dubai Eats Explorer. I'd like to ask about table availability and current offers.`;
+  const whatsappMessage = `Hi ${r.name}, I found your venue on Dubai Eat. I'd like to ask about table availability and current offers.`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: `${r.name} - Dubai Eats Explorer`,
-        text: `Check out ${r.name} in ${r.area} on Dubai Eats Explorer!`,
-        url: window.location.origin + `/restaurants/${r.slug}`,
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.origin + `/restaurants/${r.slug}`);
-      alert("Link copied to clipboard!");
-    }
-  };
-
   return (
-    <article className="bg-white border border-[#dce2e2] rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col lg:flex-row justify-between group relative text-left">
+    <article className="bg-white border border-slate-200 hover:border-slate-300 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col md:flex-row group text-left relative">
       
-      {/* Top Banner Image with badges */}
-      <div className="lg:flex lg:min-w-0 lg:flex-1">
-        <div className="relative aspect-[16/10] overflow-hidden bg-muted lg:h-auto lg:w-44 lg:shrink-0 lg:aspect-auto">
-          <img
-            src={r.image}
-            alt={r.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-          
-          {/* Top badges */}
-          <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
-            <div className="flex flex-wrap gap-1">
-              {r.isSponsored && (
-                <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-md">
-                  [SPONSORED]
-                </span>
-              )}
-              {r.michelin && (
-                <span className="bg-rose-600 text-white font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-md flex items-center gap-0.5">
-                  <Star className="w-2.5 h-2.5 fill-white" /> Michelin Guide
-                </span>
-              )}
-              <span className="bg-black/60 backdrop-blur-xs text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full">
-                AED {r.priceMin}–{r.priceMax}
-              </span>
-            </div>
+      {/* Left Image Section (TheFork style) */}
+      <div className="relative w-full md:w-72 lg:w-80 h-56 md:h-auto shrink-0 overflow-hidden bg-slate-100">
+        <img
+          src={r.image}
+          alt={r.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
 
-            <button 
-              onClick={() => setBookmarked(!bookmarked)}
-              className="p-2 rounded-full bg-black/40 backdrop-blur-xs text-white hover:bg-black/60 transition-colors"
-              aria-label="Bookmark"
-            >
-              <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? "fill-amber-400 text-amber-400" : ""}`} />
-            </button>
-          </div>
-
-          {/* Bottom Overlay Info */}
-          <div className="absolute bottom-3 left-3 right-3 text-white">
-            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-300">
-              <MapPin className="w-3 h-3 text-amber-400" /> {r.district}
-            </div>
-          </div>
+        {/* Top Badges */}
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+          {r.isSponsored && (
+            <span className="bg-amber-500 text-white font-black text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
+              [SPONSORED]
+            </span>
+          )}
+          {r.michelin && (
+            <span className="bg-rose-600 text-white font-extrabold text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm flex items-center gap-1">
+              <Star className="w-2.5 h-2.5 fill-white" /> Michelin
+            </span>
+          )}
         </div>
 
-        {/* Content Body */}
-        <div className="p-4 lg:min-w-0 lg:flex-1">
-          <h2 className="font-display text-lg font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
-            <Link to="/restaurants/$id" params={{ id: r.slug }}>
-              {r.name}
-            </Link>
-          </h2>
+        {/* Top Right Heart Favorite (TheFork Style translucent circle) */}
+        <button
+          onClick={() => setBookmarked(!bookmarked)}
+          aria-label="Save to favorites"
+          className="absolute top-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-xs text-white hover:bg-black/60 hover:scale-110 transition-all z-10 cursor-pointer"
+        >
+          <Heart className={`w-4 h-4 ${bookmarked ? "fill-rose-500 text-rose-500" : "text-white stroke-[2]"}`} />
+        </button>
 
-          {/* Rating */}
-          <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-            <span className="font-bold text-foreground text-sm">{(r.rating * 2).toFixed(1)}</span>
-            <div className="flex gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star 
-                  key={i} 
-                  className={`h-3 w-3 ${i < Math.floor(r.rating) ? "fill-amber-500 text-amber-500" : "text-gray-300 dark:text-zinc-700"}`} 
-                />
-              ))}
-            </div>
-            <a 
-              href={shareUrl(r.name)} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-primary font-bold hover:underline"
-            >
-              ({r.reviews} reviews)
-            </a>
-          </div>
-
-          <p className="text-xs text-muted-foreground mt-1">
-            {r.cuisine} · {r.area}
-          </p>
-
-          {/* Hours line */}
-          <div className="mt-2 text-xs flex items-center gap-1.5">
-            {liveStatus.isOpen ? (
-              <span className="text-emerald-600 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded-sm">Open Now</span>
-            ) : (
-              <span className="text-rose-600 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded-sm">Closed</span>
-            )}
-            <span className="text-muted-foreground font-medium">{r.hours}</span>
-          </div>
-
-          {/* Accepted Privilege Cards */}
-          {r.discounts && r.discounts.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-3">
-              {r.discounts.slice(0, 3).map((disc) => (
-                <span key={disc} className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                  💳 {disc}
-                </span>
-              ))}
-              {r.discounts.length > 3 && (
-                <span className="text-[9px] font-bold text-muted-foreground">+{r.discounts.length - 3} more</span>
-              )}
-            </div>
-          )}
-
-          {/* Perks Tags list */}
-          <div className="flex flex-wrap gap-1 mt-2">
-            {r.liquor === "Licensed" && (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/15">
-                🍷 Licensed
-              </span>
-            )}
-            {r.seatingPerks?.map((perk) => (
-              <span key={perk} className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/15">
-                {perk === "Burj View" ? "🏙️" : perk === "Beachfront" ? "🏖️" : "🪑"} {perk}
-              </span>
-            ))}
-          </div>
+        {/* Bottom Carousel Indicator Dots (TheFork style) */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 pointer-events-none">
+          <span className="w-2 h-2 rounded-full bg-white shadow-xs" />
+          <span className="w-1.5 h-1.5 rounded-full bg-white/60 shadow-xs" />
+          <span className="w-1.5 h-1.5 rounded-full bg-white/60 shadow-xs" />
+          <span className="w-1.5 h-1.5 rounded-full bg-white/60 shadow-xs" />
         </div>
       </div>
 
-      {/* Button controls */}
-      <div className="px-4 pb-4 shrink-0 border-t border-border/50 pt-3 space-y-2 bg-[#f4f8f6] lg:w-40 lg:border-l lg:border-t-0">
+      {/* Right Content Section (TheFork Style Spacious Layout) */}
+      <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
         
-        {/* Primary Booking & VIP Deposit buttons */}
-        <div className="grid grid-cols-2 gap-2">
-          <a 
-            href={r.bookingPlatform?.url || r.website} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="bg-primary text-primary-foreground hover:opacity-90 rounded-xl py-2 flex items-center justify-center gap-1.5 text-xs font-bold shadow-xs transition-all text-center"
-          >
-            <Calendar className="h-3.5 w-3.5" />
-            <span>Book Table</span>
-          </a>
+        {/* Top Information Block */}
+        <div className="space-y-1.5">
+          {/* Row 1: Name & Rating Box */}
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="font-display font-black text-xl sm:text-2xl text-slate-900 leading-snug group-hover:text-[#005971] transition-colors">
+              <Link to="/restaurants/$id" params={{ id: r.slug }}>
+                {r.name}
+              </Link>
+            </h2>
 
-          <button
-            onClick={() => onOpenDeposit(r)}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90 rounded-xl py-2 flex items-center justify-center gap-1 text-xs font-extrabold shadow-xs transition-all text-center"
-          >
-            <ShieldCheck className="h-3.5 w-3.5" />
-            <span>VIP Deposit</span>
-          </button>
+            {/* TheFork Rating Badge */}
+            <div className="text-right shrink-0">
+              <span className="inline-flex items-center justify-center bg-teal-50 border border-teal-200/80 text-[#005971] font-black text-sm sm:text-base px-2.5 py-1 rounded-lg">
+                {(r.rating * 2).toFixed(1)}
+              </span>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                ({r.reviews})
+              </p>
+            </div>
+          </div>
+
+          {/* Line 2: Address */}
+          <p className="text-slate-600 text-xs sm:text-sm font-normal">
+            {r.address || `${r.district}, Dubai`}
+          </p>
+
+          {/* Line 3: Cuisine & Average Price */}
+          <p className="text-slate-800 text-xs sm:text-sm font-medium">
+            {r.cuisine} · Average price AED {r.priceMin}
+          </p>
+
+          {/* Line 4: TheFork Summer / Privilege Tag Pill */}
+          <div className="pt-1 flex flex-wrap items-center gap-2">
+            {r.discounts && r.discounts.length > 0 ? (
+              <span className="inline-flex items-center gap-1.5 bg-[#dcfce7] text-[#15803d] font-bold text-xs px-3.5 py-1.5 rounded-full">
+                <Tag className="w-3.5 h-3.5 fill-[#15803d]" />
+                <span>Up to -50% · {r.discounts[0]} Privilege</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 bg-[#dcfce7] text-[#15803d] font-bold text-xs px-3.5 py-1.5 rounded-full">
+                <Tag className="w-3.5 h-3.5 fill-[#15803d]" />
+                <span>Special Dining Offers Available</span>
+              </span>
+            )}
+
+            {/* Perks */}
+            {r.liquor === "Licensed" && (
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200/60">
+                🍷 Licensed Bar
+              </span>
+            )}
+            {liveStatus.isOpen && (
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                ● Open Now
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Quick action icons */}
-        <div className="flex justify-between items-center px-1 pt-1.5 border-t border-border/30">
-          <a href={callUrl(r.phone)} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
-            <Phone className="w-3.5 h-3.5 text-primary" /> Call
-          </a>
-          <button onClick={() => onOpenDirections(r)} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
-            <MapPin className="w-3.5 h-3.5 text-primary" /> Map
-          </button>
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-emerald-500 transition-colors flex items-center gap-1 text-[10px] font-bold">
-            <MessageSquare className="w-3.5 h-3.5 text-emerald-500" /> WhatsApp
-          </a>
-          <button onClick={handleShare} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold">
-            <Share2 className="w-3.5 h-3.5 text-primary" /> Share
-          </button>
+        {/* Bottom Booking & Availability Row (Full size, no cutting) */}
+        <div className="pt-2 border-t border-slate-100 space-y-2.5">
+          <p className="text-xs text-slate-700 font-medium">
+            Do you have <strong className="font-bold text-slate-900">another time</strong> in mind?
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Find Availability Button (TheFork style) */}
+            <Link
+              to="/restaurants/$id"
+              params={{ id: r.slug }}
+              className="border border-slate-300 hover:border-slate-900 bg-white hover:bg-slate-50 text-slate-900 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>Find availability</span>
+            </Link>
+
+            {/* Direct Book Table Button */}
+            <a
+              href={r.bookingPlatform?.url || r.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#005971] hover:bg-[#00475b] text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Book Table</span>
+            </a>
+
+            {/* VIP Deposit Modal Button */}
+            <button
+              onClick={() => onOpenDeposit(r)}
+              className="border border-amber-300 hover:border-amber-500 bg-amber-50/60 hover:bg-amber-50 text-amber-900 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+              <span>VIP Deposit</span>
+            </button>
+
+            {/* WhatsApp Direct */}
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-emerald-200 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-50 text-emerald-800 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-1.5"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+              <span>WhatsApp</span>
+            </a>
+
+            {/* Call */}
+            <a
+              href={callUrl(r.phone)}
+              className="text-slate-600 hover:text-[#005971] hover:bg-slate-100 px-3 py-2.5 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>Call</span>
+            </a>
+          </div>
         </div>
 
       </div>
