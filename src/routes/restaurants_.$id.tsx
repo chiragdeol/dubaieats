@@ -4,6 +4,7 @@ import { enrichedRestaurants, type EnrichedRestaurant } from "../lib/restaurants
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DepositModal } from "@/components/deposit-modal";
+import { RestaurantMap } from "@/components/restaurant-map";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import {
   Star,
@@ -35,7 +36,9 @@ import {
   Dog,
   Accessibility,
   Wine,
-  ArrowRight
+  ArrowRight,
+  ExternalLink,
+  Navigation
 } from "lucide-react";
 
 export const Route = createFileRoute("/restaurants_/$id")({
@@ -45,14 +48,14 @@ export const Route = createFileRoute("/restaurants_/$id")({
       meta: [
         {
           title: restaurant
-            ? `${restaurant.name} — Reviews, Digital QR Menu & Table Booking in Dubai`
+            ? `${restaurant.name} — Reviews, Digital QR Menu, Map & Multi-Provider Bookings in Dubai`
             : "Dubai Eats Restaurant Details",
         },
         {
           name: "description",
           content:
             restaurant?.address ||
-            "Explore digital QR menus, food photo galleries, diner reviews, and direct table bookings on Dubai Eats.",
+            "Explore digital QR menus, food photo galleries, live map directions, diner reviews, and multi-provider table bookings (SevenRooms, EatApp, ReserveOut, OpenTable, Resy) on Dubai Eats.",
         },
       ],
     };
@@ -79,9 +82,21 @@ function buildGallery(name: string): string[] {
   return [...allPhotos.slice(hash % allPhotos.length), ...allPhotos.slice(0, hash % allPhotos.length)];
 }
 
+function callUrl(phone: string) {
+  return `tel:${phone.replace(/\s+/g, "")}`;
+}
+
+function mapsSearchUrl(name: string, address: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + address + " Dubai")}`;
+}
+
+function mapsDirectionsUrl(name: string, address: string) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(name + " " + address + " Dubai")}`;
+}
+
 function RestaurantDetail() {
   const { id } = Route.useParams();
-  const [activeTab, setActiveTab] = useState<"about" | "menu" | "reviews">("about");
+  const [activeTab, setActiveTab] = useState<"about" | "menu" | "reviews" | "location">("about");
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
 
@@ -94,6 +109,7 @@ function RestaurantDetail() {
   const [bookingDate, setBookingDate] = useState("2026-08-20");
   const [bookingTime, setBookingTime] = useState("20:00");
   const [bookingGuests, setBookingGuests] = useState("2");
+  const [selectedProvider, setSelectedProvider] = useState<string>("SevenRooms");
 
   const r = useMemo(() => {
     return enrichedRestaurants.find((item) => item.slug === id) || null;
@@ -134,12 +150,54 @@ function RestaurantDetail() {
   const liveStatus = isCurrentlyOpenInDubai(r.hours);
   const whatsappUrl = `https://wa.me/971562730030?text=Hi%20${encodeURIComponent(r.name)}%2C%20I%20found%20your%20venue%20on%20Dubai%20Eats.%20I%27d%20like%20to%20inquire%20about%20table%20availability.`;
 
+  // Multi-provider booking platform links
+  const bookingProviders = [
+    {
+      id: "SevenRooms",
+      name: "SevenRooms",
+      logo: "🟣",
+      badge: "Official Partner",
+      url: `https://www.sevenrooms.com/explore/${r.slug}/reservations/create/search/`,
+      isDirect: true
+    },
+    {
+      id: "EatApp",
+      name: "EatApp",
+      logo: "🟠",
+      badge: "Instant Confirm",
+      url: `https://eatapp.co/dubai-restaurants/${r.slug}`
+    },
+    {
+      id: "ReserveOut",
+      name: "ReserveOut",
+      logo: "🔵",
+      badge: "Table Booking",
+      url: `https://www.reserveout.com/dubai-en/restaurants/${r.slug}`
+    },
+    {
+      id: "OpenTable",
+      name: "OpenTable",
+      logo: "🔴",
+      badge: "Global Network",
+      url: `https://www.opentable.ae/s?term=${encodeURIComponent(r.name + " Dubai")}`
+    },
+    {
+      id: "Resy",
+      name: "Resy",
+      logo: "🍷",
+      badge: "Exclusive Tables",
+      url: `https://resy.com/cities/dxb/${r.slug}`
+    }
+  ];
+
+  const currentBookingUrl = bookingProviders.find(p => p.id === selectedProvider)?.url || r.bookingPlatform?.url || r.website;
+
   const openGallery = (idx = 0) => {
     setLightboxIndex(idx);
     setLightboxOpen(true);
   };
 
-  const scrollToSection = (tab: "about" | "menu" | "reviews") => {
+  const scrollToSection = (tab: "about" | "menu" | "reviews" | "location") => {
     setActiveTab(tab);
     const el = document.getElementById(`section-${tab}`);
     if (el) {
@@ -239,18 +297,21 @@ function RestaurantDetail() {
         <section className="space-y-4">
           
           {/* Title Row */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1.5">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+            <div className="space-y-2">
               <h1 className="font-display text-2xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight leading-tight">
                 {r.name}
               </h1>
+              
               <p className="text-xs sm:text-sm text-[#757575] font-sans flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
                 <span>{r.address || `${r.district}, Dubai`}</span>
               </p>
+
               <p className="text-xs sm:text-sm text-[#1A1A1A] font-medium font-sans">
                 🍽️ {r.cuisine} · Average price AED {r.priceMin}
               </p>
+
               <div className="flex items-center gap-2 pt-0.5 text-xs text-[#757575] font-sans">
                 <span className="inline-flex items-center gap-1 font-heading font-bold text-sm text-[#1A1A1A]">
                   ★ {(r.rating * 2).toFixed(1)}
@@ -259,16 +320,50 @@ function RestaurantDetail() {
                 <span>·</span>
                 <span className="text-[#757575]">71 reviews in the last 30 days</span>
               </div>
+
+              {/* Quick Action Header Bar: Call, Website, Google Maps */}
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <a
+                  href={callUrl(r.phone)}
+                  className="inline-flex items-center gap-1.5 bg-white border border-[#E0E0E0] hover:border-[#1A1A1A] hover:bg-[#F5F5F5] text-[#1A1A1A] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
+                >
+                  <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>Call {r.phone}</span>
+                </a>
+
+                <a
+                  href={r.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 bg-white border border-[#E0E0E0] hover:border-[#1A1A1A] hover:bg-[#F5F5F5] text-[#1A1A1A] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
+                >
+                  <Globe className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>Official Website</span>
+                  <ExternalLink className="w-3 h-3 text-[#757575]" />
+                </a>
+
+                <a
+                  href={mapsSearchUrl(r.name, r.address || r.district)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 bg-[#FBF6E9] border border-[#EFE2B9] hover:bg-[#F5ECD4] text-[#9C7D1A] px-3.5 py-1.5 rounded-xl text-xs font-bold font-heading shadow-2xs transition-all"
+                >
+                  <Navigation className="w-3.5 h-3.5 text-[#9C7D1A]" />
+                  <span>Google Maps Directions</span>
+                </a>
+              </div>
             </div>
 
             {/* Favorite Heart Button */}
-            <button
-              onClick={() => setBookmarked(!bookmarked)}
-              aria-label="Save to favorites"
-              className="p-3 rounded-full border border-[#E0E0E0] bg-white hover:bg-[#F5F5F5] transition-all shadow-xs cursor-pointer"
-            >
-              <Heart className={`w-5 h-5 ${bookmarked ? "fill-[#D4AF37] text-[#D4AF37]" : "text-[#1A1A1A]"}`} />
-            </button>
+            <div className="self-start md:self-auto">
+              <button
+                onClick={() => setBookmarked(!bookmarked)}
+                aria-label="Save to favorites"
+                className="p-3 rounded-full border border-[#E0E0E0] bg-white hover:bg-[#F5F5F5] transition-all shadow-xs cursor-pointer"
+              >
+                <Heart className={`w-5 h-5 ${bookmarked ? "fill-[#D4AF37] text-[#D4AF37]" : "text-[#1A1A1A]"}`} />
+              </button>
+            </div>
           </div>
 
           {/* 4-Photo Grid Gallery (TheFork Layout with +150 Photos) */}
@@ -336,20 +431,21 @@ function RestaurantDetail() {
         {/* ── 2. TABS BAR & TWO-COLUMN WORKSPACE ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* ── LEFT COLUMN: ABOUT, MENU, REVIEWS ── */}
+          {/* ── LEFT COLUMN: ABOUT, MENU, REVIEWS, LIVE MAP ── */}
           <div className="lg:col-span-8 space-y-10">
             
             {/* Navigation Tabs Header */}
-            <div className="flex items-center gap-8 border-b border-[#EAEAEA] text-sm font-semibold font-heading sticky top-20 bg-[#F5F5F5] pt-2 z-20">
+            <div className="flex items-center gap-6 sm:gap-8 border-b border-[#EAEAEA] text-sm font-semibold font-heading sticky top-20 bg-[#F5F5F5] pt-2 z-20 overflow-x-auto">
               {[
                 { id: "about", label: "About" },
                 { id: "menu", label: "Menu" },
-                { id: "reviews", label: "Reviews" }
+                { id: "reviews", label: "Reviews" },
+                { id: "location", label: "Map & Location" }
               ].map(t => (
                 <button
                   key={t.id}
                   onClick={() => scrollToSection(t.id as any)}
-                  className={`pb-3 transition-all cursor-pointer relative ${
+                  className={`pb-3 whitespace-nowrap transition-all cursor-pointer relative ${
                     activeTab === t.id
                       ? "text-[#1A1A1A] font-bold"
                       : "text-[#757575] hover:text-[#1A1A1A]"
@@ -661,9 +757,93 @@ function RestaurantDetail() {
               </div>
             </div>
 
+            {/* ── SECTION: LIVE MAP & CONTACT DETAILS ── */}
+            <div id="section-location" className="space-y-6 scroll-mt-28">
+              <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
+                
+                <div className="flex items-center justify-between">
+                  <h3 className="font-heading font-bold text-xl sm:text-2xl text-[#1A1A1A] flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-[#D4AF37]" />
+                    <span>Location & Navigation</span>
+                  </h3>
+                  <span className="text-xs text-[#757575] font-heading font-semibold">
+                    {r.district}, Dubai
+                  </span>
+                </div>
+
+                {/* Interactive Leaflet Map for this Restaurant */}
+                <div className="h-72 w-full rounded-2xl overflow-hidden border border-[#E0E0E0] shadow-inner relative z-0">
+                  <RestaurantMap
+                    restaurants={[r]}
+                    center={[r.coordinates.lat, r.coordinates.lng]}
+                    zoom={15}
+                    className="h-full w-full"
+                  />
+                </div>
+
+                {/* Exact Address & Contact Info Bar */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 font-sans text-xs">
+                  
+                  {/* Address */}
+                  <div className="p-4 rounded-2xl bg-[#F5F5F5] border border-[#E0E0E0] space-y-1">
+                    <span className="text-[11px] font-semibold text-[#757575] font-heading uppercase tracking-wider block">
+                      📍 Verified Address
+                    </span>
+                    <strong className="text-[#1A1A1A] font-semibold block leading-tight">
+                      {r.address || `${r.name}, ${r.district}, Dubai, UAE`}
+                    </strong>
+                    <a
+                      href={mapsSearchUrl(r.name, r.address || r.district)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#D4AF37] font-bold font-heading text-[11px] hover:underline inline-block pt-1"
+                    >
+                      Open in Google Maps →
+                    </a>
+                  </div>
+
+                  {/* Telephone Contact */}
+                  <div className="p-4 rounded-2xl bg-[#F5F5F5] border border-[#E0E0E0] space-y-1">
+                    <span className="text-[11px] font-semibold text-[#757575] font-heading uppercase tracking-wider block">
+                      📞 Phone Line
+                    </span>
+                    <strong className="text-[#1A1A1A] font-semibold block">
+                      {r.phone}
+                    </strong>
+                    <a
+                      href={callUrl(r.phone)}
+                      className="text-[#D4AF37] font-bold font-heading text-[11px] hover:underline inline-block pt-1"
+                    >
+                      Click to Call Now →
+                    </a>
+                  </div>
+
+                  {/* Official Website */}
+                  <div className="p-4 rounded-2xl bg-[#F5F5F5] border border-[#E0E0E0] space-y-1">
+                    <span className="text-[11px] font-semibold text-[#757575] font-heading uppercase tracking-wider block">
+                      🌐 Official Website
+                    </span>
+                    <strong className="text-[#1A1A1A] font-semibold block truncate">
+                      {r.website.replace(/^https?:\/\//, '')}
+                    </strong>
+                    <a
+                      href={r.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#D4AF37] font-bold font-heading text-[11px] hover:underline inline-block pt-1"
+                    >
+                      Visit Official Portal →
+                    </a>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
           </div>
 
-          {/* ── RIGHT COLUMN: STICKY BOOKING WIDGET ── */}
+          {/* ── RIGHT COLUMN: STICKY MULTI-PROVIDER BOOKING WIDGET ── */}
           <div className="lg:col-span-4 sticky top-24 space-y-4">
             
             <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-xl space-y-5 text-left">
@@ -673,7 +853,7 @@ function RestaurantDetail() {
                   Book a table
                 </h3>
                 <p className="text-xs text-[#757575] font-sans font-normal">
-                  Direct official booking · Free instant confirmation
+                  Multi-provider verified reservations with instant confirmation
                 </p>
               </div>
 
@@ -683,8 +863,37 @@ function RestaurantDetail() {
                 <span>Already 13 bookings for today</span>
               </div>
 
+              {/* 🌟 MULTI-PROVIDER SELECTOR (SevenRooms, EatApp, ReserveOut, OpenTable, Resy) */}
+              <div className="space-y-2">
+                <label className="block text-[11px] font-bold font-heading text-[#757575] uppercase tracking-wider">
+                  Select Reservation Engine
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  {bookingProviders.map(prov => (
+                    <button
+                      key={prov.id}
+                      type="button"
+                      onClick={() => setSelectedProvider(prov.id)}
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        selectedProvider === prov.id
+                          ? "bg-[#1A1A1A] text-white border-[#1A1A1A] shadow-xs"
+                          : "bg-[#F5F5F5] hover:bg-[#EAEAEA] border-[#E0E0E0] text-[#1A1A1A]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs">{prov.logo}</span>
+                        <span className="font-heading font-bold text-[11px] truncate">{prov.name}</span>
+                      </div>
+                      <span className={`text-[9px] block truncate mt-0.5 ${selectedProvider === prov.id ? "text-[#D4AF37]" : "text-[#757575]"}`}>
+                        {prov.badge}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Date & Guest Selectors */}
-              <div className="space-y-3 font-sans text-xs">
+              <div className="space-y-3 font-sans text-xs pt-1">
                 <div>
                   <label className="block text-[11px] font-semibold font-heading text-[#757575] uppercase mb-1">
                     Select Date
@@ -734,16 +943,17 @@ function RestaurantDetail() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Primary Booking Action Buttons */}
               <div className="space-y-2.5 pt-2">
                 <a
-                  href={r.bookingPlatform?.url || r.website}
+                  href={currentBookingUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-bold font-heading text-xs py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-center cursor-pointer"
                 >
                   <Calendar className="w-4 h-4 text-[#1A1A1A]" />
-                  <span>Confirm Table Booking</span>
+                  <span>Book Table via {selectedProvider}</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-[#1A1A1A]" />
                 </a>
 
                 {/* VIP Table Deposit Modal Trigger */}
@@ -756,16 +966,26 @@ function RestaurantDetail() {
                   <span>VIP Table Deposit (Stripe / Telr)</span>
                 </button>
 
-                {/* WhatsApp Direct */}
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full border border-[#E0E0E0] bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] font-semibold font-heading text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-center"
-                >
-                  <MessageSquare className="w-4 h-4 text-[#25D366]" />
-                  <span>WhatsApp Hostess Concierge</span>
-                </a>
+                {/* Direct Phone & Website Quick Buttons */}
+                <div className="grid grid-cols-2 gap-2 pt-1 font-heading text-xs">
+                  <a
+                    href={callUrl(r.phone)}
+                    className="border border-[#E0E0E0] bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center truncate"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Call Venue</span>
+                  </a>
+
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-[#E0E0E0] bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
+                    <span>WhatsApp</span>
+                  </a>
+                </div>
               </div>
 
               {/* Online Food Delivery Hub */}
