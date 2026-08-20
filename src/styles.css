@@ -4,43 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ── VISIT DUBAI TYPOGRAPHY & FONT SYSTEM ── */
-@font-face {
-  font-family: 'Dubai';
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-  src: local('Dubai Light'), local('Dubai-Light'),
-       url('https://fonts.cdnfonts.com/s/17260/Dubai-Light.woff') format('woff');
-}
-
-@font-face {
-  font-family: 'Dubai';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: local('Dubai Regular'), local('Dubai-Regular'),
-       url('https://fonts.cdnfonts.com/s/17260/Dubai-Regular.woff') format('woff');
-}
-
-@font-face {
-  font-family: 'Dubai';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: local('Dubai Medium'), local('Dubai-Medium'),
-       url('https://fonts.cdnfonts.com/s/17260/Dubai-Medium.woff') format('woff');
-}
-
-@font-face {
-  font-family: 'Dubai';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: local('Dubai Bold'), local('Dubai-Bold'),
-       url('https://fonts.cdnfonts.com/s/17260/Dubai-Bold.woff') format('woff');
-}
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -49,6 +12,17 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  
+  --font-sans: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Montserrat', sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
+  --font-label: 'Montserrat', sans-serif;
+
+  --color-mp-primary: #1A1A1A;
+  --color-mp-secondary: #D4AF37;
+  --color-mp-tertiary: #F5F5F5;
+  --color-mp-neutral: #757575;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -71,152 +45,241 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  /* Visit Dubai Official Color Palette */
-  --brand-teal: #005971;
-  --brand-teal-dark: #004659;
-  --brand-teal-light: #e6f3f6;
-  --brand-gold: #c89a3f;
-  --brand-red: #d92d20;
+  --radius: 0.875rem;
 
-  --background: oklch(0.99 0.002 90);
-  --foreground: oklch(0.18 0.02 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 240);
+  /* Majestic Palate Design System Tokens */
+  --mp-primary: #1A1A1A;
+  --mp-secondary: #D4AF37;
+  --mp-tertiary: #F5F5F5;
+  --mp-neutral: #757575;
+
+  --background: #F5F5F5;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
   
-  /* Primary Visit Dubai Deep Teal */
-  --primary: oklch(0.42 0.09 215);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.015 210);
-  --secondary-foreground: oklch(0.25 0.06 215);
-  --muted: oklch(0.96 0.008 240);
-  --muted-foreground: oklch(0.48 0.025 240);
-  --accent: oklch(0.93 0.03 215);
-  --accent-foreground: oklch(0.25 0.06 215);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.91 0.01 240);
-  --input: oklch(0.91 0.01 240);
-  --ring: oklch(0.42 0.09 215);
+  --primary: #1A1A1A;
+  --primary-foreground: #FFFFFF;
+  
+  --secondary: #D4AF37;
+  --secondary-foreground: #1A1A1A;
+  
+  --muted: #F5F5F5;
+  --muted-foreground: #757575;
+  
+  --accent: #F5F5F5;
+  --accent-foreground: #1A1A1A;
+  
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  
+  --border: #E5E5E5;
+  --input: #E5E5E5;
+  --ring: #D4AF37;
 }
 
 .dark {
-  --background: oklch(0.13 0.025 240);
-  --foreground: oklch(0.98 0.005 240);
-  --card: oklch(0.18 0.025 240);
-  --card-foreground: oklch(0.98 0.005 240);
-  --popover: oklch(0.18 0.025 240);
-  --popover-foreground: oklch(0.98 0.005 240);
-  --primary: oklch(0.65 0.12 215);
-  --primary-foreground: oklch(0.12 0.03 240);
-  --secondary: oklch(0.24 0.03 240);
-  --secondary-foreground: oklch(0.98 0.005 240);
-  --muted: oklch(0.24 0.03 240);
-  --muted-foreground: oklch(0.7 0.02 240);
-  --accent: oklch(0.24 0.03 240);
-  --accent-foreground: oklch(0.98 0.005 240);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.65 0.12 215);
+  --background: #121212;
+  --foreground: #F5F5F5;
+  --card: #1A1A1A;
+  --card-foreground: #F5F5F5;
+  --popover: #1A1A1A;
+  --popover-foreground: #F5F5F5;
+  --primary: #D4AF37;
+  --primary-foreground: #1A1A1A;
+  --secondary: #262626;
+  --secondary-foreground: #F5F5F5;
+  --muted: #262626;
+  --muted-foreground: #A3A3A3;
+  --accent: #262626;
+  --accent-foreground: #F5F5F5;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #2E2E2E;
+  --input: #2E2E2E;
+  --ring: #D4AF37;
 }
 
-@layer base {
-  * {
-    border-color: var(--color-border);
-  }
+/* Global Typography defaults */
+html, body {
+  font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--foreground);
+  background-color: var(--background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.01em;
-  }
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: -0.02em;
+}
 
-  /* Visit Dubai Typography Standards */
-  .font-display {
-    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    letter-spacing: -0.025em;
-    font-feature-settings: "ss01", "ss02", "cv01";
-  }
+/* ── MAJESTIC PALATE UTILITIES ── */
+.mp-h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: #1A1A1A;
+}
 
-  h1, .vd-h1 {
-    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1.08;
-  }
+.mp-h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #1A1A1A;
+}
 
-  h2, .vd-h2 {
-    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.025em;
-    line-height: 1.15;
-  }
+.mp-h3 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.25rem, 2vw, 1.625rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: #1A1A1A;
+}
 
-  h3, .vd-h3 {
-    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.015em;
-    line-height: 1.25;
-  }
+.mp-label, .mp-eyebrow {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #D4AF37;
+}
 
-  /* Eyebrow / Overline tag */
-  .vd-eyebrow {
-    font-family: 'Dubai', 'Plus Jakarta Sans', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: #005971;
-  }
+.mp-body {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #1A1A1A;
+}
 
-  /* Lead Subheading */
-  .vd-lead {
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    color: #475569;
-    font-weight: 400;
-  }
+.mp-body-muted {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #757575;
+}
 
-  /* Base Body Paragraph */
-  p, .vd-body {
-    font-size: 0.9375rem;
-    line-height: 1.62;
-    color: #334155;
-  }
+/* ── BUTTON STYLES (from Majestic Palate MD) ── */
+.mp-btn-primary {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.mp-btn-primary:hover {
+  background-color: #000000;
+  transform: translateY(-1px);
+}
 
-  /* Visit Dubai Pill Buttons */
-  .vd-pill-teal {
-    background-color: #005971;
-    color: #ffffff;
-    border-radius: 9999px;
-    font-weight: 700;
-    font-size: 0.8125rem;
-    transition: all 0.2s ease;
-  }
-  .vd-pill-teal:hover {
-    background-color: #004659;
-  }
+.mp-btn-secondary {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #F5F5F5;
+  color: #1A1A1A;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.mp-btn-secondary:hover {
+  background-color: #E5E5E5;
+}
 
-  /* Leaflet maps styling custom overrides */
-  .leaflet-container {
-    font-family: 'Dubai', 'Plus Jakarta Sans', sans-serif !important;
-    background-color: oklch(0.96 0.01 80) !important;
-  }
-  .leaflet-popup-content-wrapper {
-    border-radius: 16px !important;
-    box-shadow: 0 8px 24px rgba(0, 89, 113, 0.15) !important;
-    padding: 0 !important;
-    overflow: hidden;
-  }
-  .leaflet-popup-content {
-    margin: 0 !important;
-    width: 240px !important;
-  }
+.mp-btn-outlined {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #FFFFFF;
+  color: #1A1A1A;
+  border: 1px solid #1A1A1A;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.mp-btn-outlined:hover {
+  background-color: #F5F5F5;
+}
+
+.mp-btn-gold {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #D4AF37;
+  color: #1A1A1A;
+  font-weight: 800;
+  font-size: 0.8125rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.mp-btn-gold:hover {
+  background-color: #C29D2C;
+}
+
+/* ── BADGES & PILLS ── */
+.mp-pill-gold {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #FBF6E9;
+  color: #9C7D1A;
+  border: 1px solid #EFE2B9;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.mp-pill-dark {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.mp-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EAEAEA;
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
+}
+.mp-card:hover {
+  border-color: #D4AF37;
+  box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.08);
 }

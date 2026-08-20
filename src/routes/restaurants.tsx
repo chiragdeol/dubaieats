@@ -78,10 +78,10 @@ function GmbCard({
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
-    <article className="bg-white border border-slate-200 hover:border-slate-300 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col md:flex-row group text-left relative">
+    <article className="bg-white border border-[#EAEAEA] hover:border-[#D4AF37] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col md:flex-row group text-left relative">
       
       {/* Left Image Section (TheFork style) */}
-      <div className="relative w-full md:w-72 lg:w-80 h-56 md:h-auto shrink-0 overflow-hidden bg-slate-100">
+      <div className="relative w-full md:w-72 lg:w-80 h-56 md:h-auto shrink-0 overflow-hidden bg-[#F5F5F5]">
         <img
           src={r.image}
           alt={r.name}
@@ -92,13 +92,13 @@ function GmbCard({
         {/* Top Badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
           {r.isSponsored && (
-            <span className="bg-amber-500 text-white font-black text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
+            <span className="bg-[#D4AF37] text-[#1A1A1A] font-black text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm font-heading">
               [SPONSORED]
             </span>
           )}
           {r.michelin && (
-            <span className="bg-rose-600 text-white font-extrabold text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm flex items-center gap-1">
-              <Star className="w-2.5 h-2.5 fill-white" /> Michelin
+            <span className="bg-[#1A1A1A] text-[#D4AF37] border border-[#D4AF37]/40 font-bold text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm flex items-center gap-1 font-heading">
+              <Star className="w-2.5 h-2.5 fill-[#D4AF37]" /> Michelin
             </span>
           )}
         </div>
@@ -109,7 +109,7 @@ function GmbCard({
           aria-label="Save to favorites"
           className="absolute top-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-xs text-white hover:bg-black/60 hover:scale-110 transition-all z-10 cursor-pointer"
         >
-          <Heart className={`w-4 h-4 ${bookmarked ? "fill-rose-500 text-rose-500" : "text-white stroke-[2]"}`} />
+          <Heart className={`w-4 h-4 ${bookmarked ? "fill-[#D4AF37] text-[#D4AF37]" : "text-white stroke-[2]"}`} />
         </button>
 
         {/* Bottom Carousel Indicator Dots (TheFork style) */}
@@ -121,62 +121,62 @@ function GmbCard({
         </div>
       </div>
 
-      {/* Right Content Section (TheFork Style Spacious Layout) */}
+      {/* Right Content Section (TheFork Style Spacious Layout with Majestic Palate Tokens) */}
       <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
         
         {/* Top Information Block */}
         <div className="space-y-1.5">
           {/* Row 1: Name & Rating Box */}
           <div className="flex items-start justify-between gap-4">
-            <h2 className="font-display font-black text-xl sm:text-2xl text-slate-900 leading-snug group-hover:text-[#005971] transition-colors">
+            <h2 className="font-display font-black text-xl sm:text-2xl text-[#1A1A1A] leading-snug group-hover:text-[#D4AF37] transition-colors">
               <Link to="/restaurants/$id" params={{ id: r.slug }}>
                 {r.name}
               </Link>
             </h2>
 
-            {/* TheFork Rating Badge */}
+            {/* Majestic Palate Rating Badge */}
             <div className="text-right shrink-0">
-              <span className="inline-flex items-center justify-center bg-teal-50 border border-teal-200/80 text-[#005971] font-black text-sm sm:text-base px-2.5 py-1 rounded-lg">
+              <span className="inline-flex items-center justify-center bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-black text-sm sm:text-base px-2.5 py-1 rounded-lg font-heading">
                 {(r.rating * 2).toFixed(1)}
               </span>
-              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+              <p className="text-[11px] text-[#757575] font-medium mt-0.5">
                 ({r.reviews})
               </p>
             </div>
           </div>
 
           {/* Line 2: Address */}
-          <p className="text-slate-600 text-xs sm:text-sm font-normal">
+          <p className="text-[#757575] text-xs sm:text-sm font-normal">
             {r.address || `${r.district}, Dubai`}
           </p>
 
           {/* Line 3: Cuisine & Average Price */}
-          <p className="text-slate-800 text-xs sm:text-sm font-medium">
+          <p className="text-[#1A1A1A] text-xs sm:text-sm font-medium">
             {r.cuisine} · Average price AED {r.priceMin}
           </p>
 
           {/* Line 4: TheFork Summer / Privilege Tag Pill */}
           <div className="pt-1 flex flex-wrap items-center gap-2">
             {r.discounts && r.discounts.length > 0 ? (
-              <span className="inline-flex items-center gap-1.5 bg-[#dcfce7] text-[#15803d] font-bold text-xs px-3.5 py-1.5 rounded-full">
-                <Tag className="w-3.5 h-3.5 fill-[#15803d]" />
+              <span className="inline-flex items-center gap-1.5 bg-[#FBF6E9] text-[#9C7D1A] border border-[#EFE2B9] font-bold text-xs px-3.5 py-1.5 rounded-full font-heading">
+                <Tag className="w-3.5 h-3.5 fill-[#9C7D1A]" />
                 <span>Up to -50% · {r.discounts[0]} Privilege</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 bg-[#dcfce7] text-[#15803d] font-bold text-xs px-3.5 py-1.5 rounded-full">
-                <Tag className="w-3.5 h-3.5 fill-[#15803d]" />
+              <span className="inline-flex items-center gap-1.5 bg-[#F5F5F5] text-[#1A1A1A] border border-[#E5E5E5] font-bold text-xs px-3.5 py-1.5 rounded-full font-heading">
+                <Tag className="w-3.5 h-3.5 fill-[#1A1A1A]" />
                 <span>Special Dining Offers Available</span>
               </span>
             )}
 
             {/* Perks */}
             {r.liquor === "Licensed" && (
-              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200/60">
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#F5F5F5] text-[#1A1A1A] border border-[#E0E0E0] font-heading">
                 🍷 Licensed Bar
               </span>
             )}
             {liveStatus.isOpen && (
-              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#FBF6E9] text-[#9C7D1A] border border-[#EFE2B9] font-heading">
                 ● Open Now
               </span>
             )}
@@ -184,38 +184,38 @@ function GmbCard({
         </div>
 
         {/* Bottom Booking & Availability Row (Full size, no cutting) */}
-        <div className="pt-2 border-t border-slate-100 space-y-2.5">
-          <p className="text-xs text-slate-700 font-medium">
-            Do you have <strong className="font-bold text-slate-900">another time</strong> in mind?
+        <div className="pt-2 border-t border-[#EAEAEA] space-y-2.5">
+          <p className="text-xs text-[#757575] font-medium">
+            Do you have <strong className="font-bold text-[#1A1A1A]">another time</strong> in mind?
           </p>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Find Availability Button (TheFork style) */}
+            {/* Find Availability Button (Outlined style) */}
             <Link
               to="/restaurants/$id"
               params={{ id: r.slug }}
-              className="border border-slate-300 hover:border-slate-900 bg-white hover:bg-slate-50 text-slate-900 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="border border-[#1A1A1A] hover:bg-[#F5F5F5] text-[#1A1A1A] font-bold font-heading text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span>Find availability</span>
             </Link>
 
-            {/* Direct Book Table Button */}
+            {/* Direct Book Table Button (Primary #1A1A1A) */}
             <a
               href={r.bookingPlatform?.url || r.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#005971] hover:bg-[#00475b] text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <Calendar className="w-3.5 h-3.5" />
+              <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span>Book Table</span>
             </a>
 
-            {/* VIP Deposit Modal Button */}
+            {/* VIP Deposit Modal Button (Gold #D4AF37) */}
             <button
               onClick={() => onOpenDeposit(r)}
-              className="border border-amber-300 hover:border-amber-500 bg-amber-50/60 hover:bg-amber-50 text-amber-900 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-bold font-heading text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#1A1A1A]" />
               <span>VIP Deposit</span>
             </button>
 
@@ -224,16 +224,16 @@ function GmbCard({
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="border border-emerald-200 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-50 text-emerald-800 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-1.5"
+              className="border border-[#E0E0E0] hover:border-[#1A1A1A] bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] font-bold font-heading text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-1.5"
             >
-              <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+              <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
               <span>WhatsApp</span>
             </a>
 
             {/* Call */}
             <a
               href={callUrl(r.phone)}
-              className="text-slate-600 hover:text-[#005971] hover:bg-slate-100 px-3 py-2.5 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1"
+              className="text-[#757575] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] px-3 py-2.5 rounded-xl text-xs font-bold font-heading transition-colors inline-flex items-center gap-1"
             >
               <Phone className="w-3.5 h-3.5" />
               <span>Call</span>
@@ -394,7 +394,7 @@ function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F5F5F5] text-[#1A1A1A] font-sans flex flex-col justify-between">
       <div>
         <SiteHeader />
 
@@ -418,12 +418,18 @@ function Index() {
         <div className="max-w-7xl mx-auto px-6 pt-8 pb-16">
           
           {/* Header Title Section */}
-          <div className="mb-6 border-b border-slate-200 pb-4 text-left">
-            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500"><Link to="/" className="text-[#005971] font-bold">Home</Link><span>›</span><span>Eat & Drink</span><span>›</span><span>All Dubai Restaurants</span></div>
-            <p className="vd-eyebrow mb-1">OFFICIAL FOOD & DRINK GUIDE</p>
+          <div className="mb-6 border-b border-[#E0E0E0] pb-4 text-left">
+            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-[#757575] font-heading">
+              <Link to="/" className="text-[#1A1A1A] font-bold hover:text-[#D4AF37]">Home</Link>
+              <span>›</span>
+              <span>Eat & Drink</span>
+              <span>›</span>
+              <span>All Dubai Restaurants</span>
+            </div>
+            <p className="mp-eyebrow mb-1">MAJESTIC PALATE · OFFICIAL GUIDE</p>
             <div className="flex flex-wrap items-baseline gap-3">
-              <h1 className="font-display text-3xl font-black tracking-tight text-[#0f172a] sm:text-5xl">The Best Restaurants in Dubai</h1>
-              <span className="text-xs font-bold text-slate-500">({filteredAndSorted.length} verified listings)</span>
+              <h1 className="font-display font-black text-3xl sm:text-5xl tracking-tight text-[#1A1A1A]">The Best Restaurants in Dubai</h1>
+              <span className="text-xs font-bold text-[#757575] font-heading">({filteredAndSorted.length} verified venues)</span>
             </div>
           </div>
 
