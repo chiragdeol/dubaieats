@@ -1,16 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { 
   Building2, 
   ShieldCheck, 
-  CreditCard, 
   Sparkles, 
   CheckCircle2, 
   BadgePercent,
   TrendingUp,
-  Award,
   ArrowRight,
   Plus,
   Trash2,
@@ -31,7 +29,14 @@ import {
   Save,
   Check,
   Eye,
-  Calendar
+  Calendar,
+  BarChart3,
+  MousePointerClick,
+  Users,
+  MessageSquare,
+  LogOut,
+  Target,
+  Zap
 } from "lucide-react";
 import { DUBAI_DISTRICTS } from "@/lib/dubai-districts";
 import { PrivilegeCategory } from "@/lib/restaurants-enriched";
@@ -39,8 +44,8 @@ import { PrivilegeCategory } from "@/lib/restaurants-enriched";
 export const Route = createFileRoute("/merchant")({
   head: () => ({
     meta: [
-      { title: "Restaurant Vendor Portal — Manage Menus, Coupons, Photos & Ads" },
-      { name: "description", content: "Vendor control center for Dubai restaurant owners to upload digital menus, food photo galleries, Fazaa/Esaad coupons, and marketing banners." },
+      { title: "Vendor Portal & Ad Analytics — Dubai Eats" },
+      { name: "description", content: "Vendor control center for Dubai restaurant owners to upload digital menus, food photo galleries, Fazaa/Esaad coupons, and track ad campaign analytics." },
     ],
   }),
   component: MerchantDashboardPage,
@@ -73,9 +78,46 @@ interface PhotoItem {
   isPrimary?: boolean;
 }
 
+interface AdCampaign {
+  id: string;
+  name: string;
+  placement: string;
+  status: "Active" | "Scheduled" | "Completed";
+  budgetPerMonth: number;
+  spent: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  cpc: number;
+  revenueGenerated: number;
+}
+
 function MerchantDashboardPage() {
-  const [activeTab, setActiveTab] = useState<"profile" | "filters" | "coupons" | "menu" | "gallery" | "marketing" | "preview">("profile");
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"analytics" | "profile" | "filters" | "coupons" | "menu" | "gallery" | "marketing" | "preview">("analytics");
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Authenticated Vendor Info
+  const [vendorAuth, setVendorAuth] = useState<{ venueName: string; district: string; email: string; tier?: string }>({
+    venueName: "Zuma Dubai",
+    district: "DIFC",
+    email: "manager@zumarestaurant.ae",
+    tier: "Luxury & Michelin Tier"
+  });
+
+  useEffect(() => {
+    const stored = localStorage.getItem("dubai_eats_vendor_auth");
+    if (stored) {
+      try {
+        setVendorAuth(JSON.parse(stored));
+      } catch {}
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("dubai_eats_vendor_auth");
+    navigate({ to: "/join" });
+  };
 
   // 1. Profile State
   const [venueName, setVenueName] = useState("Zuma Dubai");
@@ -88,6 +130,7 @@ function MerchantDashboardPage() {
   const [website, setWebsite] = useState("https://zumarestaurant.com/locations/dubai/");
   const [address, setAddress] = useState("Gate Village 06, DIFC, Dubai");
   const [hours, setHours] = useState("12:00 PM – 3:30 PM, 7:00 PM – 1:00 AM");
+  const [tradeLicense, setTradeLicense] = useState("DET-DXB-984210");
 
   // 2. Policies & Filters State
   const [valetType, setValetType] = useState("Complimentary");
@@ -100,60 +143,194 @@ function MerchantDashboardPage() {
   const [hasShisha, setHasShisha] = useState(false);
   const [dietaryTags, setDietaryTags] = useState<string[]>([
     "Halal Certified",
-    "Gluten-Free Options",
-    "Vegetarian Options",
+    "Vegan Options Available",
+    "Gluten-Free Available",
     "Keto Friendly"
   ]);
 
-  // 3. Coupons & Privilege Deals State
+  // 3. Coupons & Privileges State
   const [coupons, setCoupons] = useState<CouponItem[]>([
-    { id: "1", code: "FAZAA20", title: "20% Off Total Food & Beverage", discount: "20%", program: "Fazaa Card", expiry: "31 Dec 2026" },
-    { id: "2", code: "ESAAD15", title: "15% Dining Privilege", discount: "15%", program: "Esaad Card", expiry: "31 Dec 2026" },
-    { id: "3", code: "PLATINUM25", title: "Emirates Platinum 25% Off Lunch", discount: "25%", program: "Emirates Platinum", expiry: "30 Nov 2026" },
+    {
+      id: "1",
+      code: "FAZAA20",
+      title: "Fazaa Cardholders Privilege",
+      discount: "20% Off Total Bill",
+      program: "Fazaa",
+      expiry: "31 Dec 2026"
+    },
+    {
+      id: "2",
+      code: "ESAAD25",
+      title: "Esaad Government Exclusive",
+      discount: "25% Off Food & Beverage",
+      program: "Esaad",
+      expiry: "31 Dec 2026"
+    },
+    {
+      id: "3",
+      code: "SUMMERVIP",
+      title: "Direct Online Booking Privilege",
+      discount: "Complimentary Chef Welcome Drink",
+      program: "Dubai Eats VIP",
+      expiry: "30 Sep 2026"
+    }
   ]);
   const [newCouponCode, setNewCouponCode] = useState("");
   const [newCouponTitle, setNewCouponTitle] = useState("");
-  const [newCouponDiscount, setNewCouponDiscount] = useState("20%");
-  const [newCouponProgram, setNewCouponProgram] = useState("Fazaa Card");
-  const [newCouponExpiry, setNewCouponExpiry] = useState("31 Dec 2026");
+  const [newCouponDiscount, setNewCouponDiscount] = useState("");
+  const [newCouponProgram, setNewCouponProgram] = useState("Fazaa");
 
-  // 4. Digital Menu Items State
+  // 4. Digital Menu State
   const [menuItems, setMenuItems] = useState<MenuItem[]>([
-    { id: "m1", name: "Black Cod Miso", category: "Mains & Grills", price: "245", description: "Marinated black cod wrapped in hoba leaf with sweet saikyo miso", dietary: "Chef Signature", image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600" },
-    { id: "m2", name: "Wagyu Beef Tataki", category: "Starters & Raw", price: "185", description: "Thinly sliced seared wagyu with truffle ponzu and fried garlic chips", dietary: "Halal Certified", image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600" },
-    { id: "m3", name: "Crispy Fried Squid", category: "Starters & Raw", price: "85", description: "Green chili and lime sea salt with dashi dipping sauce", dietary: "Halal Certified", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600" },
-    { id: "m4", name: "Spicy Beef Tenderloin", category: "Mains & Grills", price: "220", description: "Sesame, red chili and sweet soy glaze", dietary: "Halal Certified", image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600" },
-    { id: "m5", name: "Special Chocolate Fondant", category: "Desserts", price: "75", description: "Rich molten chocolate center with vanilla bean ice cream", dietary: "Vegetarian", image: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600" },
+    {
+      id: "1",
+      name: "Black Cod Miso (Gindara)",
+      category: "Mains & Grills",
+      price: "245",
+      description: "Marinated black cod wrapped in hoba leaf with sweet miso glaze",
+      dietary: "Halal, Gluten-Free",
+      image: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&q=80"
+    },
+    {
+      id: "2",
+      name: "Thinly Sliced Seabass with Yuzu & Truffle",
+      category: "Starters & Raw",
+      price: "135",
+      description: "Fresh seabass carpaccio with salmon roe, yuzu oil, and black winter truffle",
+      dietary: "Halal, Keto",
+      image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=600&q=80"
+    },
+    {
+      id: "3",
+      name: "Japanese Wagyu Ribeye Tataki (Grade A5)",
+      category: "Mains & Grills",
+      price: "320",
+      description: "Seared A5 Wagyu beef slices with ponzu sauce and crispy garlic chips",
+      dietary: "Halal, Keto",
+      image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80"
+    },
+    {
+      id: "4",
+      name: "Special Chocolate Fondant with Green Tea Ice Cream",
+      category: "Desserts",
+      price: "75",
+      description: "Warm molten chocolate dome with premium Uji matcha green tea ice cream",
+      dietary: "Halal",
+      image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&q=80"
+    }
   ]);
   const [newDishName, setNewDishName] = useState("");
-  const [newDishCategory, setNewDishCategory] = useState("Starters & Raw");
+  const [newDishCat, setNewDishCat] = useState("Mains & Grills");
   const [newDishPrice, setNewDishPrice] = useState("");
   const [newDishDesc, setNewDishDesc] = useState("");
-  const [newDishDietary, setNewDishDietary] = useState("Halal Certified");
-  const [newDishImage, setNewDishImage] = useState("");
+  const [newDishDietary, setNewDishDietary] = useState("Halal");
+  const [newDishImg, setNewDishImg] = useState("");
 
-  // 5. Photos Gallery State
+  // 5. Photo Gallery State
   const [photos, setPhotos] = useState<PhotoItem[]>([
-    { id: "p1", url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800", caption: "Main Dining Room & Open Robata Kitchen", type: "interior", isPrimary: true },
-    { id: "p2", url: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800", caption: "Signature Black Cod Miso Dish", type: "food" },
-    { id: "p3", url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800", caption: "Premium Wagyu Tataki", type: "food" },
-    { id: "p4", url: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800", caption: "Sashimi Omakase Platter", type: "food" },
-    { id: "p5", url: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800", caption: "DIFC Skyline View Terrace", type: "view" },
+    {
+      id: "1",
+      url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&q=85",
+      caption: "Main Dining Room & Open Robata Counter",
+      type: "interior",
+      isPrimary: true
+    },
+    {
+      id: "2",
+      url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&q=85",
+      caption: "Signature Black Cod Miso Plating",
+      type: "food"
+    },
+    {
+      id: "3",
+      url: "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=1000&q=85",
+      caption: "Lounge Bar & Mixology Counter",
+      type: "interior"
+    },
+    {
+      id: "4",
+      url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000&q=85",
+      caption: "Robata Charcoal Grill Wagyu Skewers",
+      type: "food"
+    }
   ]);
   const [newPhotoUrl, setNewPhotoUrl] = useState("");
   const [newPhotoCaption, setNewPhotoCaption] = useState("");
   const [newPhotoType, setNewPhotoType] = useState<"food" | "interior" | "view">("food");
 
-  // 6. Marketing & Ad Banner Campaign State
-  const [adCampaignType, setAdCampaignType] = useState<"hero_banner" | "top_district" | "verified_badge">("top_district");
-  const [adBudgetDuration, setAdBudgetDuration] = useState("1_month");
-  const [marketingBannerUrl, setMarketingBannerUrl] = useState("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200");
-  const [marketingHeadline, setMarketingHeadline] = useState("Experience DIFC's Best Japanese Cuisine");
+  // 6. Ad Campaigns & Analytics State
+  const [adCampaigns, setAdCampaigns] = useState<AdCampaign[]>([
+    {
+      id: "ad-1",
+      name: "Homepage Hero Featured Placement",
+      placement: "Homepage Hero Display",
+      status: "Active",
+      budgetPerMonth: 2999,
+      spent: 2450,
+      impressions: 114800,
+      clicks: 4120,
+      conversions: 384,
+      cpc: 0.59,
+      revenueGenerated: 134400
+    },
+    {
+      id: "ad-2",
+      name: "DIFC District Top Spotlight",
+      placement: "District Sponsored #1",
+      status: "Active",
+      budgetPerMonth: 1499,
+      spent: 1200,
+      impressions: 68400,
+      clicks: 2840,
+      conversions: 246,
+      cpc: 0.42,
+      revenueGenerated: 86100
+    },
+    {
+      id: "ad-3",
+      name: "Fazaa Privilege Hub Featured Card",
+      placement: "Deals & Privileges Directory",
+      status: "Active",
+      budgetPerMonth: 899,
+      spent: 750,
+      impressions: 42100,
+      clicks: 1980,
+      conversions: 192,
+      cpc: 0.38,
+      revenueGenerated: 67200
+    }
+  ]);
 
-  // Handlers
-  const handleSaveAll = () => {
+  // Marketing ad creative state
+  const [bannerTarget, setBannerTarget] = useState("hero");
+  const [bannerHeading, setBannerHeading] = useState("Award-Winning Contemporary Japanese in DIFC");
+  const [bannerSubtext, setBannerSubtext] = useState("Book direct for complimentary chef welcome cocktail and Fazaa 20% privilege.");
+  const [bannerImageUrl, setBannerImageUrl] = useState("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=85");
+
+  const handleCreateAd = (e: React.FormEvent) => {
+    e.preventDefault();
+    const budget = bannerTarget === "hero" ? 2999 : bannerTarget === "district" ? 1499 : 899;
+    const newAd: AdCampaign = {
+      id: `ad-${Date.now()}`,
+      name: `${venueName} — ${bannerHeading.slice(0, 32)}...`,
+      placement: bannerTarget === "hero" ? "Homepage Hero Display" : bannerTarget === "district" ? `${district} Top Sponsored` : "Privilege Directory",
+      status: "Active",
+      budgetPerMonth: budget,
+      spent: 0,
+      impressions: 0,
+      clicks: 0,
+      conversions: 0,
+      cpc: 0.45,
+      revenueGenerated: 0
+    };
+    setAdCampaigns(prev => [newAd, ...prev]);
+    alert("Marketing campaign launched successfully! Real-time analytics tracking is now active.");
+    setActiveTab("analytics");
+  };
+
+  const handleSave = () => {
     setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3500);
+    setTimeout(() => setSavedSuccess(false), 2500);
   };
 
   const handleAddCoupon = () => {
@@ -162,38 +339,39 @@ function MerchantDashboardPage() {
       id: Date.now().toString(),
       code: newCouponCode.toUpperCase().trim(),
       title: newCouponTitle.trim(),
-      discount: newCouponDiscount,
+      discount: newCouponDiscount.trim() || "15% Off",
       program: newCouponProgram,
-      expiry: newCouponExpiry
+      expiry: "31 Dec 2026"
     };
-    setCoupons(prev => [item, ...prev]);
+    setCoupons(prev => [...prev, item]);
     setNewCouponCode("");
     setNewCouponTitle("");
+    setNewCouponDiscount("");
   };
 
   const handleDeleteCoupon = (id: string) => {
     setCoupons(prev => prev.filter(c => c.id !== id));
   };
 
-  const handleAddMenuItem = () => {
+  const handleAddDish = () => {
     if (!newDishName || !newDishPrice) return;
     const item: MenuItem = {
       id: Date.now().toString(),
       name: newDishName.trim(),
-      category: newDishCategory,
+      category: newDishCat,
       price: newDishPrice.trim(),
-      description: newDishDesc.trim(),
+      description: newDishDesc.trim() || "Chef prepared artisanal dish with fresh ingredients",
       dietary: newDishDietary,
-      image: newDishImage || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600"
+      image: newDishImg.trim() || "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80"
     };
     setMenuItems(prev => [...prev, item]);
     setNewDishName("");
     setNewDishPrice("");
     setNewDishDesc("");
-    setNewDishImage("");
+    setNewDishImg("");
   };
 
-  const handleDeleteMenuItem = (id: string) => {
+  const handleDeleteDish = (id: string) => {
     setMenuItems(prev => prev.filter(m => m.id !== id));
   };
 
@@ -234,13 +412,27 @@ function MerchantDashboardPage() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-16">
           
           {/* ── BREADCRUMB & HEADER BANNER ── */}
-          <div className="mb-6">
-            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-[#757575] font-heading">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs font-medium text-[#757575] font-heading">
               <Link to="/" className="text-[#1A1A1A] font-bold hover:text-[#D4AF37]">Home</Link>
               <span>›</span>
-              <span>For Restaurant Owners</span>
+              <Link to="/join" className="text-[#1A1A1A] font-bold hover:text-[#D4AF37]">Vendor Portal</Link>
               <span>›</span>
-              <span>Merchant & Vendor Control Portal</span>
+              <span>Merchant Control Center</span>
+            </div>
+
+            {/* Logged in badge & logout */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold font-heading bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                🏢 {vendorAuth.venueName} ({vendorAuth.district}) · {vendorAuth.tier || "Prime Tier"}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-xs font-bold font-heading text-[#757575] hover:text-rose-600 hover:bg-white px-3 py-1 rounded-full border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <LogOut className="w-3 h-3" />
+                <span>Sign Out</span>
+              </button>
             </div>
           </div>
 
@@ -253,843 +445,843 @@ function MerchantDashboardPage() {
                 Restaurant Owner Control Center
               </h1>
               <p className="text-[#A3A3A3] text-sm sm:text-base leading-relaxed font-normal font-sans">
-                Manage your venue profile, add coupon codes, publish digital menus with dish photos, manage photo galleries, and run targeted marketing banner campaigns.
+                Track ad campaign analytics, upload digital menus with dish photos, add discount coupon codes, manage photo galleries, and launch sponsored listings.
               </p>
             </div>
 
-            <div className="relative z-10 shrink-0">
+            <div className="relative z-10 shrink-0 flex flex-col sm:flex-row gap-3">
               <button
-                onClick={handleSaveAll}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs sm:text-sm px-7 py-3.5 rounded-full shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                onClick={handleSave}
+                className="bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-extrabold font-heading text-xs px-6 py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Save className="w-4 h-4" />
-                <span>Save & Publish Changes</span>
+                {savedSuccess ? (
+                  <>
+                    <Check className="w-4 h-4 text-[#1A1A1A]" />
+                    <span>Saved to Live Portal!</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 text-[#1A1A1A]" />
+                    <span>Save All Changes</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
 
-          {/* Success Notification Alert */}
-          {savedSuccess && (
-            <div className="mb-8 p-4 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-2xl flex items-center gap-3 shadow-xs animate-in fade-in slide-in-from-top-2 duration-150">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-              <div className="text-xs">
-                <p className="font-bold">Venue profile and marketing updates published live!</p>
-                <p className="text-emerald-700">Your digital menu, coupons, and photo gallery are now updated on Dubai Eat discovery and search.</p>
+          {/* ── 8 DASHBOARD TABS ── */}
+          <div className="flex flex-wrap items-center gap-2 pb-4 mb-8 border-b border-[#EAEAEA] text-xs font-bold font-heading">
+            {[
+              { id: "analytics", label: "📊 Ad Analytics & Traffic", icon: BarChart3 },
+              { id: "profile", label: "🏢 Profile & Contact", icon: Building2 },
+              { id: "filters", label: "🎯 Policies & Certifications", icon: ShieldCheck },
+              { id: "coupons", label: "💳 Coupons & Privileges", icon: BadgePercent },
+              { id: "menu", label: "🍽️ Digital Menu & Dishes", icon: UtensilsCrossed },
+              { id: "gallery", label: "📸 Photo Gallery", icon: ImageIcon },
+              { id: "marketing", label: "🚀 Ad Studio & Banners", icon: TrendingUp },
+              { id: "preview", label: "👁️ Live Diner Preview", icon: Eye }
+            ].map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                    isActive
+                      ? "bg-[#1A1A1A] text-white shadow-xs"
+                      : "bg-white hover:bg-[#F5F5F5] text-[#757575] border border-[#EAEAEA]"
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-[#D4AF37]" : "text-[#757575]"}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ── TAB 1: REAL-TIME AD & TRAFFIC ANALYTICS ── */}
+          {activeTab === "analytics" && (
+            <div className="space-y-8">
+              
+              {/* Key KPI Metrics Summary Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {[
+                  { label: "Total Profile Views", value: "225,300", change: "+18.4% vs last month", icon: Eye, highlight: false },
+                  { label: "Direct Table Bookings", value: "3,820 covers", change: "0% Commission", icon: Calendar, highlight: true },
+                  { label: "Menu & Dish Clicks", value: "94,150 views", change: "+24.2% engagement", icon: UtensilsCrossed, highlight: false },
+                  { label: "WhatsApp Inquiries", value: "1,240 chats", change: "Direct to Hostess", icon: MessageSquare, highlight: false },
+                  { label: "Ad Campaign Revenue", value: "AED 287,700", change: "14.2x Ad ROI", icon: TrendingUp, highlight: true }
+                ].map((kpi, idx) => {
+                  const Icon = kpi.icon;
+                  return (
+                    <div key={idx} className={`p-5 rounded-3xl border ${kpi.highlight ? "bg-[#1A1A1A] text-white border-[#333333]" : "bg-white text-[#1A1A1A] border-[#EAEAEA]"} shadow-xs space-y-2`}>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[10px] font-heading font-bold uppercase tracking-wider ${kpi.highlight ? "text-[#D4AF37]" : "text-[#757575]"}`}>
+                          {kpi.label}
+                        </span>
+                        <Icon className={`w-4 h-4 ${kpi.highlight ? "text-[#D4AF37]" : "text-[#757575]"}`} />
+                      </div>
+                      <div className={`font-display font-black text-2xl ${kpi.highlight ? "text-white" : "text-[#1A1A1A]"}`}>
+                        {kpi.value}
+                      </div>
+                      <div className={`text-[10px] font-heading font-semibold ${kpi.highlight ? "text-[#D4AF37]" : "text-emerald-700"}`}>
+                        {kpi.change}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+
+              {/* Live Ad Campaigns Performance Table */}
+              <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EAEAEA]">
+                  <div>
+                    <h3 className="font-heading font-bold text-xl text-[#1A1A1A] flex items-center gap-2">
+                      <Target className="w-5 h-5 text-[#D4AF37]" />
+                      Live Marketing & Sponsored Ad Campaigns
+                    </h3>
+                    <p className="text-xs text-[#757575] font-sans mt-0.5">
+                      Real-time impressions, click-through rates, and guest booking revenue attribution.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab("marketing")}
+                    className="bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs px-4 py-2 rounded-xl transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Launch New Campaign</span>
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-[#EAEAEA] text-[#757575] font-heading uppercase text-[10px] tracking-wider">
+                        <th className="pb-3 font-bold">Campaign & Placement</th>
+                        <th className="pb-3 font-bold">Status</th>
+                        <th className="pb-3 font-bold">Impressions</th>
+                        <th className="pb-3 font-bold">Clicks</th>
+                        <th className="pb-3 font-bold">CTR</th>
+                        <th className="pb-3 font-bold">Avg. CPC</th>
+                        <th className="pb-3 font-bold">Spend</th>
+                        <th className="pb-3 font-bold text-right">Attributed Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#EAEAEA] font-sans">
+                      {adCampaigns.map(ad => {
+                        const ctr = ((ad.clicks / (ad.impressions || 1)) * 100).toFixed(2);
+                        return (
+                          <tr key={ad.id} className="hover:bg-[#F9FAFB] transition-colors">
+                            <td className="py-4">
+                              <div className="font-heading font-bold text-sm text-[#1A1A1A]">{ad.name}</div>
+                              <div className="text-[11px] text-[#757575]">{ad.placement}</div>
+                            </td>
+                            <td className="py-4">
+                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold font-heading text-[10px] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                {ad.status}
+                              </span>
+                            </td>
+                            <td className="py-4 font-semibold text-[#1A1A1A]">
+                              {ad.impressions.toLocaleString()}
+                            </td>
+                            <td className="py-4 font-semibold text-[#1A1A1A]">
+                              {ad.clicks.toLocaleString()}
+                            </td>
+                            <td className="py-4 font-bold text-[#D4AF37] font-heading">
+                              {ctr}%
+                            </td>
+                            <td className="py-4 font-medium text-[#757575]">
+                              AED {ad.cpc.toFixed(2)}
+                            </td>
+                            <td className="py-4 font-bold text-[#1A1A1A]">
+                              AED {ad.spent.toLocaleString()}
+                            </td>
+                            <td className="py-4 text-right font-heading font-black text-sm text-emerald-700">
+                              AED {ad.revenueGenerated.toLocaleString()}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Conversion Attribution & Diner Demographics */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 space-y-4 shadow-xs">
+                  <h4 className="font-heading font-bold text-base text-[#1A1A1A]">Top Booking Referral Channels</h4>
+                  <div className="space-y-3 font-sans text-xs">
+                    {[
+                      { channel: "SevenRooms / Direct Online Reservation", pct: "54%", covers: "2,060 guests" },
+                      { channel: "WhatsApp Direct Concierge Concierge", pct: "26%", covers: "990 guests" },
+                      { channel: "Fazaa & Esaad Privilege Cardholders", pct: "14%", covers: "535 guests" },
+                      { channel: "Interactive Map Explorer & Google Pin", pct: "6%", covers: "235 guests" }
+                    ].map((item, i) => (
+                      <div key={i} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold">
+                          <span className="text-[#1A1A1A]">{item.channel}</span>
+                          <span className="font-bold font-heading text-[#D4AF37]">{item.pct} ({item.covers})</span>
+                        </div>
+                        <div className="w-full bg-[#F5F5F5] h-2 rounded-full overflow-hidden">
+                          <div className="bg-[#1A1A1A] h-full rounded-full" style={{ width: item.pct }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 space-y-4 shadow-xs">
+                  <h4 className="font-heading font-bold text-base text-[#1A1A1A]">Diner Geographic Audience</h4>
+                  <div className="space-y-3 font-sans text-xs">
+                    {[
+                      { area: "Downtown & DIFC Corporate Professionals", pct: "42%" },
+                      { area: "Palm Jumeirah & Marina Luxury Residents", pct: "31%" },
+                      { area: "International Tourists (UK, GCC, Europe, US)", pct: "18%" },
+                      { area: "Emirati Nationals & UAE Govt Employees", pct: "9%" }
+                    ].map((item, i) => (
+                      <div key={i} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold">
+                          <span className="text-[#1A1A1A]">{item.area}</span>
+                          <span className="font-bold font-heading text-[#D4AF37]">{item.pct}</span>
+                        </div>
+                        <div className="w-full bg-[#F5F5F5] h-2 rounded-full overflow-hidden">
+                          <div className="bg-[#D4AF37] h-full rounded-full" style={{ width: item.pct }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
             </div>
           )}
 
-          {/* ── PORTAL NAVIGATION TABS ── */}
-          <div className="flex border-b border-slate-200 gap-2 mb-8 overflow-x-auto pb-1">
-            {[
-              { id: "profile", label: "🏢 1. Profile & Info", icon: Building2 },
-              { id: "filters", label: "🎯 2. Policies & Filters", icon: ShieldCheck },
-              { id: "coupons", label: "💳 3. Discount Coupons", icon: BadgePercent },
-              { id: "menu", label: "🍽️ 4. Digital Menu & Dishes", icon: UtensilsCrossed },
-              { id: "gallery", label: "📸 5. Photo Gallery", icon: ImageIcon },
-              { id: "marketing", label: "🚀 6. Marketing Banners & Ads", icon: TrendingUp },
-              { id: "preview", label: "👁️ 7. Live Preview", icon: Eye },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-3 px-5 font-bold text-xs sm:text-sm rounded-t-2xl whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
-                  activeTab === tab.id
-                    ? "bg-[#005971] text-white shadow-xs"
-                    : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* ── TAB 1: VENUE PROFILE & CONTACT INFO ── */}
+          {/* ── TAB 2: PROFILE & BASIC INFO ── */}
           {activeTab === "profile" && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="font-display font-black text-xl text-[#0f172a]">
-                  Venue Profile & Contact Details
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Keep your restaurant name, district, address, and live contact channels updated for diners.
-                </p>
+            <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6">
+              <div className="pb-4 border-b border-[#EAEAEA]">
+                <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">General Venue Details</h3>
+                <p className="text-xs text-[#757575] font-sans mt-0.5">Manage your core listing information, trading hours, and trade license credentials.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Restaurant Name</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Venue Name</label>
                   <input
                     type="text"
                     value={venueName}
                     onChange={e => setVenueName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Dubai District / Area</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">District</label>
                   <select
                     value={district}
                     onChange={e => setDistrict(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971] cursor-pointer"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none font-heading cursor-pointer"
                   >
                     {DUBAI_DISTRICTS.map(d => (
-                      <option key={d.name} value={d.name}>{d.name} ({d.zone})</option>
+                      <option key={d.name} value={d.name}>{d.name}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Primary Cuisine</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Cuisine Category</label>
                   <input
                     type="text"
                     value={cuisine}
                     onChange={e => setCuisine(e.target.value)}
-                    placeholder="e.g. Contemporary Japanese, Italian, Mediterranean"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Avg Bill Min (AED)</label>
+                <div>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">DET Trade License #</label>
+                  <input
+                    type="text"
+                    value={tradeLicense}
+                    onChange={e => setTradeLicense(e.target.value)}
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Price Range (AED Min – Max)</label>
+                  <div className="flex items-center gap-3">
                     <input
                       type="number"
                       value={priceMin}
                       onChange={e => setPriceMin(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                      placeholder="350"
+                      className="w-1/2 bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Avg Bill Max (AED)</label>
+                    <span>–</span>
                     <input
                       type="number"
                       value={priceMax}
                       onChange={e => setPriceMax(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                      placeholder="700"
+                      className="w-1/2 bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Direct Phone Reservation</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Direct Phone</label>
                   <input
                     type="text"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">WhatsApp Concierge Mobile</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Official WhatsApp Line</label>
                   <input
                     type="text"
                     value={whatsapp}
                     onChange={e => setWhatsapp(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Official Website URL</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Official Website</label>
                   <input
                     type="text"
                     value={website}
                     onChange={e => setWebsite(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Physical Address / Location</label>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Street Address</label>
                   <input
                     type="text"
                     value={address}
                     onChange={e => setAddress(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Operating Hours</label>
-                <input
-                  type="text"
-                  value={hours}
-                  onChange={e => setHours(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
-                />
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Trading Hours</label>
+                  <input
+                    type="text"
+                    value={hours}
+                    onChange={e => setHours(e.target.value)}
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
+                  />
+                </div>
               </div>
             </div>
           )}
 
-          {/* ── TAB 2: POLICIES & LIFESTYLE FILTERS ── */}
+          {/* ── TAB 3: POLICIES & CERTIFICATIONS ── */}
           {activeTab === "filters" && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="font-display font-black text-xl text-[#0f172a]">
-                  Venue Policies & Discovery Lifestyle Filters
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Define your parking policies, dress code, pet rules, accessibility, and dietary certifications.
-                </p>
+            <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6">
+              <div className="pb-4 border-b border-[#EAEAEA]">
+                <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">Policies & Dietary Badges</h3>
+                <p className="text-xs text-[#757575] font-sans mt-0.5">Define your valet parking policies, alcohol licensing, dress codes, and dietary options.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Valet Parking Service</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Valet Parking</label>
                   <select
                     value={valetType}
                     onChange={e => setValetType(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none font-heading cursor-pointer"
                   >
-                    <option value="Complimentary">Complimentary Valet (Free)</option>
-                    <option value="Paid Valet">Paid Valet Parking (e.g. AED 25-50)</option>
-                    <option value="Self-Parking">Self-Parking / Mall Parking</option>
+                    <option value="Complimentary">Complimentary Valet Parking</option>
+                    <option value="Paid">Paid Valet Parking (AED 25–50)</option>
+                    <option value="Self-Parking">Self Parking Only</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Valet Cost / Validation Notes</label>
-                  <input
-                    type="text"
-                    value={valetCost}
-                    onChange={e => setValetCost(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Dress Code</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Dress Code Requirement</label>
                   <select
                     value={dressCode}
                     onChange={e => setDressCode(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none font-heading cursor-pointer"
                   >
                     <option value="Smart Elegant (No sportswear or beachwear)">Smart Elegant</option>
                     <option value="Smart Casual">Smart Casual</option>
-                    <option value="Casual & Relaxed">Casual & Relaxed</option>
-                    <option value="Beach Chic / Resort Wear">Beach Chic / Resort Wear</option>
+                    <option value="Casual">Casual</option>
+                    <option value="Beach Chic">Beach Chic</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Alcohol & Liquor Licensing</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Alcohol Licensing</label>
                   <select
                     value={liquorStatus}
                     onChange={e => setLiquorStatus(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none font-heading cursor-pointer"
                   >
-                    <option value="Licensed Full Bar & Lounge">Licensed (Alcohol Served)</option>
-                    <option value="Non-Alcoholic (Dry Venue)">Non-Alcoholic (Dry / Family)</option>
+                    <option value="Licensed Full Bar & Lounge">Licensed Full Bar & Lounge</option>
+                    <option value="Non-Licensed (Dry Venue)">Non-Licensed (Dry Venue)</option>
+                    <option value="Mocktail & Specialty Drinks Only">Mocktail & Specialty Drinks Only</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Child & Age Policy</label>
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">Children & Age Policy</label>
                   <input
                     type="text"
                     value={childPolicy}
                     onChange={e => setChildPolicy(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Pet Policy</label>
-                  <input
-                    type="text"
-                    value={petPolicy}
-                    onChange={e => setPetPolicy(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#005971]"
-                  />
-                </div>
-              </div>
-
-              {/* Dietary Tags Selector */}
-              <div className="pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">Dietary Certifications & Options</label>
-                <div className="flex flex-wrap gap-2.5">
-                  {[
-                    "Halal Certified",
-                    "Vegan Options",
-                    "Vegetarian Options",
-                    "Gluten-Free Options",
-                    "Keto Friendly",
-                    "Organic Ingredients",
-                    "Dairy-Free Options",
-                    "Nut-Free Kitchen Option"
-                  ].map(tag => {
-                    const active = dietaryTags.includes(tag);
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => toggleDietaryTag(tag)}
-                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                          active
-                            ? "bg-[#005971] text-white shadow-xs"
-                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                        }`}
-                      >
-                        {active && <Check className="w-3.5 h-3.5" />}
-                        <span>{tag}</span>
-                      </button>
-                    );
-                  })}
+                <div className="md:col-span-2 space-y-2">
+                  <label className="block text-xs font-bold font-heading text-[#1A1A1A] uppercase">
+                    Dietary & Health Certifications
+                  </label>
+                  <div className="flex flex-wrap gap-2 pt-1 font-heading text-xs">
+                    {[
+                      "Halal Certified",
+                      "Vegan Options Available",
+                      "Gluten-Free Available",
+                      "Keto Friendly",
+                      "Organic / Farm-To-Table",
+                      "Nut-Free Kitchen Option"
+                    ].map(tag => {
+                      const isChecked = dietaryTags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => toggleDietaryTag(tag)}
+                          className={`px-3.5 py-1.5 rounded-full border transition-all cursor-pointer ${
+                            isChecked
+                              ? "bg-[#D4AF37] border-[#D4AF37] text-[#1A1A1A] font-bold"
+                              : "bg-[#F5F5F5] border-[#E0E0E0] text-[#757575]"
+                          }`}
+                        >
+                          {isChecked ? "✓ " : "+ "}{tag}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* ── TAB 3: DISCOUNT COUPONS & PRIVILEGE CARDS ── */}
+          {/* ── TAB 4: COUPONS & PRIVILEGES ── */}
           {activeTab === "coupons" && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-8 shadow-xs">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="font-display font-black text-xl text-[#0f172a]">
-                  Promotional Coupons & Privilege Programs
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Add exclusive discount codes for diners and link your venue to Fazaa, Esaad, and UAE banking privilege cards.
-                </p>
+            <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6">
+              <div className="pb-4 border-b border-[#EAEAEA]">
+                <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">Manage Dining Privileges & Coupons</h3>
+                <p className="text-xs text-[#757575] font-sans mt-0.5">Activate or modify exclusive promo codes for Fazaa, Esaad, and Cardholders.</p>
               </div>
 
-              {/* Add Coupon Form */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-[#005971] flex items-center gap-1.5">
-                  <Plus className="w-4 h-4" /> Create New Discount Coupon / Offer
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Coupon Code</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. FAZAA20, SUMMER25"
-                      value={newCouponCode}
-                      onChange={e => setNewCouponCode(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold uppercase text-slate-800 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Offer Title</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 20% off total food bill"
-                      value={newCouponTitle}
-                      onChange={e => setNewCouponTitle(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Privilege Card / Program</label>
-                    <select
-                      value={newCouponProgram}
-                      onChange={e => setNewCouponProgram(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none cursor-pointer"
-                    >
-                      <option value="Fazaa Card">Fazaa Card</option>
-                      <option value="Esaad Card">Esaad Card</option>
-                      <option value="Emirates Platinum">Emirates Platinum</option>
-                      <option value="The Entertainer">The Entertainer</option>
-                      <option value="Supperclub">Supperclub</option>
-                      <option value="BOGO (Buy 1 Get 1)">Buy One Get One (BOGO)</option>
-                      <option value="Emirates NBD">Emirates NBD Card</option>
-                      <option value="General Public Promo">General Public Promo</option>
-                    </select>
-                  </div>
+              {/* Add New Coupon Form */}
+              <div className="bg-[#F5F5F5] border border-[#E0E0E0] p-5 rounded-2xl space-y-4">
+                <div className="font-heading font-bold text-xs uppercase tracking-wider text-[#1A1A1A]">
+                  + Add New Privilege Coupon
                 </div>
-
-                <div className="flex justify-end pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <input
+                    type="text"
+                    value={newCouponCode}
+                    onChange={e => setNewCouponCode(e.target.value)}
+                    placeholder="CODE (e.g. FAZAA20)"
+                    className="bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none uppercase font-heading"
+                  />
+                  <input
+                    type="text"
+                    value={newCouponTitle}
+                    onChange={e => setNewCouponTitle(e.target.value)}
+                    placeholder="Offer Title (e.g. 20% Off Bill)"
+                    className="bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none"
+                  />
+                  <select
+                    value={newCouponProgram}
+                    onChange={e => setNewCouponProgram(e.target.value)}
+                    className="bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none font-heading cursor-pointer"
+                  >
+                    <option value="Fazaa">Fazaa Card</option>
+                    <option value="Esaad">Esaad Card</option>
+                    <option value="Emirates Platinum">Emirates Platinum</option>
+                    <option value="The Entertainer">The Entertainer</option>
+                    <option value="Dubai Eats VIP">Dubai Eats VIP</option>
+                  </select>
                   <button
                     type="button"
                     onClick={handleAddCoupon}
-                    className="bg-[#005971] hover:bg-[#00475b] text-white text-xs font-bold px-6 py-2.5 rounded-full shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                    className="bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Coupon to Directory</span>
+                    <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Publish Coupon</span>
                   </button>
                 </div>
               </div>
 
-              {/* Active Coupons List Table */}
+              {/* Existing Coupons Grid */}
               <div className="space-y-3">
-                <h4 className="font-bold text-sm text-[#0f172a]">Active Coupons & Offers ({coupons.length})</h4>
-                
-                <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white">
-                  {coupons.map(c => (
-                    <div key={c.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono bg-amber-500/15 text-amber-900 border border-amber-500/30 px-3 py-1 rounded-xl text-xs font-black">
-                          {c.code}
-                        </span>
-                        <div>
-                          <p className="font-bold text-xs text-slate-800">{c.title}</p>
-                          <p className="text-[11px] text-slate-500">{c.program} · Valid until {c.expiry}</p>
-                        </div>
-                      </div>
-
+                {coupons.map(c => (
+                  <div key={c.id} className="p-4 rounded-2xl border border-[#EAEAEA] bg-[#FBF6E9] flex items-center justify-between gap-4">
+                    <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                          Active Live
+                        <span className="font-heading font-black text-sm text-[#1A1A1A]">{c.code}</span>
+                        <span className="bg-[#D4AF37] text-[#1A1A1A] text-[9px] font-black font-heading px-2 py-0.5 rounded-full uppercase">
+                          {c.program}
                         </span>
-                        <button
-                          onClick={() => handleDeleteCoupon(c.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                          title="Delete coupon"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
+                      <p className="text-xs font-semibold text-[#4A4A4A]">{c.title} ({c.discount})</p>
+                      <p className="text-[10px] text-[#757575]">Valid until: {c.expiry}</p>
                     </div>
-                  ))}
-                </div>
+                    <button
+                      onClick={() => handleDeleteCoupon(c.id)}
+                      className="p-2 text-[#757575] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* ── TAB 4: DIGITAL MENU & DISHES CREATOR ── */}
+          {/* ── TAB 5: DIGITAL MENU BUILDER ── */}
           {activeTab === "menu" && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-8 shadow-xs">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="font-display font-black text-xl text-[#0f172a]">
-                  Digital Menu & Dish Creator
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Upload individual dishes with high-resolution photos, AED pricing, ingredients, and dietary certification badges.
-                </p>
+            <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6">
+              <div className="pb-4 border-b border-[#EAEAEA]">
+                <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">Digital Menu & Dishes</h3>
+                <p className="text-xs text-[#757575] font-sans mt-0.5">Add signature dishes with prices, descriptions, and high-res photos.</p>
               </div>
 
               {/* Add Dish Form */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-[#005971] flex items-center gap-1.5">
-                  <Plus className="w-4 h-4" /> Add New Dish / Menu Item
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Dish Name</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Truffle Wagyu Ribeye"
-                      value={newDishName}
-                      onChange={e => setNewDishName(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Menu Category</label>
-                    <select
-                      value={newDishCategory}
-                      onChange={e => setNewDishCategory(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none cursor-pointer"
-                    >
-                      <option value="Starters & Raw">Starters & Raw</option>
-                      <option value="Mains & Grills">Mains & Grills</option>
-                      <option value="Pasta & Pizza">Pasta & Pizza</option>
-                      <option value="Desserts">Desserts</option>
-                      <option value="Cocktails & Beverages">Cocktails & Beverages</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Price (AED)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 195"
-                      value={newDishPrice}
-                      onChange={e => setNewDishPrice(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none"
-                    />
-                  </div>
+              <div className="bg-[#F5F5F5] border border-[#E0E0E0] p-5 rounded-2xl space-y-4">
+                <div className="font-heading font-bold text-xs uppercase tracking-wider text-[#1A1A1A]">
+                  + Add New Menu Item
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Description & Key Ingredients</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Australian MB9+ wagyu served with black truffle sauce"
-                      value={newDishDesc}
-                      onChange={e => setNewDishDesc(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Dish Photo Image URL / File Preview</label>
-                    <input
-                      type="text"
-                      placeholder="https://images.unsplash.com/photo-..."
-                      value={newDishImage}
-                      onChange={e => setNewDishImage(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 outline-none"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input
+                    type="text"
+                    value={newDishName}
+                    onChange={e => setNewDishName(e.target.value)}
+                    placeholder="Dish Name (e.g. Black Cod Miso)"
+                    className="bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none"
+                  />
+                  <select
+                    value={newDishCat}
+                    onChange={e => setNewDishCat(e.target.value)}
+                    className="bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none font-heading cursor-pointer"
+                  >
+                    <option value="Starters & Raw">Starters & Raw</option>
+                    <option value="Mains & Grills">Mains & Grills</option>
+                    <option value="Pasta & Pizza">Pasta & Pizza</option>
+                    <option value="Desserts">Desserts</option>
+                    <option value="Beverages & Cocktails">Beverages & Cocktails</option>
+                  </select>
+                  <input
+                    type="number"
+                    value={newDishPrice}
+                    onChange={e => setNewDishPrice(e.target.value)}
+                    placeholder="Price in AED (e.g. 245)"
+                    className="bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none font-heading"
+                  />
+                  <input
+                    type="text"
+                    value={newDishDesc}
+                    onChange={e => setNewDishDesc(e.target.value)}
+                    placeholder="Ingredients & preparation description..."
+                    className="sm:col-span-2 bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none"
+                  />
+                  <input
+                    type="text"
+                    value={newDishImg}
+                    onChange={e => setNewDishImg(e.target.value)}
+                    placeholder="Image URL (optional)"
+                    className="bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none"
+                  />
                 </div>
-
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end">
                   <button
                     type="button"
-                    onClick={handleAddMenuItem}
-                    className="bg-[#005971] hover:bg-[#00475b] text-white text-xs font-bold px-6 py-2.5 rounded-full shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                    onClick={handleAddDish}
+                    className="bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Save Dish to Menu</span>
+                    <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Add Dish to Menu</span>
                   </button>
                 </div>
               </div>
 
-              {/* Dish List */}
-              <div className="space-y-4">
-                <h4 className="font-bold text-sm text-[#0f172a]">Published Digital Dishes ({menuItems.length})</h4>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {menuItems.map(m => (
-                    <div key={m.id} className="bg-slate-50/80 border border-slate-200 rounded-2xl p-4 flex gap-4 items-start relative group">
+              {/* Existing Menu Items */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {menuItems.map(m => (
+                  <div key={m.id} className="p-4 rounded-2xl border border-[#EAEAEA] bg-white flex gap-4 items-start justify-between shadow-2xs">
+                    <div className="flex gap-3">
                       {m.image && (
-                        <img src={m.image} alt={m.name} className="w-20 h-20 rounded-xl object-cover shrink-0 border border-slate-200" />
+                        <img src={m.image} alt={m.name} className="w-16 h-16 rounded-xl object-cover shrink-0 bg-slate-100" />
                       )}
-                      <div className="flex-1 min-w-0 pr-6">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-bold text-xs text-slate-900 truncate">{m.name}</p>
-                          <span className="font-black text-xs text-[#005971] shrink-0">AED {m.price}</span>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-heading font-bold text-sm text-[#1A1A1A]">{m.name}</span>
                         </div>
-                        <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-snug">{m.description}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="bg-white border border-slate-200 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-md">
-                            {m.category}
-                          </span>
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold px-2 py-0.5 rounded-md">
-                            {m.dietary}
-                          </span>
-                        </div>
+                        <span className="font-heading font-black text-xs text-[#D4AF37]">AED {m.price}</span>
+                        <p className="text-[11px] text-[#757575] line-clamp-2 leading-relaxed">{m.description}</p>
                       </div>
-
-                      <button
-                        onClick={() => handleDeleteMenuItem(m.id)}
-                        className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                        title="Remove dish"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
                     </div>
-                  ))}
-                </div>
+                    <button
+                      onClick={() => handleDeleteDish(m.id)}
+                      className="p-1.5 text-[#757575] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* ── TAB 5: PHOTO GALLERY & RESTAURANT PHOTOS ── */}
+          {/* ── TAB 6: PHOTO GALLERY ── */}
           {activeTab === "gallery" && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-8 shadow-xs">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="font-display font-black text-xl text-[#0f172a]">
-                  Food & Restaurant Photo Gallery
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Upload multiple photos of dishes, interior ambience, and outdoor skyline views.
-                </p>
+            <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6">
+              <div className="pb-4 border-b border-[#EAEAEA]">
+                <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">Photo Gallery & Ambience</h3>
+                <p className="text-xs text-[#757575] font-sans mt-0.5">Upload high-resolution photography for your dining rooms, signature food, and terrace views.</p>
               </div>
 
               {/* Add Photo Form */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-[#005971] flex items-center gap-1.5">
-                  <Plus className="w-4 h-4" /> Upload New Photo to Gallery
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Image URL / Storage Link</label>
-                    <input
-                      type="text"
-                      placeholder="https://images.unsplash.com/photo-..."
-                      value={newPhotoUrl}
-                      onChange={e => setNewPhotoUrl(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Caption / Description</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Main dining room with skyline view"
-                      value={newPhotoCaption}
-                      onChange={e => setNewPhotoCaption(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Photo Category</label>
-                    <select
-                      value={newPhotoType}
-                      onChange={e => setNewPhotoType(e.target.value as any)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none cursor-pointer"
-                    >
-                      <option value="food">🍽️ Food Dish</option>
-                      <option value="interior">🏛️ Interior & Dining Room</option>
-                      <option value="view">🏙️ Outdoor Terrace & View</option>
-                    </select>
-                  </div>
+              <div className="bg-[#F5F5F5] border border-[#E0E0E0] p-5 rounded-2xl space-y-4">
+                <div className="font-heading font-bold text-xs uppercase tracking-wider text-[#1A1A1A]">
+                  + Upload / Add Photograph
                 </div>
-
-                <div className="flex justify-end pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input
+                    type="text"
+                    value={newPhotoUrl}
+                    onChange={e => setNewPhotoUrl(e.target.value)}
+                    placeholder="Image URL (https://...)"
+                    className="sm:col-span-2 bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none"
+                  />
+                  <select
+                    value={newPhotoType}
+                    onChange={e => setNewPhotoType(e.target.value as any)}
+                    className="bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none font-heading cursor-pointer"
+                  >
+                    <option value="food">Food Dish</option>
+                    <option value="interior">Interior Dining Room</option>
+                    <option value="view">Outdoor Terrace & View</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={newPhotoCaption}
+                    onChange={e => setNewPhotoCaption(e.target.value)}
+                    placeholder="Caption (e.g. Sunset terrace seating)..."
+                    className="sm:col-span-2 bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none"
+                  />
                   <button
                     type="button"
                     onClick={handleAddPhoto}
-                    className="bg-[#005971] hover:bg-[#00475b] text-white text-xs font-bold px-6 py-2.5 rounded-full shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                    className="bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Photo to Gallery</span>
+                    <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Add to Gallery</span>
                   </button>
                 </div>
               </div>
 
-              {/* Gallery Grid */}
-              <div className="space-y-4">
-                <h4 className="font-bold text-sm text-[#0f172a]">Active Photo Gallery ({photos.length})</h4>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {photos.map(p => (
-                    <div key={p.id} className="group relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 aspect-[4/3] shadow-2xs">
-                      <img src={p.url} alt={p.caption} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
-                      
-                      {p.isPrimary && (
-                        <span className="absolute top-2 left-2 bg-amber-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm">
-                          👑 Primary Cover
+              {/* Photos Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {photos.map(p => (
+                  <div key={p.id} className="group relative rounded-2xl overflow-hidden aspect-square border border-[#EAEAEA] bg-slate-100">
+                    <img src={p.url} alt={p.caption} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 text-white">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold uppercase bg-black/60 px-2 py-0.5 rounded">
+                          {p.type}
                         </span>
-                      )}
-
-                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white">
-                        <span className="text-[10px] font-bold truncate max-w-[120px]">{p.caption}</span>
-                        <div className="flex items-center gap-1">
-                          {!p.isPrimary && (
-                            <button
-                              onClick={() => handleSetPrimaryPhoto(p.id)}
-                              className="text-[9px] bg-white/20 hover:bg-white/30 px-1.5 py-0.5 rounded text-white font-bold cursor-pointer"
-                              title="Set as cover photo"
-                            >
-                              Cover
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeletePhoto(p.id)}
-                            className="p-1 bg-black/40 hover:bg-rose-600 rounded text-white transition-colors cursor-pointer"
-                            title="Delete photo"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
+                        <button onClick={() => handleDeletePhoto(p.id)} className="text-rose-400 hover:text-rose-300">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] line-clamp-2 leading-tight">{p.caption}</p>
+                        <button
+                          onClick={() => handleSetPrimaryPhoto(p.id)}
+                          className={`w-full py-1 text-[10px] font-bold rounded ${p.isPrimary ? "bg-[#D4AF37] text-[#1A1A1A]" : "bg-white/20 hover:bg-white/40 text-white"}`}
+                        >
+                          {p.isPrimary ? "👑 Primary Cover" : "Set as Primary"}
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* ── TAB 6: MARKETING BANNERS & TRANSPARENT ADS ── */}
+          {/* ── TAB 7: AD STUDIO & MARKETING CAMPAIGNS ── */}
           {activeTab === "marketing" && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-8 shadow-xs">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="font-display font-black text-xl text-[#0f172a]">
-                  Marketing Banners & Transparent Ad Server
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Upload marketing display banners and choose transparent sponsored placements (clearly marked [SPONSORED]).
-                </p>
+            <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-10 shadow-xs space-y-8">
+              <div className="pb-4 border-b border-[#EAEAEA]">
+                <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">Marketing Ad Studio & Campaign Creator</h3>
+                <p className="text-xs text-[#757575] font-sans mt-0.5">Launch transparent sponsored banners to gain priority visibility across 450,000+ monthly diners.</p>
               </div>
 
-              {/* Ad Tier Selector */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {[
-                  {
-                    id: "hero_banner",
-                    title: "Homepage Hero Banner",
-                    price: "AED 2,999 / mo",
-                    desc: "Prime placement on the Dubai Eat homepage hero slider seen by 200,000+ monthly food lovers.",
-                    badge: "Highest Reach"
-                  },
-                  {
-                    id: "top_district",
-                    title: "District Top Sponsored",
-                    price: "AED 1,499 / mo",
-                    desc: `Guaranteed top 3 sponsored placement when diners search for ${district} or ${cuisine}.`,
-                    badge: "Best ROI"
-                  },
-                  {
-                    id: "verified_badge",
-                    title: "Verified Gold Badge",
-                    price: "AED 499 / mo",
-                    desc: "Verified Gold Merchant badge, direct WhatsApp booking priority, and Gemini AI priority.",
-                    badge: "Essential"
-                  }
-                ].map(tier => {
-                  const selected = adCampaignType === tier.id;
-                  return (
-                    <button
-                      key={tier.id}
-                      type="button"
-                      onClick={() => setAdCampaignType(tier.id as any)}
-                      className={`p-6 rounded-3xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
-                        selected
-                          ? "bg-teal-50/60 border-[#005971] ring-2 ring-[#005971]/20 shadow-md"
-                          : "bg-slate-50 border-slate-200 hover:bg-white hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="space-y-3">
-                        <span className="inline-block bg-[#005971] text-white text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-full">
-                          {tier.badge}
-                        </span>
-                        <h4 className="font-display font-black text-lg text-slate-900">{tier.title}</h4>
-                        <p className="text-2xl font-black text-[#005971]">{tier.price}</p>
-                        <p className="text-xs text-slate-600 leading-relaxed font-normal">{tier.desc}</p>
-                      </div>
-
-                      <div className="pt-4 mt-4 border-t border-slate-200/80 flex items-center justify-between text-xs font-bold">
-                        <span className={selected ? "text-[#005971]" : "text-slate-500"}>
-                          {selected ? "✓ Active Selection" : "Click to select tier"}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Marketing Banner Details Form */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-[#005971]">
-                  Campaign Creative & Banner Asset
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <form onSubmit={handleCreateAd} className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                
+                {/* Left: Campaign Config */}
+                <div className="space-y-5">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Banner Image URL / High-Res Creative</label>
+                    <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">
+                      Select Placement Target
+                    </label>
+                    <div className="grid grid-cols-3 gap-2.5 font-heading text-xs">
+                      {[
+                        { id: "hero", name: "Homepage Hero", price: "AED 2,999/mo" },
+                        { id: "district", name: "Top District", price: "AED 1,499/mo" },
+                        { id: "privilege", name: "Privilege Card", price: "AED 899/mo" }
+                      ].map(target => (
+                        <div
+                          key={target.id}
+                          onClick={() => setBannerTarget(target.id)}
+                          className={`p-3 rounded-2xl border cursor-pointer text-center transition-all ${
+                            bannerTarget === target.id
+                              ? "border-[#D4AF37] bg-[#FBF6E9] text-[#1A1A1A]"
+                              : "border-[#E0E0E0] bg-[#F5F5F5] text-[#757575]"
+                          }`}
+                        >
+                          <div className="font-bold">{target.name}</div>
+                          <div className="text-[11px] font-black text-[#D4AF37] mt-0.5">{target.price}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">
+                      Ad Headline Message
+                    </label>
                     <input
                       type="text"
-                      value={marketingBannerUrl}
-                      onChange={e => setMarketingBannerUrl(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 outline-none"
+                      required
+                      value={bannerHeading}
+                      onChange={e => setBannerHeading(e.target.value)}
+                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Ad Headline / Callout Copy</label>
+                    <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">
+                      Ad Subheading / Offer Callout
+                    </label>
                     <input
                       type="text"
-                      value={marketingHeadline}
-                      onChange={e => setMarketingHeadline(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none"
+                      required
+                      value={bannerSubtext}
+                      onChange={e => setBannerSubtext(e.target.value)}
+                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">
+                      Banner Image URL
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={bannerImageUrl}
+                      onChange={e => setBannerImageUrl(e.target.value)}
+                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-extrabold font-heading text-xs py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Zap className="w-4 h-4 text-[#1A1A1A]" />
+                    <span>Launch Ad Campaign Instantly</span>
+                  </button>
                 </div>
 
-                {/* Banner Live Preview */}
-                <div className="pt-2">
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Banner Placement Preview:</label>
-                  <div className="relative rounded-2xl overflow-hidden h-36 border border-slate-200 shadow-xs">
-                    <img src={marketingBannerUrl} alt="Ad Banner" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent p-5 flex flex-col justify-center text-white">
-                      <span className="bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded w-fit mb-1">
-                        [SPONSORED AD]
+                {/* Right: Live Creative Preview */}
+                <div className="space-y-3">
+                  <span className="text-[11px] font-bold font-heading text-[#757575] uppercase">
+                    Live Display Creative Preview
+                  </span>
+                  <div className="relative rounded-3xl overflow-hidden aspect-[16/9] shadow-xl border border-slate-200">
+                    <img src={bannerImageUrl} alt="Ad preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 flex flex-col justify-between text-white">
+                      <span className="bg-[#D4AF37] text-[#1A1A1A] font-black text-[9px] px-2.5 py-0.5 rounded-md uppercase font-heading w-fit">
+                        [SPONSORED DUBAI EATS AD]
                       </span>
-                      <h4 className="font-display font-black text-xl leading-tight">{venueName}</h4>
-                      <p className="text-xs text-white/90 font-medium mt-0.5">{marketingHeadline}</p>
+                      <div className="space-y-1.5">
+                        <h4 className="font-heading font-black text-lg sm:text-xl leading-tight text-white">{bannerHeading}</h4>
+                        <p className="text-xs text-white/80 font-sans">{bannerSubtext}</p>
+                        <div className="pt-2">
+                          <span className="inline-block bg-white text-[#1A1A1A] font-bold font-heading text-[10px] px-3.5 py-1.5 rounded-xl">
+                            Book Table Direct →
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+
+              </form>
             </div>
           )}
 
-          {/* ── TAB 7: LIVE VENUE PREVIEW ── */}
+          {/* ── TAB 8: LIVE DINER LISTING PREVIEW ── */}
           {activeTab === "preview" && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-8 shadow-xs">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="font-display font-black text-xl text-[#0f172a]">
-                  Real-time Diner Listing Preview
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  This is how your venue profile, digital menu, coupons, and verified policies appear to food lovers on Dubai Eat.
-                </p>
+            <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6">
+              <div className="pb-4 border-b border-[#EAEAEA] flex justify-between items-center">
+                <div>
+                  <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">Simulated Guest View</h3>
+                  <p className="text-xs text-[#757575] font-sans mt-0.5">This is how your verified profile appears to diners on Dubai Eats.</p>
+                </div>
+                <Link
+                  to="/restaurants"
+                  className="text-xs font-bold font-heading text-[#D4AF37] hover:underline"
+                >
+                  View on Live Directory →
+                </Link>
               </div>
 
-              {/* Simulated Restaurant Card & Profile */}
-              <div className="border border-slate-200 rounded-3xl overflow-hidden shadow-md bg-white">
-                <div className="relative h-64 sm:h-80 bg-slate-900 overflow-hidden">
-                  <img src={photos[0]?.url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"} alt={venueName} className="w-full h-full object-cover opacity-90" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute bottom-6 left-6 right-6 text-white space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-[#005971] text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full">
-                        {cuisine}
+              {/* Simulated Diner Card */}
+              <div className="p-6 bg-[#F5F5F5] rounded-3xl border border-[#E0E0E0] space-y-6">
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                  <img
+                    src={photos[0]?.url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80"}
+                    alt={venueName}
+                    className="w-full md:w-64 h-48 rounded-2xl object-cover bg-slate-200"
+                  />
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2 font-heading">
+                      <span className="bg-[#1A1A1A] text-[#D4AF37] text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                        Michelin Selected
                       </span>
-                      <span className="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full">
-                        ✓ Verified Listing
+                      <span className="bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                        ✓ DET Verified
                       </span>
                     </div>
-                    <h2 className="font-display font-black text-3xl sm:text-4xl text-white">{venueName}</h2>
-                    <p className="text-xs sm:text-sm text-white/80">📍 {address} · ~AED {priceMin}–{priceMax} per person</p>
-                  </div>
-                </div>
-
-                <div className="p-6 sm:p-8 space-y-6">
-                  {/* Active Coupons Banner */}
-                  {coupons.length > 0 && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                      <p className="text-xs font-black text-amber-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <BadgePercent className="w-4 h-4 text-amber-600" /> Accepted Privilege Offers
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {coupons.map(c => (
-                          <span key={c.id} className="bg-white border border-amber-300 text-amber-950 text-xs font-bold px-3 py-1 rounded-xl shadow-2xs">
-                            💳 {c.code} — {c.title}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Policies Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                      <p className="text-slate-400 font-bold uppercase text-[10px]">Valet Parking</p>
-                      <p className="font-bold text-slate-800 mt-0.5">{valetType}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                      <p className="text-slate-400 font-bold uppercase text-[10px]">Dress Code</p>
-                      <p className="font-bold text-slate-800 mt-0.5">{dressCode}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                      <p className="text-slate-400 font-bold uppercase text-[10px]">Alcohol License</p>
-                      <p className="font-bold text-slate-800 mt-0.5">{liquorStatus}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                      <p className="text-slate-400 font-bold uppercase text-[10px]">Hours</p>
-                      <p className="font-bold text-slate-800 mt-0.5 truncate">{hours}</p>
-                    </div>
-                  </div>
-
-                  {/* Digital Menu Sample */}
-                  <div>
-                    <h4 className="font-bold text-sm text-[#0f172a] mb-3">Sample Digital Menu ({menuItems.length} items)</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {menuItems.slice(0, 4).map(m => (
-                        <div key={m.id} className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex justify-between items-start gap-3">
-                          <div>
-                            <p className="font-bold text-xs text-slate-900">{m.name}</p>
-                            <p className="text-[11px] text-slate-500 line-clamp-1">{m.description}</p>
-                          </div>
-                          <span className="font-black text-xs text-[#005971] shrink-0">AED {m.price}</span>
-                        </div>
+                    <h2 className="font-display font-black text-2xl text-[#1A1A1A]">{venueName}</h2>
+                    <p className="text-xs text-[#757575] font-sans">{address || `${district}, Dubai`}</p>
+                    <p className="text-xs font-bold text-[#1A1A1A] font-heading">{cuisine} · Average price AED {priceMin}</p>
+                    <div className="pt-2 flex flex-wrap gap-2">
+                      {coupons.map(c => (
+                        <span key={c.id} className="bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-bold text-xs px-3 py-1 rounded-full font-heading">
+                          🏷️ {c.title}
+                        </span>
                       ))}
                     </div>
                   </div>
