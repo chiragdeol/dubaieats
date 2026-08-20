@@ -95,7 +95,6 @@ function RestaurantDetail() {
   const [bookingDate, setBookingDate] = useState("2026-08-20");
   const [bookingTime, setBookingTime] = useState("20:00");
   const [bookingGuests, setBookingGuests] = useState("2");
-  const [bookingDiscount, setBookingDiscount] = useState("-20%");
 
   const r = useMemo(() => {
     return enrichedRestaurants.find((item) => item.slug === id) || null;
@@ -180,7 +179,7 @@ function RestaurantDetail() {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className="text-white text-xs font-bold font-heading">{lightboxIndex + 1} / {gallery.length}</span>
+            <span className="text-white text-xs font-semibold font-heading">{lightboxIndex + 1} / {gallery.length}</span>
             <button
               onClick={() => setLightboxIndex((prev) => (prev < gallery.length - 1 ? prev + 1 : 0))}
               className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 cursor-pointer"
@@ -203,10 +202,10 @@ function RestaurantDetail() {
             </button>
             
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1 text-[10px] font-bold font-heading uppercase text-[#D4AF37] bg-[#FBF6E9] px-3 py-1 rounded-full border border-[#EFE2B9]">
+              <div className="inline-flex items-center gap-1 text-[10px] font-semibold font-heading uppercase text-[#D4AF37] bg-[#FBF6E9] px-3 py-1 rounded-full border border-[#EFE2B9]">
                 <QrCode className="w-3.5 h-3.5" /> Official Digital Menu
               </div>
-              <h3 className="font-heading font-black text-xl text-[#1A1A1A]">{r.name}</h3>
+              <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">{r.name}</h3>
               <p className="text-xs text-[#757575]">Scan on your phone to view live prices, ingredients, and chef specials.</p>
             </div>
 
@@ -230,9 +229,9 @@ function RestaurantDetail() {
         
         {/* ── BREADCRUMB ── */}
         <div className="flex items-center gap-2 text-xs font-medium text-[#757575] font-heading">
-          <Link to="/" className="text-[#1A1A1A] font-bold hover:text-[#D4AF37]">Home</Link>
+          <Link to="/" className="text-[#1A1A1A] font-semibold hover:text-[#D4AF37]">Home</Link>
           <span>›</span>
-          <Link to="/restaurants" className="text-[#1A1A1A] font-bold hover:text-[#D4AF37]">Dubai restaurants</Link>
+          <Link to="/restaurants" className="text-[#1A1A1A] font-semibold hover:text-[#D4AF37]">Dubai restaurants</Link>
           <span>›</span>
           <span>{r.name}</span>
         </div>
@@ -243,21 +242,21 @@ function RestaurantDetail() {
           {/* Title Row */}
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1.5">
-              <h1 className="font-display text-3xl sm:text-5xl font-black text-[#1A1A1A] tracking-tight leading-tight">
+              <h1 className="font-display text-2xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight leading-tight">
                 {r.name}
               </h1>
               <p className="text-xs sm:text-sm text-[#757575] font-sans flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
                 <span>{r.address || `${r.district}, Dubai`}</span>
               </p>
-              <p className="text-xs sm:text-sm text-[#1A1A1A] font-semibold font-sans">
+              <p className="text-xs sm:text-sm text-[#1A1A1A] font-medium font-sans">
                 🍽️ {r.cuisine} · Average price AED {r.priceMin}
               </p>
               <div className="flex items-center gap-2 pt-0.5 text-xs text-[#757575] font-sans">
-                <span className="inline-flex items-center gap-1 font-heading font-black text-sm text-[#1A1A1A]">
+                <span className="inline-flex items-center gap-1 font-heading font-bold text-sm text-[#1A1A1A]">
                   ★ {(r.rating * 2).toFixed(1)}
                 </span>
-                <span className="font-bold text-[#1A1A1A] font-heading">({r.reviews} reviews)</span>
+                <span className="font-semibold text-[#1A1A1A] font-heading">({r.reviews} reviews)</span>
                 <span>·</span>
                 <span className="text-[#757575]">71 reviews in the last 30 days</span>
               </div>
@@ -273,7 +272,7 @@ function RestaurantDetail() {
             </button>
           </div>
 
-          {/* 4-Photo Grid Gallery (TheFork Layout) */}
+          {/* 4-Photo Grid Gallery (TheFork Layout with +150 Photos) */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3 h-[300px] sm:h-[400px] rounded-3xl overflow-hidden shadow-sm">
             
             {/* Left Large Photo */}
@@ -314,6 +313,7 @@ function RestaurantDetail() {
                 />
               </div>
 
+              {/* Bottom Right Photo with +150 Photos Badge */}
               <div
                 onClick={() => openGallery(3)}
                 className="relative cursor-pointer group overflow-hidden bg-slate-100 rounded-2xl"
@@ -323,9 +323,9 @@ function RestaurantDetail() {
                   alt={`${r.name} gallery preview`}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-black/60 hover:bg-black/75 transition-colors flex items-center justify-center text-white font-extrabold text-sm font-heading gap-1.5">
+                <div className="absolute inset-0 bg-black/55 hover:bg-black/70 transition-colors flex items-center justify-center text-white font-bold text-sm font-heading gap-1.5">
                   <ImageIcon className="w-4 h-4" />
-                  <span>{gallery.length} photos</span>
+                  <span>+150 photos</span>
                 </div>
               </div>
             </div>
@@ -337,11 +337,11 @@ function RestaurantDetail() {
         {/* ── 2. TABS BAR & TWO-COLUMN WORKSPACE ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* ── LEFT COLUMN: ABOUT, MENU, REVIEWS (Screenshots 2 & 3) ── */}
+          {/* ── LEFT COLUMN: ABOUT, MENU, REVIEWS ── */}
           <div className="lg:col-span-8 space-y-10">
             
             {/* Navigation Tabs Header */}
-            <div className="flex items-center gap-8 border-b border-[#EAEAEA] text-sm font-bold font-heading sticky top-20 bg-[#F5F5F5] pt-2 z-20">
+            <div className="flex items-center gap-8 border-b border-[#EAEAEA] text-sm font-semibold font-heading sticky top-20 bg-[#F5F5F5] pt-2 z-20">
               {[
                 { id: "about", label: "About" },
                 { id: "menu", label: "Menu" },
@@ -352,7 +352,7 @@ function RestaurantDetail() {
                   onClick={() => scrollToSection(t.id as any)}
                   className={`pb-3 transition-all cursor-pointer relative ${
                     activeTab === t.id
-                      ? "text-[#1A1A1A] font-black"
+                      ? "text-[#1A1A1A] font-bold"
                       : "text-[#757575] hover:text-[#1A1A1A]"
                   }`}
                 >
@@ -367,42 +367,42 @@ function RestaurantDetail() {
             {/* ── SECTION: ABOUT & PRACTICAL POLICIES ── */}
             <div id="section-about" className="space-y-6 scroll-mt-28">
               <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
-                <h3 className="font-heading font-black text-xl sm:text-2xl text-[#1A1A1A]">
+                <h3 className="font-heading font-bold text-lg sm:text-xl text-[#1A1A1A]">
                   About {r.name}
                 </h3>
-                <p className="text-xs sm:text-sm text-[#757575] leading-relaxed font-sans">
+                <p className="text-xs sm:text-sm text-[#757575] leading-relaxed font-sans font-normal">
                   {r.description || `Experience world-class culinary excellence at ${r.name}, located in the heart of ${r.district}, Dubai. Featuring master chefs, curated beverage selections, and exceptional luxury service.`}
                 </p>
 
                 {/* Practical Info Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 font-sans text-xs">
                   <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
-                    <span className="text-[#757575] font-semibold flex items-center gap-1.5"><Car className="w-3.5 h-3.5 text-[#D4AF37]" /> Valet Parking</span>
-                    <strong className="text-[#1A1A1A] block">{r.valetInfo.type} ({r.valetInfo.cost})</strong>
+                    <span className="text-[#757575] font-medium flex items-center gap-1.5"><Car className="w-3.5 h-3.5 text-[#D4AF37]" /> Valet Parking</span>
+                    <strong className="text-[#1A1A1A] font-semibold block">{r.valetInfo.type} ({r.valetInfo.cost})</strong>
                   </div>
                   <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
-                    <span className="text-[#757575] font-semibold flex items-center gap-1.5"><Shirt className="w-3.5 h-3.5 text-[#D4AF37]" /> Dress Code</span>
-                    <strong className="text-[#1A1A1A] block">{r.dressCode}</strong>
+                    <span className="text-[#757575] font-medium flex items-center gap-1.5"><Shirt className="w-3.5 h-3.5 text-[#D4AF37]" /> Dress Code</span>
+                    <strong className="text-[#1A1A1A] font-semibold block">{r.dressCode}</strong>
                   </div>
                   <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
-                    <span className="text-[#757575] font-semibold flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#D4AF37]" /> Hours</span>
-                    <strong className="text-[#1A1A1A] block">{r.hours}</strong>
+                    <span className="text-[#757575] font-medium flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#D4AF37]" /> Hours</span>
+                    <strong className="text-[#1A1A1A] font-semibold block">{r.hours}</strong>
                   </div>
                   <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
-                    <span className="text-[#757575] font-semibold flex items-center gap-1.5"><Wine className="w-3.5 h-3.5 text-[#D4AF37]" /> Alcohol License</span>
-                    <strong className="text-[#1A1A1A] block">{r.liquor}</strong>
+                    <span className="text-[#757575] font-medium flex items-center gap-1.5"><Wine className="w-3.5 h-3.5 text-[#D4AF37]" /> Alcohol License</span>
+                    <strong className="text-[#1A1A1A] font-semibold block">{r.liquor}</strong>
                   </div>
                 </div>
 
                 {/* Privilege Card tags */}
                 {r.discounts && r.discounts.length > 0 && (
                   <div className="bg-[#FBF6E9] border border-[#EFE2B9] p-4 rounded-2xl space-y-2">
-                    <span className="text-xs font-bold font-heading text-[#9C7D1A] uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="text-xs font-semibold font-heading text-[#9C7D1A] uppercase tracking-wider flex items-center gap-1.5">
                       <BadgePercent className="w-4 h-4" /> Accepted Privilege Offers
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {r.discounts.map(d => (
-                        <span key={d} className="bg-white border border-[#EFE2B9] text-[#9C7D1A] font-bold text-xs px-3 py-1 rounded-xl shadow-2xs font-heading">
+                        <span key={d} className="bg-white border border-[#EFE2B9] text-[#9C7D1A] font-semibold text-xs px-3 py-1 rounded-xl shadow-2xs font-heading">
                           💳 {d}
                         </span>
                       ))}
@@ -412,11 +412,11 @@ function RestaurantDetail() {
               </div>
             </div>
 
-            {/* ── SECTION: RESTAURANT MENU (Screenshot 2) ── */}
+            {/* ── SECTION: RESTAURANT MENU ── */}
             <div id="section-menu" className="space-y-6 scroll-mt-28">
               <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
                 
-                <h3 className="font-heading font-black text-2xl sm:text-3xl text-[#1A1A1A]">
+                <h3 className="font-heading font-bold text-xl sm:text-2xl text-[#1A1A1A]">
                   Restaurant menu
                 </h3>
 
@@ -432,11 +432,11 @@ function RestaurantDetail() {
                       <QrCode className="w-12 h-12 text-[#1A1A1A]" />
                     </div>
                     <div className="space-y-0.5">
-                      <h4 className="font-heading font-black text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors">
+                      <h4 className="font-heading font-bold text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors">
                         Menu photo
                       </h4>
-                      <p className="text-xs text-[#757575] font-sans">8 photos · Scan QR Code</p>
-                      <span className="inline-block text-[11px] font-bold font-heading text-[#D4AF37] pt-1">
+                      <p className="text-xs text-[#757575] font-sans font-normal">8 photos · Scan QR Code</p>
+                      <span className="inline-block text-[11px] font-semibold font-heading text-[#D4AF37] pt-1">
                         View Digital Menu →
                       </span>
                     </div>
@@ -453,11 +453,11 @@ function RestaurantDetail() {
                       className="w-20 h-20 rounded-xl object-cover shrink-0 shadow-xs group-hover:scale-105 transition-transform bg-slate-200"
                     />
                     <div className="space-y-0.5">
-                      <h4 className="font-heading font-black text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors">
+                      <h4 className="font-heading font-bold text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors">
                         Food photo
                       </h4>
-                      <p className="text-xs text-[#757575] font-sans">{gallery.length * 12} photos</p>
-                      <span className="inline-block text-[11px] font-bold font-heading text-[#D4AF37] pt-1">
+                      <p className="text-xs text-[#757575] font-sans font-normal">+150 photos</p>
+                      <span className="inline-block text-[11px] font-semibold font-heading text-[#D4AF37] pt-1">
                         View Food Gallery →
                       </span>
                     </div>
@@ -465,12 +465,12 @@ function RestaurantDetail() {
 
                 </div>
 
-                {/* Practical Cuisine & Price Info Box (TheFork Layout) */}
+                {/* Practical Cuisine & Price Info Box */}
                 <div className="border border-[#EAEAEA] rounded-2xl divide-y divide-[#EAEAEA] font-sans text-xs bg-white">
                   <div className="p-4 flex items-center gap-3">
                     <UtensilsCrossed className="w-4 h-4 text-[#757575] shrink-0" />
                     <div>
-                      <div className="font-bold text-[#1A1A1A]">Type of cuisine</div>
+                      <div className="font-semibold text-[#1A1A1A]">Type of cuisine</div>
                       <div className="text-[#757575]">{r.cuisine}</div>
                     </div>
                   </div>
@@ -478,7 +478,7 @@ function RestaurantDetail() {
                   <div className="p-4 flex items-center gap-3">
                     <Tag className="w-4 h-4 text-[#757575] shrink-0" />
                     <div>
-                      <div className="font-bold text-[#1A1A1A]">Average price</div>
+                      <div className="font-semibold text-[#1A1A1A]">Average price</div>
                       <div className="text-[#757575]">AED {r.priceMin}</div>
                     </div>
                   </div>
@@ -486,7 +486,7 @@ function RestaurantDetail() {
                   <div className="p-4 flex items-center gap-3">
                     <Sparkles className="w-4 h-4 text-[#757575] shrink-0" />
                     <div>
-                      <div className="font-bold text-[#1A1A1A]">Dietary options</div>
+                      <div className="font-semibold text-[#1A1A1A]">Dietary options</div>
                       <div className="text-[#757575]">Halal certified, Vegetarian dishes, Gluten-Free available</div>
                     </div>
                   </div>
@@ -494,7 +494,7 @@ function RestaurantDetail() {
 
                 {/* A La Carte Dishes List */}
                 <div className="space-y-4 pt-4 border-t border-[#EAEAEA]">
-                  <h4 className="font-heading font-black text-lg text-[#1A1A1A]">
+                  <h4 className="font-heading font-bold text-base sm:text-lg text-[#1A1A1A]">
                     Signature Dishes & À La Carte
                   </h4>
 
@@ -505,14 +505,14 @@ function RestaurantDetail() {
                       { id: "3", name: "Japanese Wagyu Ribeye Tataki (Grade A5)", price: 320, description: "Seared A5 Wagyu beef slices with ponzu and crispy garlic chips" },
                       { id: "4", name: "Artisanal Chocolate Fondant with Green Tea Ice Cream", price: 75, description: "Warm molten chocolate dome with premium Uji matcha green tea ice cream" }
                     ]).map((dish: any) => (
-                      <div key={dish.id} className="py-3.5 flex justify-between items-start gap-4">
+                      <div key={dish.id} className="py-3 flex justify-between items-start gap-4">
                         <div className="space-y-0.5">
-                          <h5 className="font-heading font-bold text-sm text-[#1A1A1A]">{dish.name}</h5>
+                          <h5 className="font-heading font-semibold text-sm text-[#1A1A1A]">{dish.name}</h5>
                           {dish.description && (
-                            <p className="text-xs text-[#757575] leading-relaxed">{dish.description}</p>
+                            <p className="text-xs text-[#757575] leading-relaxed font-normal">{dish.description}</p>
                           )}
                         </div>
-                        <span className="font-heading font-black text-sm text-[#1A1A1A] shrink-0">
+                        <span className="font-heading font-bold text-sm text-[#1A1A1A] shrink-0">
                           AED {dish.price}
                         </span>
                       </div>
@@ -523,36 +523,36 @@ function RestaurantDetail() {
               </div>
             </div>
 
-            {/* ── SECTION: REVIEWS (Screenshot 3) ── */}
+            {/* ── SECTION: REVIEWS ── */}
             <div id="section-reviews" className="space-y-6 scroll-mt-28">
               <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
                 
-                <h3 className="font-heading font-black text-2xl sm:text-3xl text-[#1A1A1A]">
+                <h3 className="font-heading font-bold text-xl sm:text-2xl text-[#1A1A1A]">
                   Reviews
                 </h3>
 
                 {/* Score & Breakdown Bars */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-[#EAEAEA]">
                   <div className="flex items-center gap-3">
-                    <span className="font-display font-black text-4xl sm:text-5xl text-[#1A1A1A] flex items-center">
-                      <Star className="w-8 h-8 fill-[#1A1A1A] inline mr-1" />
+                    <span className="font-display font-bold text-3xl sm:text-4xl text-[#1A1A1A] flex items-center">
+                      <Star className="w-7 h-7 fill-[#1A1A1A] inline mr-1" />
                       {(r.rating * 2).toFixed(1)}
-                      <span className="text-lg text-[#757575] font-normal">/10</span>
+                      <span className="text-base text-[#757575] font-normal">/10</span>
                     </span>
                     <div className="space-y-0.5">
-                      <div className="font-heading font-black text-sm text-[#1A1A1A]">Excellent</div>
+                      <div className="font-heading font-bold text-sm text-[#1A1A1A]">Excellent</div>
                       <div className="text-xs text-[#757575]">{r.reviews} reviews</div>
                     </div>
                   </div>
 
                   {/* 3 Progress Bars */}
-                  <div className="flex-1 max-w-sm space-y-2 text-xs font-heading font-bold">
+                  <div className="flex-1 max-w-sm space-y-2 text-xs font-heading font-medium">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-[#1A1A1A]">Food</span>
                       <div className="flex-1 bg-[#EAEAEA] h-2 rounded-full overflow-hidden">
                         <div className="bg-emerald-600 h-full rounded-full" style={{ width: "95%" }} />
                       </div>
-                      <span className="text-[#1A1A1A] w-6 text-right">9.5</span>
+                      <span className="text-[#1A1A1A] w-6 text-right font-semibold">9.5</span>
                     </div>
 
                     <div className="flex items-center justify-between gap-3">
@@ -560,7 +560,7 @@ function RestaurantDetail() {
                       <div className="flex-1 bg-[#EAEAEA] h-2 rounded-full overflow-hidden">
                         <div className="bg-emerald-600 h-full rounded-full" style={{ width: "97%" }} />
                       </div>
-                      <span className="text-[#1A1A1A] w-6 text-right">9.7</span>
+                      <span className="text-[#1A1A1A] w-6 text-right font-semibold">9.7</span>
                     </div>
 
                     <div className="flex items-center justify-between gap-3">
@@ -568,29 +568,29 @@ function RestaurantDetail() {
                       <div className="flex-1 bg-[#EAEAEA] h-2 rounded-full overflow-hidden">
                         <div className="bg-emerald-600 h-full rounded-full" style={{ width: "94%" }} />
                       </div>
-                      <span className="text-[#1A1A1A] w-6 text-right">9.4</span>
+                      <span className="text-[#1A1A1A] w-6 text-right font-semibold">9.4</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Verified Diners Banner */}
-                <div className="bg-[#EAF8F4] border border-[#CDECE3] p-5 rounded-2xl space-y-1.5 text-xs text-[#00604A]">
-                  <div className="font-heading font-black text-sm flex items-center gap-2">
+                <div className="bg-[#EAF8F4] border border-[#CDECE3] p-5 rounded-2xl space-y-1 text-xs text-[#00604A]">
+                  <div className="font-heading font-bold text-sm flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                     <span>Real experiences from real diners</span>
                   </div>
-                  <p className="text-xs text-[#00604A]/90">
+                  <p className="text-xs text-[#00604A]/90 font-normal">
                     Ratings and reviews can only be left by guests who have booked with Dubai Eats.
                   </p>
                 </div>
 
                 {/* Filter Pills */}
-                <div className="flex flex-wrap items-center gap-2 pt-2 text-xs font-bold font-heading">
-                  <span className="text-xs font-heading font-black text-[#1A1A1A] mr-2">All reviews</span>
+                <div className="flex flex-wrap items-center gap-2 pt-2 text-xs font-medium font-heading">
+                  <span className="text-xs font-heading font-bold text-[#1A1A1A] mr-2">All reviews</span>
                   {["Newest ∨", "Only in English ∨", "Occasion ∨"].map(filter => (
                     <button
                       key={filter}
-                      className="px-3.5 py-1.5 rounded-full border border-[#E0E0E0] bg-white hover:bg-[#F5F5F5] text-[#1A1A1A] transition-all cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-full border border-[#E0E0E0] bg-white hover:bg-[#F5F5F5] text-[#1A1A1A] transition-all cursor-pointer font-medium"
                     >
                       {filter}
                     </button>
@@ -624,24 +624,24 @@ function RestaurantDetail() {
                       ]
                     }
                   ].map((review, i) => (
-                    <div key={i} className="p-5 rounded-2xl border border-[#EAEAEA] bg-[#F9FAFB] space-y-3 text-xs">
+                    <div key={i} className="p-5 rounded-2xl border border-[#EAEAEA] bg-[#F9FAFB] space-y-2.5 text-xs">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-[#E0E0E0] flex items-center justify-center font-heading font-black text-xs text-[#1A1A1A]">
+                          <div className="w-8 h-8 rounded-full bg-[#E0E0E0] flex items-center justify-center font-heading font-bold text-xs text-[#1A1A1A]">
                             {review.name[0]}
                           </div>
                           <div>
-                            <div className="font-heading font-bold text-sm text-[#1A1A1A]">{review.name}</div>
-                            <div className="text-[10px] text-[#757575]">{review.tenure}</div>
+                            <div className="font-heading font-semibold text-sm text-[#1A1A1A]">{review.name}</div>
+                            <div className="text-[10px] text-[#757575] font-normal">{review.tenure}</div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="font-heading font-black text-sm text-[#1A1A1A]">★ {review.rating}</span>
-                          <span className="text-[10px] text-[#757575] block">{review.date}</span>
+                          <span className="font-heading font-bold text-sm text-[#1A1A1A]">★ {review.rating}</span>
+                          <span className="text-[10px] text-[#757575] font-normal block">{review.date}</span>
                         </div>
                       </div>
 
-                      <p className="text-xs text-[#4A4A4A] leading-relaxed font-sans">{review.comment}</p>
+                      <p className="text-xs text-[#4A4A4A] leading-relaxed font-sans font-normal">{review.comment}</p>
 
                       {/* Review Photos Thumbnails */}
                       <div className="flex gap-2 pt-1">
@@ -664,22 +664,22 @@ function RestaurantDetail() {
 
           </div>
 
-          {/* ── RIGHT COLUMN: STICKY BOOKING WIDGET (Screenshot 1) ── */}
+          {/* ── RIGHT COLUMN: STICKY BOOKING WIDGET ── */}
           <div className="lg:col-span-4 sticky top-24 space-y-4">
             
             <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-xl space-y-5 text-left">
               
               <div>
-                <h3 className="font-heading font-black text-2xl text-[#1A1A1A]">
+                <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">
                   Book a table
                 </h3>
-                <p className="text-xs text-[#757575] font-sans">
+                <p className="text-xs text-[#757575] font-sans font-normal">
                   Direct official booking · Free instant confirmation
                 </p>
               </div>
 
               {/* Hot Activity Banner */}
-              <div className="bg-[#FFF4E5] border border-[#FFE2B8] p-3 rounded-2xl flex items-center gap-2 text-xs font-bold text-[#B25E00] font-heading">
+              <div className="bg-[#FFF4E5] border border-[#FFE2B8] p-3 rounded-2xl flex items-center gap-2 text-xs font-semibold text-[#B25E00] font-heading">
                 <Flame className="w-4 h-4 text-orange-500 shrink-0 fill-orange-500" />
                 <span>Already 13 bookings for today</span>
               </div>
@@ -687,26 +687,26 @@ function RestaurantDetail() {
               {/* Date & Guest Selectors */}
               <div className="space-y-3 font-sans text-xs">
                 <div>
-                  <label className="block text-[11px] font-bold font-heading text-[#757575] uppercase mb-1">
+                  <label className="block text-[11px] font-semibold font-heading text-[#757575] uppercase mb-1">
                     Select Date
                   </label>
                   <input
                     type="date"
                     value={bookingDate}
                     onChange={e => setBookingDate(e.target.value)}
-                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
+                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-[#1A1A1A] outline-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold font-heading text-[#757575] uppercase mb-1">
+                    <label className="block text-[11px] font-semibold font-heading text-[#757575] uppercase mb-1">
                       Time Slot
                     </label>
                     <select
                       value={bookingTime}
                       onChange={e => setBookingTime(e.target.value)}
-                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none font-heading cursor-pointer"
+                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3 py-2.5 text-xs font-medium text-[#1A1A1A] outline-none font-heading cursor-pointer"
                     >
                       <option value="19:00">19:00 (-20%)</option>
                       <option value="19:30">19:30 (-20%)</option>
@@ -717,13 +717,13 @@ function RestaurantDetail() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold font-heading text-[#757575] uppercase mb-1">
+                    <label className="block text-[11px] font-semibold font-heading text-[#757575] uppercase mb-1">
                       Guests
                     </label>
                     <select
                       value={bookingGuests}
                       onChange={e => setBookingGuests(e.target.value)}
-                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none font-heading cursor-pointer"
+                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3 py-2.5 text-xs font-medium text-[#1A1A1A] outline-none font-heading cursor-pointer"
                     >
                       <option value="1">1 Person</option>
                       <option value="2">2 Guests</option>
@@ -741,7 +741,7 @@ function RestaurantDetail() {
                   href={r.bookingPlatform?.url || r.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-extrabold font-heading text-xs py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-center cursor-pointer"
+                  className="w-full bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-bold font-heading text-xs py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-center cursor-pointer"
                 >
                   <Calendar className="w-4 h-4 text-[#1A1A1A]" />
                   <span>Confirm Table Booking</span>
@@ -751,7 +751,7 @@ function RestaurantDetail() {
                 <button
                   type="button"
                   onClick={() => setIsDepositOpen(true)}
-                  className="w-full bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs py-3 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full bg-[#1A1A1A] hover:bg-black text-white font-semibold font-heading text-xs py-3 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <ShieldCheck className="w-4 h-4 text-[#D4AF37]" />
                   <span>VIP Table Deposit (Stripe / Telr)</span>
@@ -762,7 +762,7 @@ function RestaurantDetail() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full border border-[#E0E0E0] bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] font-bold font-heading text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-center"
+                  className="w-full border border-[#E0E0E0] bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] font-semibold font-heading text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-center"
                 >
                   <MessageSquare className="w-4 h-4 text-[#25D366]" />
                   <span>WhatsApp Hostess Concierge</span>
@@ -771,10 +771,10 @@ function RestaurantDetail() {
 
               {/* Online Food Delivery Hub */}
               <div className="border-t border-[#EAEAEA] pt-4 space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#757575] font-heading">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#757575] font-heading">
                   🛵 Online Food Delivery
                 </p>
-                <div className="grid grid-cols-5 gap-1.5 text-center text-[9px] font-bold font-heading">
+                <div className="grid grid-cols-5 gap-1.5 text-center text-[9px] font-semibold font-heading">
                   {[
                     { href: r.deliveryLinks?.keeta, label: "Keeta", bg: "bg-sky-50 text-sky-700 border-sky-200" },
                     { href: r.deliveryLinks?.deliveroo, label: "Deliveroo", bg: "bg-teal-50 text-teal-700 border-teal-200" },
@@ -808,17 +808,17 @@ function RestaurantDetail() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 border-t border-[#EAEAEA]">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <p className="text-xs font-bold text-[#D4AF37] font-heading uppercase tracking-widest mb-1 flex items-center gap-1">
+              <p className="text-xs font-semibold text-[#D4AF37] font-heading uppercase tracking-widest mb-1 flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" /> Also in {r.district}
               </p>
-              <h2 className="font-display text-2xl sm:text-3xl font-black text-[#1A1A1A]">
+              <h2 className="font-display text-xl sm:text-2xl font-bold text-[#1A1A1A]">
                 More restaurants nearby
               </h2>
             </div>
             <Link
               to="/restaurants"
               search={{ area: r.district }}
-              className="text-xs font-bold font-heading text-[#1A1A1A] hover:text-[#D4AF37] hidden md:flex items-center gap-1"
+              className="text-xs font-semibold font-heading text-[#1A1A1A] hover:text-[#D4AF37] hidden md:flex items-center gap-1"
             >
               See all in {r.district} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -837,16 +837,16 @@ function RestaurantDetail() {
                     alt={rel.name}
                     className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
                   />
-                  <div className="absolute bottom-2 right-2 bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-black text-xs px-2 py-0.5 rounded-md font-heading">
+                  <div className="absolute bottom-2 right-2 bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-bold text-xs px-2 py-0.5 rounded-md font-heading">
                     {(rel.rating * 2).toFixed(1)}
                   </div>
                 </div>
                 <div className="p-4 space-y-1">
-                  <h3 className="font-heading font-bold text-sm text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors line-clamp-1">
+                  <h3 className="font-heading font-semibold text-sm text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors line-clamp-1">
                     {rel.name}
                   </h3>
-                  <p className="text-xs text-[#757575] font-sans">{rel.cuisine}</p>
-                  <p className="text-xs font-bold text-[#1A1A1A] font-heading">AED {rel.priceMin}–{rel.priceMax} pp</p>
+                  <p className="text-xs text-[#757575] font-sans font-normal">{rel.cuisine}</p>
+                  <p className="text-xs font-semibold text-[#1A1A1A] font-heading">AED {rel.priceMin}–{rel.priceMax} pp</p>
                 </div>
               </Link>
             ))}
