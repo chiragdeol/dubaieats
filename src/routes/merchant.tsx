@@ -36,22 +36,22 @@ function MerchantDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-between text-left">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans flex flex-col justify-between text-left">
       <div>
         <SiteHeader />
 
-        <main className="max-w-6xl mx-auto px-6 py-12">
+        <main className="max-w-6xl mx-auto px-6 pt-10 pb-16">
           {/* Header Banner */}
-          <div className="bg-gradient-to-r from-[#005743] via-[#00755c] to-[#0f4f62] border border-[#168b8b]/30 text-white rounded-3xl p-8 sm:p-12 mb-12 shadow-2xl relative overflow-hidden">
-            <div className="relative z-10 max-w-2xl">
-              <div className="inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/30 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-4">
-                <Building2 className="w-3.5 h-3.5" /> Merchant & Venue Portal
+          <div className="bg-[#005971] text-white rounded-3xl p-8 sm:p-12 mb-10 shadow-xl relative overflow-hidden">
+            <div className="relative z-10 max-w-2xl space-y-3">
+              <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest text-teal-200 border border-white/20">
+                <Building2 className="w-3.5 h-3.5 text-amber-300" /> MERCHANT & VENUE CONTROL PORTAL
               </div>
-              <h1 className="font-display text-3xl sm:text-5xl font-black leading-tight text-white mb-4">
+              <h1 className="font-display text-3xl sm:text-5xl font-black leading-tight tracking-tight text-white">
                 Manage Venue, Privileges & Transparent Ads
               </h1>
-              <p className="text-white/80 text-sm leading-relaxed">
-                Connect your venue to Dubai Eats. List accepted discount cards (Esaad, Fazaa, Entertainer), manage VIP deposits, and feature on transparent Google-style sponsored placements.
+              <p className="text-white/85 text-sm sm:text-base leading-relaxed font-normal">
+                Connect your venue to Dubai Eat. List accepted discount cards (Fazaa, Esaad, Entertainer), manage VIP deposits, and feature on transparent Google-style sponsored placements.
               </p>
             </div>
           </div>

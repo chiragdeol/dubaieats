@@ -402,7 +402,7 @@ function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f8f6f1] text-[#172d3d] flex flex-col justify-between">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans flex flex-col justify-between">
       <div>
         <SiteHeader />
 
@@ -422,32 +422,32 @@ function Index() {
           onClose={() => setIsRandomizerOpen(false)}
         />
 
-        <div className="border-b border-[#dce2e2] bg-white shadow-sm">
-          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-3 lg:flex-row lg:items-center">
-            <form onSubmit={(event) => { event.preventDefault(); updateFilter({ q: query || undefined }); }} className="flex min-w-0 flex-1 overflow-hidden rounded-lg border border-[#cfd9d8] bg-white">
-              <label className="flex items-center gap-2 border-r border-[#dce2e2] px-4 py-2.5 text-sm font-semibold lg:w-64">
-                <MapPin className="h-4 w-4 shrink-0 text-[#172d3d]" />
-                <select value={selectedArea} onChange={(event) => { setSelectedArea(event.target.value); updateFilter({ area: event.target.value === "All" ? undefined : event.target.value }); }} className="w-full bg-transparent outline-none">
-                  <option value="All">Dubai</option>
+        <div className="border-b border-slate-200 bg-white shadow-xs">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-3.5 lg:flex-row lg:items-center">
+            <form onSubmit={(event) => { event.preventDefault(); updateFilter({ q: query || undefined }); }} className="flex min-w-0 flex-1 overflow-hidden rounded-full border border-slate-300 bg-white shadow-2xs">
+              <label className="flex items-center gap-2 border-r border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-800 lg:w-64">
+                <MapPin className="h-4 w-4 shrink-0 text-[#005971]" />
+                <select value={selectedArea} onChange={(event) => { setSelectedArea(event.target.value); updateFilter({ area: event.target.value === "All" ? undefined : event.target.value }); }} className="w-full bg-transparent outline-none cursor-pointer">
+                  <option value="All">All Dubai Areas</option>
                   {districtsByZone.flatMap(({ districts }) => districts).map((district) => <option key={district} value={district}>{district}</option>)}
                 </select>
               </label>
               <label className="flex min-w-0 flex-1 items-center gap-2 px-4 py-2.5">
-                <Search className="h-4 w-4 shrink-0 text-[#172d3d]" />
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cuisine, restaurant name..." className="w-full text-sm italic outline-none placeholder:text-slate-400" />
+                <Search className="h-4 w-4 shrink-0 text-slate-400" />
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cuisine, restaurant, or dish (e.g. Japanese, Wagyu)..." className="w-full text-xs font-medium outline-none placeholder:text-slate-400" />
               </label>
-              <button className="bg-[#005f52] px-6 text-xs font-bold uppercase text-white hover:bg-[#004d43]">Search</button>
+              <button className="bg-[#005971] px-7 text-xs font-extrabold uppercase text-white hover:bg-[#00475b] transition-colors rounded-r-full">Search</button>
             </form>
-            <Link to="/join" className="hidden shrink-0 text-sm font-semibold text-[#005f52] lg:block">For owners</Link>
-            <Link to="/restaurants" className="shrink-0 text-sm font-semibold text-[#005f52]">Log in</Link>
+            <Link to="/merchant" className="hidden shrink-0 text-xs font-bold text-[#005971] lg:block hover:underline">For Restaurant Owners</Link>
+            <Link to="/merchant" className="shrink-0 text-xs font-bold text-[#005971] hover:underline">Log in</Link>
           </div>
-          <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-6 pb-3 text-xs font-semibold whitespace-nowrap">
-            <button onClick={() => { setSelectedDiscount("All"); setSelectedVibe("All"); }} className="rounded-full bg-[#064e68] px-4 py-2 text-white">⚙ All filters</button>
-            <button onClick={() => setSelectedDiscount("The Entertainer")} className="rounded-full border border-[#172d3d] px-4 py-2">Special offers</button>
-            <button onClick={() => setSortBy("rating-desc")} className="rounded-full border border-[#d5dddd] px-4 py-2">☆ Best rated</button>
-            <button onClick={() => setSelectedCuisine("All")} className="rounded-full border border-[#d5dddd] px-4 py-2">🍴 Cuisine⌄</button>
-            <button onClick={() => setSelectedArea("All")} className="rounded-full border border-[#d5dddd] px-4 py-2">Neighbourhood⌄</button>
-            <button onClick={() => setSelectedDiscount("All")} className="rounded-full border border-[#d5dddd] px-4 py-2">Privileges</button>
+          <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-6 pb-3 text-xs font-bold whitespace-nowrap">
+            <button onClick={() => { setSelectedDiscount("All"); setSelectedVibe("All"); }} className="rounded-full bg-[#005971] px-4 py-2 text-white">⚙ All filters</button>
+            <button onClick={() => setSelectedDiscount("The Entertainer")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">Special offers</button>
+            <button onClick={() => setSortBy("rating-desc")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">⭐ Best rated</button>
+            <button onClick={() => setSelectedCuisine("All")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">🍽️ Cuisine ▾</button>
+            <button onClick={() => setSelectedArea("All")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">📍 Area ▾</button>
+            <button onClick={() => setSelectedDiscount("All")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">💳 Privileges</button>
           </div>
         </div>
 
@@ -455,11 +455,12 @@ function Index() {
         <div className="max-w-7xl mx-auto px-6 py-12">
           
           {/* Header Title Section */}
-          <div className="mb-6 border-b border-[#dce2e2] pb-4 text-left">
-            <div className="mb-4 flex items-center gap-2 text-xs text-slate-500"><Link to="/" className="text-[#00796b]">⌂</Link><span>›</span><span>Dubai restaurants</span><span>›</span><span>Best restaurants in Dubai</span></div>
+          <div className="mb-6 border-b border-slate-200 pb-4 text-left">
+            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500"><Link to="/" className="text-[#005971] font-bold">Home</Link><span>›</span><span>Eat & Drink</span><span>›</span><span>All Dubai Restaurants</span></div>
+            <p className="vd-eyebrow mb-1">OFFICIAL FOOD & DRINK GUIDE</p>
             <div className="flex flex-wrap items-baseline gap-3">
-              <h1 className="font-display text-3xl font-bold tracking-tight text-[#172d3d] sm:text-4xl">The best restaurants in Dubai</h1>
-              <span className="text-sm text-slate-500">{filteredAndSorted.length} restaurants</span>
+              <h1 className="font-display text-3xl font-black tracking-tight text-[#0f172a] sm:text-5xl">The Best Restaurants in Dubai</h1>
+              <span className="text-xs font-bold text-slate-500">({filteredAndSorted.length} verified listings)</span>
             </div>
           </div>
 

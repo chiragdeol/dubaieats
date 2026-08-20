@@ -96,23 +96,34 @@ function AiSearchHubPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-between text-left">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans flex flex-col justify-between text-left">
       <div>
         <SiteHeader />
 
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-16">
           
+          {/* Breadcrumb */}
+          <div className="mb-6">
+            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500">
+              <Link to="/" className="text-[#005971] font-bold">Home</Link>
+              <span>›</span>
+              <span>Eat & Drink</span>
+              <span>›</span>
+              <span>AI Dining Concierge</span>
+            </div>
+          </div>
+
           {/* Hero */}
-          <div className="bg-gradient-to-r from-zinc-950 via-zinc-900 to-amber-950 border border-amber-500/20 rounded-3xl p-8 sm:p-12 text-white shadow-2xl mb-10 relative overflow-hidden">
-            <div className="relative z-10 max-w-3xl">
-              <div className="inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/30 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-4">
-                <Bot className="w-4 h-4" /> Gemini AI Natural Language Engine
+          <div className="bg-[#005971] rounded-3xl p-8 sm:p-12 text-white shadow-xl mb-10 relative overflow-hidden">
+            <div className="relative z-10 max-w-3xl space-y-3">
+              <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest text-teal-200 border border-white/20">
+                <Bot className="w-4 h-4 text-amber-300" /> GEMINI AI NATURAL LANGUAGE CONCIERGE
               </div>
-              <h1 className="font-display text-4xl sm:text-6xl font-black leading-tight mb-4 text-white">
+              <h1 className="font-display text-4xl sm:text-6xl font-black leading-tight tracking-tight text-white">
                 Dubai Eat Smart AI Concierge
               </h1>
-              <p className="text-white/80 text-sm sm:text-base leading-relaxed">
-                Describe your exact cravings, preferred privilege cards (Fazza, Esaad), atmospheric vibes, or district — our AI agent will find your ideal venue instantly.
+              <p className="text-white/85 text-sm sm:text-base leading-relaxed font-normal">
+                Describe your exact cravings, preferred privilege cards (Fazaa, Esaad), atmospheric vibes, or district — our AI concierge will pinpoint your ideal venue instantly.
               </p>
             </div>
           </div>

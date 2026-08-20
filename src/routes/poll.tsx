@@ -99,22 +99,33 @@ function GroupPollPage() {
   const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(whatsappPollText)}`;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-between text-left">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans flex flex-col justify-between text-left">
       <div>
         <SiteHeader />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-16">
           
+          {/* Breadcrumb */}
+          <div className="mb-6">
+            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500">
+              <Link to="/" className="text-[#005971] font-bold">Home</Link>
+              <span>›</span>
+              <span>Eat & Drink</span>
+              <span>›</span>
+              <span>WhatsApp Group Food Poll</span>
+            </div>
+          </div>
+
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 rounded-3xl p-8 sm:p-12 text-white shadow-2xl mb-10 relative overflow-hidden">
-            <div className="relative z-10 max-w-3xl">
-              <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-4 border border-white/20">
-                <Users className="w-3.5 h-3.5" /> Group Food Polls (PDF Section 7)
+          <div className="bg-[#005971] rounded-3xl p-8 sm:p-12 text-white shadow-xl mb-10 relative overflow-hidden">
+            <div className="relative z-10 max-w-3xl space-y-3">
+              <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest text-teal-200 border border-white/20">
+                <Users className="w-3.5 h-3.5 text-amber-300" /> GROUP DINING POLL ENGINE
               </div>
-              <h1 className="font-display text-4xl sm:text-6xl font-black leading-tight mb-4">
+              <h1 className="font-display text-4xl sm:text-6xl font-black leading-tight tracking-tight text-white">
                 WhatsApp Group Food Poll Generator
               </h1>
-              <p className="text-white/90 text-sm sm:text-base leading-relaxed">
+              <p className="text-white/85 text-sm sm:text-base leading-relaxed font-normal">
                 Shortlist 2 to 5 restaurants, generate a formatted poll for your WhatsApp group, vote in real-time, and instantly book the winning table.
               </p>
             </div>

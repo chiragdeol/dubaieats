@@ -4,19 +4,42 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
+/* ── VISIT DUBAI TYPOGRAPHY & FONT SYSTEM ── */
+@font-face {
+  font-family: 'Dubai';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: local('Dubai Light'), local('Dubai-Light'),
+       url('https://fonts.cdnfonts.com/s/17260/Dubai-Light.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Dubai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Dubai Regular'), local('Dubai-Regular'),
+       url('https://fonts.cdnfonts.com/s/17260/Dubai-Regular.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Dubai';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local('Dubai Medium'), local('Dubai-Medium'),
+       url('https://fonts.cdnfonts.com/s/17260/Dubai-Medium.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Dubai';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Dubai Bold'), local('Dubai-Bold'),
+       url('https://fonts.cdnfonts.com/s/17260/Dubai-Bold.woff') format('woff');
+}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -45,91 +68,60 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.99 0.005 90);
-  --foreground: oklch(0.18 0.02 55);
+  --radius: 0.75rem;
+  /* Visit Dubai Official Color Palette */
+  --brand-teal: #005971;
+  --brand-teal-dark: #004659;
+  --brand-teal-light: #e6f3f6;
+  --brand-gold: #c89a3f;
+  --brand-red: #d92d20;
+
+  --background: oklch(0.99 0.002 90);
+  --foreground: oklch(0.18 0.02 240);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 55);
+  --card-foreground: oklch(0.18 0.02 240);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 55);
-  --primary: oklch(0.55 0.19 35);
-  --primary-foreground: oklch(0.99 0.005 90);
-  --secondary: oklch(0.96 0.02 80);
-  --secondary-foreground: oklch(0.25 0.04 55);
-  --muted: oklch(0.96 0.01 80);
-  --muted-foreground: oklch(0.5 0.03 60);
-  --accent: oklch(0.9 0.12 85);
-  --accent-foreground: oklch(0.25 0.05 55);
+  --popover-foreground: oklch(0.18 0.02 240);
+  
+  /* Primary Visit Dubai Deep Teal */
+  --primary: oklch(0.42 0.09 215);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.015 210);
+  --secondary-foreground: oklch(0.25 0.06 215);
+  --muted: oklch(0.96 0.008 240);
+  --muted-foreground: oklch(0.48 0.025 240);
+  --accent: oklch(0.93 0.03 215);
+  --accent-foreground: oklch(0.25 0.06 215);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.9 0.015 70);
-  --input: oklch(0.9 0.015 70);
-  --ring: oklch(0.55 0.19 35);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --border: oklch(0.91 0.01 240);
+  --input: oklch(0.91 0.01 240);
+  --ring: oklch(0.42 0.09 215);
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
+  --background: oklch(0.13 0.025 240);
+  --foreground: oklch(0.98 0.005 240);
+  --card: oklch(0.18 0.025 240);
+  --card-foreground: oklch(0.98 0.005 240);
+  --popover: oklch(0.18 0.025 240);
+  --popover-foreground: oklch(0.98 0.005 240);
+  --primary: oklch(0.65 0.12 215);
+  --primary-foreground: oklch(0.12 0.03 240);
+  --secondary: oklch(0.24 0.03 240);
+  --secondary-foreground: oklch(0.98 0.005 240);
+  --muted: oklch(0.24 0.03 240);
+  --muted-foreground: oklch(0.7 0.02 240);
+  --accent: oklch(0.24 0.03 240);
+  --accent-foreground: oklch(0.98 0.005 240);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.65 0.12 215);
 }
 
 @layer base {
@@ -140,99 +132,91 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Jost', 'Inter', system-ui, sans-serif;
-  }
-  .font-display {
-    font-family: 'Jost', 'Inter', system-ui, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
   }
 
-  /* Custom scrollbar for Google My Business sidebar */
-  .gmb-sidebar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  /* Visit Dubai Typography Standards */
+  .font-display {
+    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.025em;
+    font-feature-settings: "ss01", "ss02", "cv01";
   }
-  .gmb-sidebar::-webkit-scrollbar {
-    width: 6px;
+
+  h1, .vd-h1 {
+    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
   }
-  .gmb-sidebar::-webkit-scrollbar-track {
-    background: transparent;
+
+  h2, .vd-h2 {
+    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
   }
-  .gmb-sidebar::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.15);
+
+  h3, .vd-h3 {
+    font-family: 'Dubai', 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+
+  /* Eyebrow / Overline tag */
+  .vd-eyebrow {
+    font-family: 'Dubai', 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #005971;
+  }
+
+  /* Lead Subheading */
+  .vd-lead {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: #475569;
+    font-weight: 400;
+  }
+
+  /* Base Body Paragraph */
+  p, .vd-body {
+    font-size: 0.9375rem;
+    line-height: 1.62;
+    color: #334155;
+  }
+
+  /* Visit Dubai Pill Buttons */
+  .vd-pill-teal {
+    background-color: #005971;
+    color: #ffffff;
     border-radius: 9999px;
+    font-weight: 700;
+    font-size: 0.8125rem;
+    transition: all 0.2s ease;
   }
-  .gmb-sidebar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.35);
+  .vd-pill-teal:hover {
+    background-color: #004659;
   }
 
   /* Leaflet maps styling custom overrides */
   .leaflet-container {
-    font-family: 'Jost', 'Inter', system-ui, sans-serif !important;
+    font-family: 'Dubai', 'Plus Jakarta Sans', sans-serif !important;
     background-color: oklch(0.96 0.01 80) !important;
   }
   .leaflet-popup-content-wrapper {
-    border-radius: 12px !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 24px rgba(0, 89, 113, 0.15) !important;
     padding: 0 !important;
     overflow: hidden;
   }
   .leaflet-popup-content {
     margin: 0 !important;
-    width: 220px !important;
-  }
-  .leaflet-popup-tip {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
-  }
-
-  /* Custom Google Maps style red pins */
-  .custom-pin {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .pin-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-  }
-  .pin-icon {
-    width: 28px;
-    height: 38px;
-    background-color: oklch(0.55 0.19 35); /* primary brand color */
-    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-    position: relative;
-    border: 2px solid white;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: perspective(40px) rotateX(20deg);
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  .pin-icon::after {
-    content: '';
-    width: 8px;
-    height: 8px;
-    background-color: white;
-    border-radius: 50%;
-  }
-  .pin-shadow {
-    width: 14px;
-    height: 4px;
-    background-color: rgba(0, 0, 0, 0.25);
-    border-radius: 50%;
-    position: absolute;
-    bottom: -3px;
-    filter: blur(1px);
-  }
-  
-  /* Highlight state for active marker */
-  .pin-active .pin-icon {
-    background-color: #ea4335 !important; /* Google red */
-    transform: scale(1.25) translateY(-4px) perspective(40px) rotateX(20deg);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
-    z-index: 1000 !important;
+    width: 240px !important;
   }
 }
