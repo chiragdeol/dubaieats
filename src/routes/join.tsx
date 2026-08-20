@@ -110,22 +110,32 @@ function JoinAndSubscriptionPage() {
       <div>
         <SiteHeader />
 
-        {/* ── TOP HERO HEADER ── */}
-        <section className="bg-[#1A1A1A] text-white border-b border-[#2E2E2E] py-16 sm:py-20 px-6 lg:px-12 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#D4AF37]/5 rounded-full blur-2xl pointer-events-none" />
+        {/* ── TOP HERO HEADER WITH BACKGROUND IMAGE ── */}
+        <section className="bg-[#1A1A1A] text-white border-b border-[#2E2E2E] py-16 sm:py-24 px-6 lg:px-12 relative overflow-hidden">
+          
+          {/* Background Image & Cinematic Overlays */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-30 scale-105 pointer-events-none"
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=85')" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-[#1A1A1A]/80 to-[#1A1A1A]/60 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A]/90 via-transparent to-[#1A1A1A]/90 pointer-events-none" />
+
+          {/* Decorative Gold Glows */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#D4AF37]/20 rounded-full blur-3xl pointer-events-none z-1" />
+          <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#D4AF37]/15 rounded-full blur-2xl pointer-events-none z-1" />
 
           <div className="max-w-5xl mx-auto text-center space-y-6 relative z-10">
-            <div className="inline-flex items-center gap-2 bg-[#D4AF37]/15 border border-[#D4AF37]/30 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-[#D4AF37] font-heading">
+            <div className="inline-flex items-center gap-2 bg-[#D4AF37]/20 backdrop-blur-sm border border-[#D4AF37]/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-[#D4AF37] font-heading">
               <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
               Hospitality Partner & Merchant Network
             </div>
 
-            <h1 className="font-display font-black text-4xl sm:text-6xl text-white tracking-tight leading-tight">
+            <h1 className="font-display font-black text-4xl sm:text-6xl text-white tracking-tight leading-tight drop-shadow-md">
               Grow Your Restaurant with Dubai Eats
             </h1>
 
-            <p className="text-[#A3A3A3] text-base sm:text-lg max-w-2xl mx-auto font-normal font-sans">
+            <p className="text-[#E5E5E5] text-base sm:text-lg max-w-2xl mx-auto font-normal font-sans drop-shadow-sm">
               Connect with 450,000+ local foodies, tourists, and corporate cardholders looking for verified bookings, digital menus, and exclusive dining privileges.
             </p>
 
@@ -133,30 +143,30 @@ function JoinAndSubscriptionPage() {
             <div className="flex flex-wrap justify-center items-center gap-3 pt-4 font-heading text-xs font-bold">
               <button
                 onClick={() => setAuthMode("plans")}
-                className={`px-6 py-3 rounded-xl transition-all cursor-pointer ${
+                className={`px-6 py-3 rounded-xl transition-all cursor-pointer backdrop-blur-md ${
                   authMode === "plans"
                     ? "bg-[#D4AF37] text-[#1A1A1A] shadow-md"
-                    : "bg-white/10 text-white hover:bg-white/20"
+                    : "bg-black/60 text-white hover:bg-black/80 border border-white/15"
                 }`}
               >
                 💎 Subscription Plans & Pricing
               </button>
               <button
                 onClick={() => setAuthMode("login")}
-                className={`px-6 py-3 rounded-xl transition-all cursor-pointer ${
+                className={`px-6 py-3 rounded-xl transition-all cursor-pointer backdrop-blur-md ${
                   authMode === "login"
                     ? "bg-[#D4AF37] text-[#1A1A1A] shadow-md"
-                    : "bg-white/10 text-white hover:bg-white/20"
+                    : "bg-black/60 text-white hover:bg-black/80 border border-white/15"
                 }`}
               >
                 🔐 Vendor Login
               </button>
               <button
                 onClick={() => setAuthMode("register")}
-                className={`px-6 py-3 rounded-xl transition-all cursor-pointer ${
+                className={`px-6 py-3 rounded-xl transition-all cursor-pointer backdrop-blur-md ${
                   authMode === "register"
                     ? "bg-[#D4AF37] text-[#1A1A1A] shadow-md"
-                    : "bg-white/10 text-white hover:bg-white/20"
+                    : "bg-black/60 text-white hover:bg-black/80 border border-white/15"
                 }`}
               >
                 📝 Register Restaurant
