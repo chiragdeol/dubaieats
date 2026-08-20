@@ -24,3 +24,12 @@ if (fs.existsSync(srcDir)) {
 } else {
   console.error('Error: dist/client directory does not exist.');
 }
+
+// Ensure index.html exists in root and dist/client for Vercel, Netlify, and Hostinger
+if (fs.existsSync('_shell.html')) {
+  fs.copyFileSync('_shell.html', 'index.html');
+  if (fs.existsSync(srcDir)) {
+    fs.copyFileSync('_shell.html', path.join(srcDir, 'index.html'));
+  }
+  console.log('Successfully created index.html for Vercel and web hosting!');
+}
