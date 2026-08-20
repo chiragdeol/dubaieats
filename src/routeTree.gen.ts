@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AiSearchRouteImport } from './routes/ai-search'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as JoinRouteImport } from './routes/join'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as MerchantRouteImport } from './routes/merchant'
 import { Route as PollRouteImport } from './routes/poll'
@@ -43,6 +44,11 @@ const DealsRoute = DealsRouteImport.update({
 const JoinRoute = JoinRouteImport.update({
   id: '/join',
   path: '/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapRoute = MapRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/ai-search': typeof AiSearchRoute
   '/deals': typeof DealsRoute
   '/join': typeof JoinRoute
+  '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/merchant': typeof MerchantRoute
   '/poll': typeof PollRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/ai-search': typeof AiSearchRoute
   '/deals': typeof DealsRoute
   '/join': typeof JoinRoute
+  '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/merchant': typeof MerchantRoute
   '/poll': typeof PollRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/ai-search': typeof AiSearchRoute
   '/deals': typeof DealsRoute
   '/join': typeof JoinRoute
+  '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/merchant': typeof MerchantRoute
   '/poll': typeof PollRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/ai-search'
     | '/deals'
     | '/join'
+    | '/login'
     | '/map'
     | '/merchant'
     | '/poll'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/ai-search'
     | '/deals'
     | '/join'
+    | '/login'
     | '/map'
     | '/merchant'
     | '/poll'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/ai-search'
     | '/deals'
     | '/join'
+    | '/login'
     | '/map'
     | '/merchant'
     | '/poll'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   AiSearchRoute: typeof AiSearchRoute
   DealsRoute: typeof DealsRoute
   JoinRoute: typeof JoinRoute
+  LoginRoute: typeof LoginRoute
   MapRoute: typeof MapRoute
   MerchantRoute: typeof MerchantRoute
   PollRoute: typeof PollRoute
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/join'
       fullPath: '/join'
       preLoaderRoute: typeof JoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/map': {
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiSearchRoute: AiSearchRoute,
   DealsRoute: DealsRoute,
   JoinRoute: JoinRoute,
+  LoginRoute: LoginRoute,
   MapRoute: MapRoute,
   MerchantRoute: MerchantRoute,
   PollRoute: PollRoute,
