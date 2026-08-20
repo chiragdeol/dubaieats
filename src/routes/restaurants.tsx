@@ -422,37 +422,8 @@ function Index() {
           onClose={() => setIsRandomizerOpen(false)}
         />
 
-        <div className="border-b border-slate-200 bg-white shadow-xs">
-          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-3.5 lg:flex-row lg:items-center">
-            <form onSubmit={(event) => { event.preventDefault(); updateFilter({ q: query || undefined }); }} className="flex min-w-0 flex-1 overflow-hidden rounded-full border border-slate-300 bg-white shadow-2xs">
-              <label className="flex items-center gap-2 border-r border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-800 lg:w-64">
-                <MapPin className="h-4 w-4 shrink-0 text-[#005971]" />
-                <select value={selectedArea} onChange={(event) => { setSelectedArea(event.target.value); updateFilter({ area: event.target.value === "All" ? undefined : event.target.value }); }} className="w-full bg-transparent outline-none cursor-pointer">
-                  <option value="All">All Dubai Areas</option>
-                  {districtsByZone.flatMap(({ districts }) => districts).map((district) => <option key={district} value={district}>{district}</option>)}
-                </select>
-              </label>
-              <label className="flex min-w-0 flex-1 items-center gap-2 px-4 py-2.5">
-                <Search className="h-4 w-4 shrink-0 text-slate-400" />
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cuisine, restaurant, or dish (e.g. Japanese, Wagyu)..." className="w-full text-xs font-medium outline-none placeholder:text-slate-400" />
-              </label>
-              <button className="bg-[#005971] px-7 text-xs font-extrabold uppercase text-white hover:bg-[#00475b] transition-colors rounded-r-full">Search</button>
-            </form>
-            <Link to="/merchant" className="hidden shrink-0 text-xs font-bold text-[#005971] lg:block hover:underline">For Restaurant Owners</Link>
-            <Link to="/merchant" className="shrink-0 text-xs font-bold text-[#005971] hover:underline">Log in</Link>
-          </div>
-          <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-6 pb-3 text-xs font-bold whitespace-nowrap">
-            <button onClick={() => { setSelectedDiscount("All"); setSelectedVibe("All"); }} className="rounded-full bg-[#005971] px-4 py-2 text-white">⚙ All filters</button>
-            <button onClick={() => setSelectedDiscount("The Entertainer")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">Special offers</button>
-            <button onClick={() => setSortBy("rating-desc")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">⭐ Best rated</button>
-            <button onClick={() => setSelectedCuisine("All")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">🍽️ Cuisine ▾</button>
-            <button onClick={() => setSelectedArea("All")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">📍 Area ▾</button>
-            <button onClick={() => setSelectedDiscount("All")} className="rounded-full border border-slate-300 hover:border-[#005971] px-4 py-2">💳 Privileges</button>
-          </div>
-        </div>
-
         {/* Catalog Main Panel */}
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="max-w-7xl mx-auto px-6 pt-8 pb-16">
           
           {/* Header Title Section */}
           <div className="mb-6 border-b border-slate-200 pb-4 text-left">
