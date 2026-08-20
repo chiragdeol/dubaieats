@@ -412,6 +412,9 @@ function Landing() {
             </div>
           </div>
         </section>
+
+        {/* ── LAST SECTION: ARE YOU A RESTAURANT OWNER? (TheFork Layout) ── */}
+        <OwnerCta />
       </main>
 
       <DubaiItRandomizerModal isOpen={randomizerOpen} onClose={() => setRandomizerOpen(false)} />

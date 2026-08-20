@@ -1,35 +1,72 @@
 import { Link } from "@tanstack/react-router";
-import { Sparkles, ArrowRight } from "lucide-react";
 
 export function OwnerCta() {
   return (
-    <section className="max-w-7xl mx-auto px-6 py-16">
-      <div className="bg-zinc-950 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border border-zinc-800 shadow-xl">
-        {/* Subtle background glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.15),transparent_50%)]" />
+    <section className="mx-auto max-w-[1440px] px-6 lg:px-12 py-16 text-left font-sans">
+      
+      {/* ── SECTION TITLE (Matching Screenshot) ── */}
+      <h2 className="font-heading font-black text-2xl sm:text-3xl text-[#1A1A1A] tracking-tight mb-8">
+        Are you a restaurant owner?
+      </h2>
+
+      {/* ── 2-COLUMN LAYOUT: Image on Left, 2 Action Blocks on Right ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         
-        <div className="text-left relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-400 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/20 mb-4">
-            <Sparkles className="w-3.5 h-3.5 fill-current" /> For Restaurant Owners
+        {/* Left Column: Chef Kitchen Photograph */}
+        <div className="lg:col-span-6">
+          <div className="rounded-2xl sm:rounded-3xl overflow-hidden aspect-[4/3] bg-slate-100 shadow-sm relative group">
+            <img
+              src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=1200&auto=format&fit=crop"
+              alt="Professional chef plating dishes in restaurant kitchen"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              loading="lazy"
+            />
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight">
-            Are you a restaurant owner?
-          </h2>
-          <p className="text-zinc-400 text-sm mt-3 leading-relaxed">
-            Join Dubai-Eat to promote your dining venue, list your delivery menus (Deliveroo, Talabat, Noon Food), and direct food enthusiasts straight to your SevenRooms or OpenTable reservation systems.
-          </p>
         </div>
 
-        <div className="relative z-10 shrink-0 w-full md:w-auto">
-          <Link
-            to="/join"
-            className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-xs px-6 py-4 rounded-xl transition-colors shadow-lg w-full md:w-auto text-center cursor-pointer"
-          >
-            <span>Register My Restaurant</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+        {/* Right Column: 2 Action Blocks */}
+        <div className="lg:col-span-6 space-y-10 lg:pl-4">
+          
+          {/* Block 1: Register your Restaurant */}
+          <div className="space-y-2.5">
+            <h3 className="font-heading font-bold text-xl sm:text-2xl text-[#1A1A1A]">
+              Register your Restaurant
+            </h3>
+            <p className="text-sm text-[#4A4A4A] font-normal leading-relaxed font-sans">
+              Tell us more about you and we will contact you as soon as possible
+            </p>
+            <div className="pt-2">
+              <Link
+                to="/merchant"
+                className="inline-flex items-center justify-center border border-[#D1D5DB] hover:border-[#1A1A1A] bg-white hover:bg-[#F9FAFB] text-[#1A1A1A] font-bold font-heading text-sm px-5 py-2.5 rounded-xl transition-all shadow-2xs cursor-pointer"
+              >
+                See more information
+              </Link>
+            </div>
+          </div>
+
+          {/* Block 2: Already a Client */}
+          <div className="space-y-2.5">
+            <h3 className="font-heading font-bold text-xl sm:text-2xl text-[#1A1A1A]">
+              Already a Client
+            </h3>
+            <p className="text-sm text-[#4A4A4A] font-normal leading-relaxed font-sans">
+              Log in to Dubai Eats Manager and contact us by Chat.
+            </p>
+            <div className="pt-2">
+              <Link
+                to="/merchant"
+                className="inline-flex items-center justify-center border border-[#D1D5DB] hover:border-[#1A1A1A] bg-white hover:bg-[#F9FAFB] text-[#1A1A1A] font-bold font-heading text-sm px-5 py-2.5 rounded-xl transition-all shadow-2xs cursor-pointer"
+              >
+                Log in to Dubai Eats Manager
+              </Link>
+            </div>
+          </div>
+
         </div>
+
       </div>
+
     </section>
   );
 }
