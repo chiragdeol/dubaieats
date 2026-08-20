@@ -153,7 +153,7 @@ function RestaurantDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-left">
+    <div className="min-h-screen bg-[#F5F5F5] text-[#1A1A1A] font-sans text-left">
       <SiteHeader />
 
       <DepositModal
@@ -183,7 +183,7 @@ function RestaurantDetail() {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className="text-white text-xs font-bold">{lightboxIndex + 1} / {gallery.length}</span>
+            <span className="text-white text-xs font-bold font-heading">{lightboxIndex + 1} / {gallery.length}</span>
             <button
               onClick={() => setLightboxIndex((prev) => (prev < gallery.length - 1 ? prev + 1 : 0))}
               className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20"
@@ -195,11 +195,11 @@ function RestaurantDetail() {
       )}
 
       {/* ── HERO BANNER PHOTOS GRID ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-6">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 h-[340px] sm:h-[420px] rounded-3xl overflow-hidden shadow-md relative">
           <div
             onClick={() => openGallery(0)}
-            className="md:col-span-2 h-full relative cursor-pointer group overflow-hidden bg-muted"
+            className="md:col-span-2 h-full relative cursor-pointer group overflow-hidden bg-slate-100"
           >
             <img
               src={gallery[0]}
@@ -207,14 +207,14 @@ function RestaurantDetail() {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <span className="absolute bottom-4 left-4 text-white text-xs font-bold bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5">
+            <span className="absolute bottom-4 left-4 text-[#1A1A1A] text-xs font-bold font-heading bg-[#D4AF37] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
               👑 Main Showcase
             </span>
           </div>
 
           <div
             onClick={() => openGallery(1)}
-            className="hidden md:block h-full relative cursor-pointer group overflow-hidden bg-muted"
+            className="hidden md:block h-full relative cursor-pointer group overflow-hidden bg-slate-100"
           >
             <img
               src={gallery[1]}
@@ -226,7 +226,7 @@ function RestaurantDetail() {
           <div className="hidden md:grid grid-rows-2 gap-2.5 h-full">
             <div
               onClick={() => openGallery(2)}
-              className="relative cursor-pointer group overflow-hidden bg-muted"
+              className="relative cursor-pointer group overflow-hidden bg-slate-100"
             >
               <img
                 src={gallery[2]}
@@ -236,14 +236,14 @@ function RestaurantDetail() {
             </div>
             <div
               onClick={() => openGallery(3)}
-              className="relative cursor-pointer group overflow-hidden bg-muted"
+              className="relative cursor-pointer group overflow-hidden bg-slate-100"
             >
               <img
                 src={gallery[3]}
                 alt={`${r.name} dish preview`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-extrabold text-xs">
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-extrabold text-xs font-heading">
                 +{gallery.length - 4} More Photos
               </div>
             </div>
@@ -258,30 +258,30 @@ function RestaurantDetail() {
         <div className="lg:col-span-8 space-y-8">
           
           {/* Header Title Info */}
-          <div className="space-y-4 border-b border-border pb-6">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="space-y-4 border-b border-[#EAEAEA] pb-6">
+            <div className="flex flex-wrap items-center gap-2 font-heading">
               {r.michelin && (
-                <span className="inline-flex items-center gap-1 bg-rose-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                  <Award className="w-3 h-3 fill-current" /> Michelin Selected
+                <span className="inline-flex items-center gap-1 bg-[#1A1A1A] text-[#D4AF37] border border-[#D4AF37]/40 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                  <Award className="w-3 h-3 fill-[#D4AF37]" /> Michelin Selected
                 </span>
               )}
               {r.liquor === "Licensed" && (
-                <span className="bg-purple-600/15 text-purple-700 dark:text-purple-300 border border-purple-600/20 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                <span className="bg-[#F5F5F5] text-[#1A1A1A] border border-[#E0E0E0] text-[10px] font-bold px-3 py-1 rounded-full">
                   🍷 Licensed Bar
                 </span>
               )}
-              <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
-                ✅ DET Dubai Verified
+              <span className="bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] text-[10px] font-bold px-3 py-1 rounded-full">
+                ✓ Verified Venue
               </span>
             </div>
 
-            <h1 className="font-display text-4xl sm:text-5xl font-black text-foreground tracking-tight leading-none">
+            <h1 className="font-display text-4xl sm:text-5xl font-black text-[#1A1A1A] tracking-tight leading-none">
               {r.name}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-3 text-sm">
+            <div className="flex flex-wrap items-center gap-3 text-sm font-sans">
               <div className="flex items-center gap-1.5">
-                <span className="bg-emerald-500 text-white font-extrabold text-sm px-2.5 py-0.5 rounded-lg">
+                <span className="bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-black text-sm px-2.5 py-0.5 rounded-lg font-heading">
                   {(r.rating * 2).toFixed(1)}
                 </span>
                 <div className="flex gap-0.5">
@@ -289,31 +289,31 @@ function RestaurantDetail() {
                     <Star
                       key={i}
                       className={`h-3.5 w-3.5 ${
-                        i < Math.floor(r.rating) ? "fill-amber-500 text-amber-500" : "text-gray-300 dark:text-zinc-700"
+                        i < Math.floor(r.rating) ? "fill-[#D4AF37] text-[#D4AF37]" : "text-slate-300"
                       }`}
                     />
                   ))}
                 </div>
-                <a href={mapsUrl(r.name)} target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">
+                <a href={mapsUrl(r.name)} target="_blank" rel="noopener noreferrer" className="text-[#D4AF37] font-bold font-heading hover:underline">
                   {r.reviews} reviews
                 </a>
               </div>
-              <span className="text-muted-foreground">·</span>
-              <span className="text-muted-foreground">{r.cuisine}</span>
-              <span className="text-muted-foreground">·</span>
-              <span className="text-muted-foreground">~AED {r.priceMin}–{r.priceMax} pp</span>
+              <span className="text-[#757575]">·</span>
+              <span className="text-[#757575]">{r.cuisine}</span>
+              <span className="text-[#757575]">·</span>
+              <span className="text-[#1A1A1A] font-semibold">~AED {r.priceMin}–{r.priceMax} pp</span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-4 text-xs text-[#757575] font-sans">
               <span className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-primary" /> {r.address}
+                <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" /> {r.address}
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-primary" />
+                <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
                 {liveStatus.isOpen ? (
-                  <span className="text-emerald-600 font-bold">Open Now</span>
+                  <span className="text-emerald-700 font-bold font-heading">Open Now</span>
                 ) : (
-                  <span className="text-rose-600 font-bold">Closed</span>
+                  <span className="text-rose-600 font-bold font-heading">Closed</span>
                 )}
                 <span className="ml-1">{r.hours}</span>
               </span>

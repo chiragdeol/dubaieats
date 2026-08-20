@@ -227,7 +227,7 @@ function MerchantDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans flex flex-col justify-between text-left">
+    <div className="min-h-screen bg-[#F5F5F5] text-[#1A1A1A] font-sans flex flex-col justify-between text-left">
       <div>
         <SiteHeader />
 
@@ -235,8 +235,8 @@ function MerchantDashboardPage() {
           
           {/* ── BREADCRUMB & HEADER BANNER ── */}
           <div className="mb-6">
-            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500">
-              <Link to="/" className="text-[#005971] font-bold">Home</Link>
+            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-[#757575] font-heading">
+              <Link to="/" className="text-[#1A1A1A] font-bold hover:text-[#D4AF37]">Home</Link>
               <span>›</span>
               <span>For Restaurant Owners</span>
               <span>›</span>
@@ -244,15 +244,15 @@ function MerchantDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-[#005971] text-white rounded-3xl p-8 sm:p-12 mb-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="bg-[#1A1A1A] border border-[#2E2E2E] text-white rounded-3xl p-8 sm:p-12 mb-10 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="relative z-10 max-w-2xl space-y-3">
-              <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest text-teal-200 border border-white/20">
-                <Building2 className="w-3.5 h-3.5 text-amber-300" /> OFFICIAL DUBAI EAT VENDOR PORTAL
+              <div className="inline-flex items-center gap-1.5 bg-[#D4AF37]/15 border border-[#D4AF37]/30 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-[#D4AF37] font-heading">
+                <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" /> OFFICIAL DUBAI EATS VENDOR PORTAL
               </div>
               <h1 className="font-display text-3xl sm:text-5xl font-black leading-tight tracking-tight text-white">
                 Restaurant Owner Control Center
               </h1>
-              <p className="text-white/85 text-sm sm:text-base leading-relaxed font-normal">
+              <p className="text-[#A3A3A3] text-sm sm:text-base leading-relaxed font-normal font-sans">
                 Manage your venue profile, add coupon codes, publish digital menus with dish photos, manage photo galleries, and run targeted marketing banner campaigns.
               </p>
             </div>

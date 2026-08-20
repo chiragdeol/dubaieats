@@ -50,34 +50,34 @@ function InteractiveMapPage() {
   }, [selectedDistrict, selectedCuisine, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans flex flex-col justify-between text-left">
+    <div className="min-h-screen bg-[#F5F5F5] text-[#1A1A1A] font-sans flex flex-col justify-between text-left">
       <div>
         <SiteHeader />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-16">
           
           {/* Header Banner */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-6 mb-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E0E0E0] pb-6 mb-6">
             <div>
-              <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500">
-                <Link to="/" className="text-[#005971] font-bold">Home</Link>
+              <div className="mb-2 flex items-center gap-2 text-xs font-medium text-[#757575] font-heading">
+                <Link to="/" className="text-[#1A1A1A] font-bold hover:text-[#D4AF37]">Home</Link>
                 <span>›</span>
                 <span>Eat & Drink</span>
                 <span>›</span>
                 <span>Interactive Dubai Map</span>
               </div>
-              <p className="vd-eyebrow mb-1 flex items-center gap-1.5">
+              <p className="mp-eyebrow mb-1 flex items-center gap-1.5">
                 <Navigation className="w-3.5 h-3.5" /> GEOGRAPHIC CULINARY MAP
               </p>
-              <h1 className="font-display text-3xl sm:text-5xl font-black text-[#0f172a] tracking-tight">
+              <h1 className="font-display text-3xl sm:text-5xl font-black text-[#1A1A1A] tracking-tight">
                 Dubai Culinary Map Explorer
               </h1>
-              <p className="text-sm text-slate-600 mt-1 font-normal">
+              <p className="text-sm text-[#757575] mt-1 font-normal font-sans">
                 Pinpoint top dining spots, Fazaa & Esaad discount deals, and beachfront lounges across 60+ Dubai districts.
               </p>
             </div>
 
-            <div className="text-xs font-bold text-slate-600 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-2xs">
+            <div className="text-xs font-bold font-heading text-[#1A1A1A] bg-white px-4 py-2 rounded-full border border-[#E0E0E0] shadow-2xs">
               📍 Showing {filteredVenues.length} Venues on Map
             </div>
           </div>
