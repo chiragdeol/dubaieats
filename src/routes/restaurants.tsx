@@ -6,7 +6,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { SponsoredDirectionsModal } from "@/components/sponsored-directions-modal";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { DepositModal } from "@/components/deposit-modal";
-import { OwnerCta } from "@/components/owner-cta";
 import { RestaurantMap } from "@/components/restaurant-map";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import { DUBAI_DISTRICTS, DUBAI_ZONES } from "@/lib/dubai-districts";

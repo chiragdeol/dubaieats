@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { enrichedRestaurants, type EnrichedRestaurant } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { OwnerCta } from "@/components/owner-cta";
 import { DepositModal } from "@/components/deposit-modal";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import {
@@ -854,7 +853,6 @@ function RestaurantDetail() {
         </section>
       )}
 
-      <OwnerCta />
       <SiteFooter />
     </div>
   );
