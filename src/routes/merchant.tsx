@@ -36,7 +36,10 @@ import {
   MessageSquare,
   LogOut,
   Target,
-  Zap
+  Zap,
+  UploadCloud,
+  FolderUp,
+  Camera
 } from "lucide-react";
 import { DUBAI_DISTRICTS } from "@/lib/dubai-districts";
 import { PrivilegeCategory } from "@/lib/restaurants-enriched";
@@ -131,6 +134,7 @@ function MerchantDashboardPage() {
   const [address, setAddress] = useState("Gate Village 06, DIFC, Dubai");
   const [hours, setHours] = useState("12:00 PM – 3:30 PM, 7:00 PM – 1:00 AM");
   const [tradeLicense, setTradeLicense] = useState("DET-DXB-984210");
+  const [venueBanner, setVenueBanner] = useState("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=85");
 
   // 2. Policies & Filters State
   const [valetType, setValetType] = useState("Complimentary");
@@ -398,6 +402,66 @@ function MerchantDashboardPage() {
       ...p,
       isPrimary: p.id === id
     })));
+  };
+
+  // Laptop File Upload Handlers
+  const handleBannerFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setVenueBanner(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleMultiGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    Array.from(files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setPhotos(prev => [
+            {
+              id: Date.now() + "_" + index + "_" + Math.random().toString(36).substr(2, 4),
+              url: event.target?.result as string,
+              caption: file.name.replace(/\.[^/.]+$/, ""),
+              type: index % 2 === 0 ? "food" : "interior",
+              isPrimary: prev.length === 0 && index === 0
+            },
+            ...prev
+          ]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleDishFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setNewDishImg(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAdBannerFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setBannerImageUrl(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const toggleDietaryTag = (tag: string) => {
@@ -781,6 +845,32 @@ function MerchantDashboardPage() {
                     className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
                   />
                 </div>
+
+                {/* Cover Banner Upload from Laptop */}
+                <div className="md:col-span-2 pt-2 border-t border-[#EAEAEA] space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold font-heading text-[#1A1A1A] uppercase">
+                      Restaurant Hero Banner & Cover Photo (Upload from Laptop)
+                    </label>
+                    <p className="text-[11px] text-[#757575]">Recommended: 1920x800 high-res image (JPG, PNG, WebP up to 10MB)</p>
+                  </div>
+
+                  <div className="relative rounded-2xl overflow-hidden aspect-[21/9] sm:aspect-[24/9] border border-[#E0E0E0] bg-slate-100 shadow-sm group">
+                    <img src={venueBanner} alt="Restaurant Banner" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors flex items-center justify-center">
+                      <label className="inline-flex items-center gap-2 bg-white/90 hover:bg-white text-[#1A1A1A] px-4 py-2.5 rounded-xl text-xs font-bold font-heading shadow-md cursor-pointer transition-all">
+                        <UploadCloud className="w-4 h-4 text-[#D4AF37]" />
+                        <span>Change Banner from Laptop</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleBannerFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1001,14 +1091,36 @@ function MerchantDashboardPage() {
                     placeholder="Ingredients & preparation description..."
                     className="sm:col-span-2 bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none"
                   />
-                  <input
-                    type="text"
-                    value={newDishImg}
-                    onChange={e => setNewDishImg(e.target.value)}
-                    placeholder="Image URL (optional)"
-                    className="bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none"
-                  />
+                  <div className="sm:col-span-3 flex flex-col sm:flex-row items-center gap-3">
+                    <div className="flex-1 w-full">
+                      <input
+                        type="text"
+                        value={newDishImg}
+                        onChange={e => setNewDishImg(e.target.value)}
+                        placeholder="Image URL or upload from laptop below..."
+                        className="w-full bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none"
+                      />
+                    </div>
+                    <label className="inline-flex items-center gap-1.5 bg-white border border-[#E0E0E0] hover:border-[#1A1A1A] text-[#1A1A1A] font-bold font-heading text-xs px-3.5 py-2 rounded-xl cursor-pointer shadow-2xs transition-all shrink-0">
+                      <UploadCloud className="w-4 h-4 text-[#D4AF37]" />
+                      <span>Upload Dish Photo from Laptop</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleDishFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
                 </div>
+
+                {newDishImg && (
+                  <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-[#E0E0E0] w-fit">
+                    <img src={newDishImg} alt="Preview" className="w-10 h-10 rounded-lg object-cover bg-slate-100" />
+                    <span className="text-[11px] font-semibold text-emerald-700">✓ Photo attached ready to save</span>
+                  </div>
+                )}
+
                 <div className="flex justify-end">
                   <button
                     type="button"
@@ -1051,16 +1163,51 @@ function MerchantDashboardPage() {
 
           {/* ── TAB 6: PHOTO GALLERY ── */}
           {activeTab === "gallery" && (
-            <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-10 shadow-xs space-y-6">
-              <div className="pb-4 border-b border-[#EAEAEA]">
-                <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">Photo Gallery & Ambience</h3>
-                <p className="text-xs text-[#757575] font-sans mt-0.5">Upload high-resolution photography for your dining rooms, signature food, and terrace views.</p>
+            <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-10 shadow-xs space-y-8">
+              <div className="pb-4 border-b border-[#EAEAEA] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">Photo Gallery & Ambience</h3>
+                  <p className="text-xs text-[#757575] font-sans mt-0.5">Upload multiple high-resolution photos directly from your laptop for dining rooms, dishes, and views.</p>
+                </div>
+                <div className="text-xs font-bold font-heading text-[#D4AF37] bg-[#FBF6E9] px-3.5 py-1.5 rounded-full border border-[#EFE2B9] w-fit">
+                  {photos.length} Photos in Gallery
+                </div>
               </div>
 
-              {/* Add Photo Form */}
+              {/* 🌟 1. MULTI-IMAGE BATCH LAPTOP UPLOADER DROPZONE */}
+              <div className="p-8 border-2 border-dashed border-[#D4AF37]/50 hover:border-[#D4AF37] rounded-3xl bg-[#FBF6E9]/40 hover:bg-[#FBF6E9]/60 transition-all text-center space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-[#D4AF37]/20 text-[#D4AF37] flex items-center justify-center mx-auto shadow-inner">
+                  <FolderUp className="w-7 h-7" />
+                </div>
+
+                <div className="space-y-1 max-w-md mx-auto">
+                  <h4 className="font-heading font-bold text-base text-[#1A1A1A]">
+                    Upload Multiple Photos from Your Laptop
+                  </h4>
+                  <p className="text-xs text-[#757575] font-sans">
+                    Select 5, 10, or 20+ photos at once (JPG, PNG, WebP). Hold <strong className="text-[#1A1A1A]">Ctrl</strong> or <strong className="text-[#1A1A1A]">Shift</strong> to select multiple files.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="inline-flex items-center gap-2 bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs px-6 py-3 rounded-xl cursor-pointer shadow-md transition-all hover:scale-102">
+                    <UploadCloud className="w-4 h-4 text-[#D4AF37]" />
+                    <span>Select & Upload Photos from Laptop</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleMultiGalleryUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* 2. Add Single Photo by URL */}
               <div className="bg-[#F5F5F5] border border-[#E0E0E0] p-5 rounded-2xl space-y-4">
                 <div className="font-heading font-bold text-xs uppercase tracking-wider text-[#1A1A1A]">
-                  + Upload / Add Photograph
+                  Or Add Photo via Direct URL
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <input
@@ -1092,37 +1239,57 @@ function MerchantDashboardPage() {
                     className="bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>Add to Gallery</span>
+                    <span>Add Photo URL</span>
                   </button>
                 </div>
               </div>
 
-              {/* Photos Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {photos.map(p => (
-                  <div key={p.id} className="group relative rounded-2xl overflow-hidden aspect-square border border-[#EAEAEA] bg-slate-100">
-                    <img src={p.url} alt={p.caption} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 text-white">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-bold uppercase bg-black/60 px-2 py-0.5 rounded">
-                          {p.type}
-                        </span>
-                        <button onClick={() => handleDeletePhoto(p.id)} className="text-rose-400 hover:text-rose-300">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className="space-y-1.5">
-                        <p className="text-[11px] line-clamp-2 leading-tight">{p.caption}</p>
-                        <button
-                          onClick={() => handleSetPrimaryPhoto(p.id)}
-                          className={`w-full py-1 text-[10px] font-bold rounded ${p.isPrimary ? "bg-[#D4AF37] text-[#1A1A1A]" : "bg-white/20 hover:bg-white/40 text-white"}`}
-                        >
-                          {p.isPrimary ? "👑 Primary Cover" : "Set as Primary"}
-                        </button>
+              {/* 3. Photos Grid */}
+              <div className="space-y-3">
+                <span className="text-xs font-bold font-heading text-[#757575] uppercase">
+                  Gallery Photos ({photos.length})
+                </span>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {photos.map(p => (
+                    <div key={p.id} className="group relative rounded-2xl overflow-hidden aspect-square border border-[#EAEAEA] bg-slate-100 shadow-2xs">
+                      <img src={p.url} alt={p.caption} className="w-full h-full object-cover" />
+                      
+                      {p.isPrimary && (
+                        <div className="absolute top-2 left-2 bg-[#D4AF37] text-[#1A1A1A] font-bold text-[9px] font-heading px-2 py-0.5 rounded shadow-xs">
+                          👑 Primary Cover
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 text-white">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-bold uppercase bg-black/60 px-2 py-0.5 rounded">
+                            {p.type}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePhoto(p.id)}
+                            className="p-1 text-rose-300 hover:text-rose-100 bg-black/50 rounded hover:bg-rose-600 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-[11px] line-clamp-2 leading-tight font-sans">{p.caption}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleSetPrimaryPhoto(p.id)}
+                            className={`w-full py-1 text-[10px] font-bold rounded transition-colors ${
+                              p.isPrimary ? "bg-[#D4AF37] text-[#1A1A1A]" : "bg-white/20 hover:bg-white/40 text-white"
+                            }`}
+                          >
+                            {p.isPrimary ? "👑 Primary Cover" : "Set as Cover"}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -1191,17 +1358,30 @@ function MerchantDashboardPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold font-heading text-[#1A1A1A] mb-1.5 uppercase">
-                      Banner Image URL
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold font-heading text-[#1A1A1A] uppercase">
+                      Banner Creative Image (Upload from Laptop or URL)
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={bannerImageUrl}
-                      onChange={e => setBannerImageUrl(e.target.value)}
-                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
-                    />
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                      <input
+                        type="text"
+                        required
+                        value={bannerImageUrl}
+                        onChange={e => setBannerImageUrl(e.target.value)}
+                        placeholder="https://images.unsplash.com/..."
+                        className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-4 py-2.5 text-xs font-semibold text-[#1A1A1A] outline-none"
+                      />
+                      <label className="inline-flex items-center gap-1.5 bg-white border border-[#E0E0E0] hover:border-[#1A1A1A] text-[#1A1A1A] font-bold font-heading text-xs px-3.5 py-2.5 rounded-xl cursor-pointer shadow-2xs transition-all shrink-0">
+                        <UploadCloud className="w-4 h-4 text-[#D4AF37]" />
+                        <span>Upload from Laptop</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAdBannerFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   <button

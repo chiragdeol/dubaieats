@@ -23,7 +23,11 @@ import {
   LogIn,
   UserPlus,
   Zap,
-  HelpCircle
+  HelpCircle,
+  UploadCloud,
+  FolderUp,
+  Image as ImageIcon,
+  Trash2
 } from "lucide-react";
 
 export const Route = createFileRoute("/join")({
@@ -60,6 +64,25 @@ function JoinAndSubscriptionPage() {
   const [regLicense, setRegLicense] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regSubmitted, setRegSubmitted] = useState(false);
+  const [regPhotos, setRegPhotos] = useState<{ id: string; url: string; name: string }[]>([]);
+  const [regBanner, setRegBanner] = useState<string>("");
+
+  const handleRegPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    Array.from(files).forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setRegPhotos(prev => [...prev, { id: Date.now() + "_" + idx, url: event.target?.result as string, name: file.name }]);
+          if (!regBanner && idx === 0) {
+            setRegBanner(event.target?.result as string);
+          }
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   // ROI Calculations
   const monthlyCovers = useMemo(() => coversPerDay * 30, [coversPerDay]);
@@ -422,10 +445,74 @@ function JoinAndSubscriptionPage() {
                     </div>
                   </div>
 
-                  {/* Step 3: Plan Selection */}
+                  {/* Step 3: Upload Restaurant Photos & Banner from Laptop */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs uppercase font-extrabold font-heading tracking-wider text-[#D4AF37] pb-2 border-b border-[#EAEAEA] flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-[#D4AF37]" />
+                      3. Restaurant Banner & Photos (Upload from Laptop)
+                    </h3>
+
+                    {/* Upload Dropzone */}
+                    <div className="p-6 border-2 border-dashed border-[#D4AF37]/50 hover:border-[#D4AF37] rounded-2xl bg-[#FBF6E9]/40 transition-all text-center space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] flex items-center justify-center mx-auto">
+                        <FolderUp className="w-6 h-6" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold font-heading text-[#1A1A1A]">
+                          Upload Multiple Venue & Food Photos from Your Laptop
+                        </p>
+                        <p className="text-[11px] text-[#757575]">
+                          Select 1 or more images (JPG, PNG, WebP — hold Ctrl/Shift to choose multiple)
+                        </p>
+                      </div>
+                      <div>
+                        <label className="inline-flex items-center gap-1.5 bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs px-4 py-2 rounded-xl cursor-pointer shadow-xs transition-all">
+                          <UploadCloud className="w-4 h-4 text-[#D4AF37]" />
+                          <span>Browse Files from Laptop</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleRegPhotoUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Live Uploaded Thumbnails Preview */}
+                    {regPhotos.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-[11px] font-bold font-heading text-[#757575] uppercase">
+                          {regPhotos.length} Photos Selected from Laptop:
+                        </span>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                          {regPhotos.map((photo, i) => (
+                            <div key={photo.id} className="relative rounded-xl overflow-hidden aspect-video border border-[#E0E0E0] group bg-slate-100 shadow-2xs">
+                              <img src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => setRegPhotos(prev => prev.filter(p => p.id !== photo.id))}
+                                className="absolute top-1 right-1 p-1 bg-black/70 text-white rounded-md hover:bg-rose-600 transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                              {i === 0 && (
+                                <span className="absolute bottom-1 left-1 bg-[#D4AF37] text-[#1A1A1A] font-bold text-[8px] px-1.5 py-0.5 rounded font-heading">
+                                  Cover Banner
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Step 4: Plan Selection */}
                   <div className="space-y-3">
                     <label className="block text-xs font-bold font-heading text-[#1A1A1A] uppercase">
-                      Select Starting Plan
+                      4. Select Starting Plan
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-heading text-xs">
                       {[
