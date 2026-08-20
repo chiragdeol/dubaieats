@@ -35,7 +35,7 @@ export const DUBAI_DISTRICTS: DubaiDistrict[] = [
   { name: "The Greens & Views", zone: "Dubai Marina & JBR", aliases: ["the greens", "the views"] },
 
   // ── Palm Jumeirah & Beachfront ──
-  { name: "Palm Jumeirah", zone: "Palm Jumeirah & Beachfront", aliases: ["palm", "palm jumeirah", "atlantis", "five palm", "w dubai palm", "st regis palm", "the palm", "palm tower", "nakheel"] },
+  { name: "Palm Jumeirah", zone: "Palm Jumeirah & Beachfront", aliases: ["palm", "palm jumeirah", "atlantis", "atlantis the royal", "atlantis the palm", "five palm", "w dubai", "st regis", "st. regis", "the palm", "palm tower", "nakheel", "west beach", "club vista mare", "azure residences", "one&only the palm", "jumeirah zabeel saray", "raffles the palm", "marriott resort palm", "anantara the palm", "the pointe"] },
   { name: "Umm Suqeim", zone: "Palm Jumeirah & Beachfront", aliases: ["umm suqeim", "jumeirah fishing harbour", "fishing harbour 2", "burj al arab beach", "burj al arab"] },
   { name: "Jumeirah Beach Hotel", zone: "Palm Jumeirah & Beachfront", aliases: ["jumeirah al naseem", "jumeirah al qasr", "mina a salam", "mina a' salam", "madinat jumeirah", "pierchic"] },
 

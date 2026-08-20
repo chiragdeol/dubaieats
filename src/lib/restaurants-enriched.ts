@@ -337,8 +337,8 @@ export const enrichedRestaurants: EnrichedRestaurant[] = rawRestaurants.map((r, 
   // 11. Geographic Coordinates
   const baseCoord = districtCoordinates[district] || { lat: 25.1972, lng: 55.2744 };
   const coordinates = {
-    lat: baseCoord.lat + (Math.sin(idx * 1.7) * 0.008),
-    lng: baseCoord.lng + (Math.cos(idx * 1.7) * 0.008)
+    lat: r.latitude || (baseCoord.lat + (Math.sin(idx * 1.7) * 0.008)),
+    lng: r.longitude || (baseCoord.lng + (Math.cos(idx * 1.7) * 0.008))
   };
 
   // 12. Transparent Sponsored Ad Placement
