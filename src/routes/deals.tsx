@@ -205,23 +205,22 @@ function DealsDirectoryPage() {
                   </div>
 
                   <div className="p-5 pt-0">
-                    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border">
+                    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[#EAEAEA]">
                       <Link
                         to="/restaurants/$id"
                         params={{ id: r.slug }}
-                        className="bg-primary text-primary-foreground font-bold text-xs py-2.5 rounded-xl hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1"
+                        className="border border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] font-bold font-heading text-xs py-2.5 rounded-xl transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
                       >
-                        <span>View Deal</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
+                        <span>Show Profile</span>
                       </Link>
 
                       <a
                         href={r.bookingPlatform?.url || r.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="border border-border bg-secondary hover:bg-secondary/80 text-foreground font-bold text-xs py-2.5 rounded-xl text-center flex items-center justify-center gap-1"
+                        className="bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-extrabold font-heading text-xs py-2.5 rounded-xl text-center flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer"
                       >
-                        <Calendar className="w-3.5 h-3.5 text-primary" />
+                        <Calendar className="w-3.5 h-3.5 text-[#1A1A1A]" />
                         <span>Book Table</span>
                       </a>
                     </div>

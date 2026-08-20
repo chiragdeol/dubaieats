@@ -184,60 +184,27 @@ function GmbCard({
           </div>
         </div>
 
-        {/* Bottom Booking & Availability Row (Full size, no cutting) */}
-        <div className="pt-2 border-t border-[#EAEAEA] space-y-2.5">
-          <p className="text-xs text-[#757575] font-medium">
-            Do you have <strong className="font-bold text-[#1A1A1A]">another time</strong> in mind?
-          </p>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Find Availability Button (Outlined style) */}
+        {/* Bottom Booking & Show Profile Action Row (Only 2 buttons) */}
+        <div className="pt-3 border-t border-[#EAEAEA]">
+          <div className="flex items-center gap-3">
+            {/* 1. Show Profile Button */}
             <Link
               to="/restaurants/$id"
               params={{ id: r.slug }}
-              className="border border-[#1A1A1A] hover:bg-[#F5F5F5] text-[#1A1A1A] font-bold font-heading text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1 border border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] font-bold font-heading text-xs sm:text-sm py-3 px-4 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer text-center"
             >
-              <span>Find availability</span>
+              <span>Show Profile</span>
             </Link>
 
-            {/* Direct Book Table Button (Primary #1A1A1A) */}
+            {/* 2. Book Table Button */}
             <a
               href={r.bookingPlatform?.url || r.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#1A1A1A] hover:bg-black text-white font-bold font-heading text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1 bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-extrabold font-heading text-xs sm:text-sm py-3 px-4 rounded-xl shadow-md transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer text-center"
             >
-              <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <Calendar className="w-4 h-4 text-[#1A1A1A]" />
               <span>Book Table</span>
-            </a>
-
-            {/* VIP Deposit Modal Button (Gold #D4AF37) */}
-            <button
-              onClick={() => onOpenDeposit(r)}
-              className="bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-bold font-heading text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-[#1A1A1A]" />
-              <span>VIP Deposit</span>
-            </button>
-
-            {/* WhatsApp Direct */}
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="border border-[#E0E0E0] hover:border-[#1A1A1A] bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] font-bold font-heading text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-1.5"
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
-              <span>WhatsApp</span>
-            </a>
-
-            {/* Call */}
-            <a
-              href={callUrl(r.phone)}
-              className="text-[#757575] hover:text-[#1A1A1A] hover:bg-[#F5F5F5] px-3 py-2.5 rounded-xl text-xs font-bold font-heading transition-colors inline-flex items-center gap-1"
-            >
-              <Phone className="w-3.5 h-3.5" />
-              <span>Call</span>
             </a>
           </div>
         </div>
