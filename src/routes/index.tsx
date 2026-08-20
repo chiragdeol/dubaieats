@@ -412,8 +412,6 @@ function Landing() {
             </div>
           </div>
         </section>
-
-        <OwnerCta />
       </main>
 
       <DubaiItRandomizerModal isOpen={randomizerOpen} onClose={() => setRandomizerOpen(false)} />
