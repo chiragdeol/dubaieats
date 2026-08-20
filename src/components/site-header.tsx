@@ -49,8 +49,8 @@ export function SiteHeader() {
             <GovernmentDubaiLogo />
           </Link>
 
-          {/* 2. Center: OUR PLATFORM MENU (Montserrat Font, Majestic Palate Colors) */}
-          <nav className="hidden xl:flex items-center gap-1 2xl:gap-1.5 text-[13px] font-bold font-heading text-[#1A1A1A]">
+          {/* 2. Center: OUR PLATFORM MENU (Clean Customer Nav) */}
+          <nav className="hidden xl:flex items-center gap-1.5 2xl:gap-2 text-[13px] font-bold font-heading text-[#1A1A1A]">
             
             {/* Home */}
             <Link
@@ -81,7 +81,7 @@ export function SiteHeader() {
               <span>Map Explorer</span>
             </Link>
 
-            {/* Deals & Privileges (Majestic Palate Gold Highlight Pill) */}
+            {/* Deals & Privileges */}
             <Link
               to="/deals"
               className="bg-[#1A1A1A] text-white px-4 py-2 rounded-xl flex items-center gap-1.5 text-xs font-bold shadow-xs hover:bg-[#000000] border border-[#333333] transition-all"
@@ -110,35 +110,16 @@ export function SiteHeader() {
               <span>AI Concierge</span>
             </Link>
 
-            {/* Vendor Portal */}
-            <Link
-              to="/merchant"
-              className="px-3.5 py-2 rounded-xl bg-[#F5F5F5] text-[#1A1A1A] hover:bg-[#EAEAEA] transition-colors flex items-center gap-1.5 border border-[#E0E0E0]"
-              activeProps={{ className: "font-black bg-[#EAEAEA]" }}
-            >
-              <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Vendor Portal</span>
-            </Link>
-
-            {/* Admin Console */}
-            <Link
-              to="/admin"
-              className="px-3 py-2 rounded-xl hover:text-[#D4AF37] text-[#757575] hover:bg-[#F5F5F5] transition-colors text-xs font-semibold"
-              activeProps={{ className: "text-[#1A1A1A] font-bold" }}
-            >
-              <span>⚙️ Admin</span>
-            </Link>
-
           </nav>
 
-          {/* 3. Right: Clean Outlined Vendor Login Button (Majestic Palate Outlined Button) */}
+          {/* 3. Right: Single Clean "For Restaurants" Link opening the Restaurant Information Page (/join) */}
           <div className="flex items-center gap-3">
             <Link
-              to="/merchant"
-              className="inline-flex items-center gap-1.5 text-xs font-bold font-heading text-[#1A1A1A] bg-[#F5F5F5] hover:bg-[#1A1A1A] hover:text-white px-4 py-2 rounded-xl transition-all border border-[#E0E0E0]"
+              to="/join"
+              className="inline-flex items-center gap-1.5 text-xs font-bold font-heading text-[#1A1A1A] bg-[#F5F5F5] hover:bg-[#D4AF37] hover:text-[#1A1A1A] px-4 py-2 rounded-xl transition-all border border-[#E0E0E0] shadow-2xs cursor-pointer"
             >
               <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Vendor Login</span>
+              <span>For Restaurants</span>
             </Link>
           </div>
 
