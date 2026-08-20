@@ -81,8 +81,8 @@ function GmbCard({
   return (
     <article className="bg-white border border-[#EAEAEA] hover:border-[#D4AF37] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col md:flex-row group text-left relative">
       
-      {/* Left Image Section (TheFork style) */}
-      <div className="relative w-full md:w-72 lg:w-80 h-56 md:h-auto shrink-0 overflow-hidden bg-[#F5F5F5]">
+      {/* Left Image Section (Compact Height TheFork style) */}
+      <div className="relative w-full md:w-64 lg:w-72 h-48 md:h-[200px] shrink-0 overflow-hidden bg-[#F5F5F5]">
         <img
           src={r.image}
           alt={r.name}
@@ -108,28 +108,28 @@ function GmbCard({
         <button
           onClick={() => setBookmarked(!bookmarked)}
           aria-label="Save to favorites"
-          className="absolute top-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-xs text-white hover:bg-black/60 hover:scale-110 transition-all z-10 cursor-pointer"
+          className="absolute top-3 right-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xs text-white hover:bg-black/60 hover:scale-110 transition-all z-10 cursor-pointer"
         >
-          <Heart className={`w-4 h-4 ${bookmarked ? "fill-[#D4AF37] text-[#D4AF37]" : "text-white stroke-[2]"}`} />
+          <Heart className={`w-3.5 h-3.5 ${bookmarked ? "fill-[#D4AF37] text-[#D4AF37]" : "text-white stroke-[2]"}`} />
         </button>
 
         {/* Bottom Carousel Indicator Dots (TheFork style) */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 pointer-events-none">
-          <span className="w-2 h-2 rounded-full bg-white shadow-xs" />
-          <span className="w-1.5 h-1.5 rounded-full bg-white/60 shadow-xs" />
-          <span className="w-1.5 h-1.5 rounded-full bg-white/60 shadow-xs" />
-          <span className="w-1.5 h-1.5 rounded-full bg-white/60 shadow-xs" />
+        <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 pointer-events-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-white shadow-xs" />
+          <span className="w-1 h-1 rounded-full bg-white/60 shadow-xs" />
+          <span className="w-1 h-1 rounded-full bg-white/60 shadow-xs" />
+          <span className="w-1 h-1 rounded-full bg-white/60 shadow-xs" />
         </div>
       </div>
 
-      {/* Right Content Section (TheFork Style Spacious Layout with Majestic Palate Tokens) */}
-      <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+      {/* Right Content Section (Compact & Balanced Layout) */}
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-2.5">
         
         {/* Top Information Block */}
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {/* Row 1: Name & Rating Box */}
-          <div className="flex items-start justify-between gap-4">
-            <h2 className="font-display font-black text-xl sm:text-2xl text-[#1A1A1A] leading-snug group-hover:text-[#D4AF37] transition-colors">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="font-display font-black text-lg sm:text-xl text-[#1A1A1A] leading-snug group-hover:text-[#D4AF37] transition-colors">
               <Link to="/restaurants/$id" params={{ id: r.slug }}>
                 {r.name}
               </Link>
@@ -137,47 +137,47 @@ function GmbCard({
 
             {/* Majestic Palate Rating Badge */}
             <div className="text-right shrink-0">
-              <span className="inline-flex items-center justify-center bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-black text-sm sm:text-base px-2.5 py-1 rounded-lg font-heading">
+              <span className="inline-flex items-center justify-center bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-black text-xs sm:text-sm px-2 py-0.5 rounded-md font-heading">
                 {(r.rating * 2).toFixed(1)}
               </span>
-              <p className="text-[11px] text-[#757575] font-medium mt-0.5">
+              <p className="text-[10px] text-[#757575] font-medium mt-0.5">
                 ({r.reviews})
               </p>
             </div>
           </div>
 
           {/* Line 2: Address */}
-          <p className="text-[#757575] text-xs sm:text-sm font-normal">
+          <p className="text-[#757575] text-xs font-normal">
             {r.address || `${r.district}, Dubai`}
           </p>
 
           {/* Line 3: Cuisine & Average Price */}
-          <p className="text-[#1A1A1A] text-xs sm:text-sm font-medium">
+          <p className="text-[#1A1A1A] text-xs font-semibold">
             {r.cuisine} · Average price AED {r.priceMin}
           </p>
 
           {/* Line 4: TheFork Summer / Privilege Tag Pill */}
-          <div className="pt-1 flex flex-wrap items-center gap-2">
+          <div className="pt-0.5 flex flex-wrap items-center gap-1.5">
             {r.discounts && r.discounts.length > 0 ? (
-              <span className="inline-flex items-center gap-1.5 bg-[#FBF6E9] text-[#9C7D1A] border border-[#EFE2B9] font-bold text-xs px-3.5 py-1.5 rounded-full font-heading">
-                <Tag className="w-3.5 h-3.5 fill-[#9C7D1A]" />
+              <span className="inline-flex items-center gap-1 bg-[#FBF6E9] text-[#9C7D1A] border border-[#EFE2B9] font-bold text-[11px] px-2.5 py-0.5 rounded-full font-heading">
+                <Tag className="w-3 h-3 fill-[#9C7D1A]" />
                 <span>Up to -50% · {r.discounts[0]} Privilege</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 bg-[#F5F5F5] text-[#1A1A1A] border border-[#E5E5E5] font-bold text-xs px-3.5 py-1.5 rounded-full font-heading">
-                <Tag className="w-3.5 h-3.5 fill-[#1A1A1A]" />
+              <span className="inline-flex items-center gap-1 bg-[#F5F5F5] text-[#1A1A1A] border border-[#E5E5E5] font-bold text-[11px] px-2.5 py-0.5 rounded-full font-heading">
+                <Tag className="w-3 h-3 fill-[#1A1A1A]" />
                 <span>Special Dining Offers Available</span>
               </span>
             )}
 
             {/* Perks */}
             {r.liquor === "Licensed" && (
-              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#F5F5F5] text-[#1A1A1A] border border-[#E0E0E0] font-heading">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F5F5F5] text-[#1A1A1A] border border-[#E0E0E0] font-heading">
                 🍷 Licensed Bar
               </span>
             )}
             {liveStatus.isOpen && (
-              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#FBF6E9] text-[#9C7D1A] border border-[#EFE2B9] font-heading">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FBF6E9] text-[#9C7D1A] border border-[#EFE2B9] font-heading">
                 ● Open Now
               </span>
             )}
@@ -185,13 +185,13 @@ function GmbCard({
         </div>
 
         {/* Bottom Booking & Show Profile Action Row (Only 2 buttons) */}
-        <div className="pt-3 border-t border-[#EAEAEA]">
-          <div className="flex items-center gap-3">
+        <div className="pt-2.5 border-t border-[#EAEAEA]">
+          <div className="flex items-center gap-2.5">
             {/* 1. Show Profile Button */}
             <Link
               to="/restaurants/$id"
               params={{ id: r.slug }}
-              className="flex-1 border border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] font-bold font-heading text-xs sm:text-sm py-3 px-4 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer text-center"
+              className="flex-1 border border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] font-bold font-heading text-xs py-2.5 px-3 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1 cursor-pointer text-center"
             >
               <span>Show Profile</span>
             </Link>
@@ -201,9 +201,9 @@ function GmbCard({
               href={r.bookingPlatform?.url || r.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-extrabold font-heading text-xs sm:text-sm py-3 px-4 rounded-xl shadow-md transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer text-center"
+              className="flex-1 bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-extrabold font-heading text-xs py-2.5 px-3 rounded-xl shadow-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer text-center"
             >
-              <Calendar className="w-4 h-4 text-[#1A1A1A]" />
+              <Calendar className="w-3.5 h-3.5 text-[#1A1A1A]" />
               <span>Book Table</span>
             </a>
           </div>
