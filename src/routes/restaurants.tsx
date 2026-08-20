@@ -7,6 +7,7 @@ import { SponsoredDirectionsModal } from "@/components/sponsored-directions-moda
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { DepositModal } from "@/components/deposit-modal";
 import { OwnerCta } from "@/components/owner-cta";
+import { RestaurantMap } from "@/components/restaurant-map";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import { DUBAI_DISTRICTS, DUBAI_ZONES } from "@/lib/dubai-districts";
 import { parseIntent, matchRestaurants, hasGemini, callGemini, type ChatMessage } from "@/lib/restaurant-ai";
@@ -739,12 +740,10 @@ function Index() {
                   />
                 ))}
               </div>
-              <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-[#dce2e2] bg-[#e8f1ef] shadow-sm lg:block">
-                <iframe
-                  title="Dubai restaurant map"
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=55.094%2C25.065%2C55.32%2C25.3&layer=mapnik"
-                  className="h-full w-full border-0"
-                  loading="lazy"
+              <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] overflow-hidden rounded-3xl border border-[#EAEAEA] bg-white shadow-md lg:block">
+                <RestaurantMap
+                  restaurants={filteredAndSorted}
+                  className="h-full w-full"
                 />
               </aside>
             </div>
