@@ -1,10 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { enrichedRestaurants, type EnrichedRestaurant } from "../lib/restaurants-enriched";
+import { enrichedRestaurants, formatPrivilegeBadge, type EnrichedRestaurant } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DepositModal } from "@/components/deposit-modal";
 import { RestaurantMap } from "@/components/restaurant-map";
+import { MichelinBadge } from "@/components/michelin-badge";
+import { ImageSlideshowModal } from "@/components/image-slideshow-modal";
+import { ClaimListingModal } from "@/components/claim-listing-modal";
+import { PrivilegeCommunityVerify } from "@/components/privilege-community-verify";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import {
   Star,
@@ -38,7 +42,8 @@ import {
   Wine,
   ArrowRight,
   ExternalLink,
-  Navigation
+  Navigation,
+  Building2
 } from "lucide-react";
 
 export const Route = createFileRoute("/restaurants_/$id")({
@@ -104,6 +109,7 @@ function RestaurantDetail() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [claimModalOpen, setClaimModalOpen] = useState(false);
 
   // Booking Widget Form state
   const [bookingDate, setBookingDate] = useState("2026-08-20");
@@ -129,15 +135,15 @@ function RestaurantDetail() {
 
   if (!r) {
     return (
-      <div className="min-h-screen bg-[#F5F5F5] flex flex-col justify-between text-left">
+      <div className="min-h-screen bg-[#F8F9FA] flex flex-col justify-between text-left">
         <SiteHeader />
         <div className="py-24 text-center">
-          <UtensilsCrossed className="h-16 w-16 mx-auto text-[#757575] mb-4" />
-          <h2 className="text-2xl font-bold font-heading text-[#1A1A1A]">Venue Not Found</h2>
-          <p className="text-[#757575] text-sm mt-1">This restaurant listing could not be found.</p>
+          <UtensilsCrossed className="h-16 w-16 mx-auto text-[#6B7280] mb-4" />
+          <h2 className="text-2xl font-bold font-heading text-[#111827]">Venue Not Found</h2>
+          <p className="text-[#6B7280] text-sm mt-1">This restaurant listing could not be found.</p>
           <Link
             to="/restaurants"
-            className="inline-block mt-6 px-6 py-2.5 rounded-full bg-[#1A1A1A] text-white font-bold font-heading text-xs"
+            className="inline-block mt-6 px-6 py-2.5 rounded-full bg-[#111827] text-white font-bold font-heading text-xs"
           >
             Browse All Restaurants
           </Link>
@@ -148,7 +154,7 @@ function RestaurantDetail() {
   }
 
   const liveStatus = isCurrentlyOpenInDubai(r.hours);
-  const whatsappUrl = `https://wa.me/971562730030?text=Hi%20${encodeURIComponent(r.name)}%2C%20I%20found%20your%20venue%20on%20Dubai%20Eats.%20I%27d%20like%20to%20inquire%20about%20table%20availability.`;
+  const whatsappUrl = `https://wa.me/971562730030?text=Hi%20${encodeURIComponent(r.name)}%2C%20I%20found%20your%20venue%20on%20Dubai%20Eat.%20I%27d%20like%20to%20inquire%20about%20table%20availability.`;
 
   // Multi-provider booking platform links
   const bookingProviders = [
@@ -206,7 +212,7 @@ function RestaurantDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] text-[#1A1A1A] font-sans text-left">
+    <div className="min-h-screen bg-[#F8F9FA] text-[#111827] font-sans text-left">
       <SiteHeader />
 
       <DepositModal
@@ -215,45 +221,30 @@ function RestaurantDetail() {
         onClose={() => setIsDepositOpen(false)}
       />
 
-      {/* ── PHOTO GALLERY LIGHTBOX ── */}
-      {lightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4">
-          <button
-            onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 p-2 text-white/80 hover:text-white rounded-full bg-white/10 cursor-pointer"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <img
-            src={gallery[lightboxIndex]}
-            alt={`${r.name} photo`}
-            className="max-h-[80vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl"
-          />
-          <div className="flex items-center gap-4 mt-4">
-            <button
-              onClick={() => setLightboxIndex((prev) => (prev > 0 ? prev - 1 : gallery.length - 1))}
-              className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 cursor-pointer"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <span className="text-white text-xs font-semibold font-heading">{lightboxIndex + 1} / {gallery.length}</span>
-            <button
-              onClick={() => setLightboxIndex((prev) => (prev < gallery.length - 1 ? prev + 1 : 0))}
-              className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 cursor-pointer"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* ── PHOTO GALLERY LIGHTBOX & SLIDESHOW ── */}
+      <ImageSlideshowModal
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        images={gallery}
+        initialIndex={lightboxIndex}
+        title={r.name}
+      />
+
+      {/* ── OWNER CLAIM LISTING MODAL ── */}
+      <ClaimListingModal
+        isOpen={claimModalOpen}
+        onClose={() => setClaimModalOpen(false)}
+        restaurantName={r.name}
+        restaurantAddress={r.address || `${r.district}, Dubai`}
+      />
 
       {/* ── DIGITAL QR CODE MODAL ── */}
       {qrModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl relative border border-[#EAEAEA]">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl relative border border-[#E5E7EB]">
             <button
               onClick={() => setQrModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 text-[#757575] hover:text-[#1A1A1A] rounded-full hover:bg-[#F5F5F5] cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 text-[#6B7280] hover:text-[#111827] rounded-full hover:bg-[#F3F4F6] cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -262,19 +253,19 @@ function RestaurantDetail() {
               <div className="inline-flex items-center gap-1 text-[10px] font-semibold font-heading uppercase text-[#D4AF37] bg-[#FBF6E9] px-3 py-1 rounded-full border border-[#EFE2B9]">
                 <QrCode className="w-3.5 h-3.5" /> Official Digital Menu
               </div>
-              <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">{r.name}</h3>
-              <p className="text-xs text-[#757575]">Scan on your phone to view live prices, ingredients, and chef specials.</p>
+              <h3 className="font-heading font-bold text-xl text-[#111827]">{r.name}</h3>
+              <p className="text-xs text-[#6B7280]">Scan on your phone to view live prices, ingredients, and chef specials.</p>
             </div>
 
-            <div className="p-4 bg-[#F5F5F5] rounded-2xl border border-[#E0E0E0] inline-block shadow-inner">
+            <div className="p-4 bg-[#F8F9FA] rounded-2xl border border-[#E5E7EB] inline-block shadow-inner">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(r.website || 'https://dubaieats.ae/restaurants/' + r.slug)}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(r.website || 'https://dubai-eat.com/restaurants/' + r.slug)}`}
                 alt="Digital QR Menu"
                 className="w-48 h-48 mx-auto"
               />
             </div>
 
-            <div className="text-[11px] text-[#757575] font-mono">
+            <div className="text-[11px] text-[#6B7280] font-mono">
               Direct Link: <a href={r.website} target="_blank" rel="noopener noreferrer" className="text-[#D4AF37] underline font-bold">Open Menu in Browser</a>
             </div>
           </div>
@@ -285,47 +276,52 @@ function RestaurantDetail() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16 space-y-8">
         
         {/* ── BREADCRUMB ── */}
-        <div className="flex items-center gap-2 text-xs font-medium text-[#757575] font-heading">
-          <Link to="/" className="text-[#1A1A1A] font-semibold hover:text-[#D4AF37]">Home</Link>
+        <div className="flex items-center gap-2 text-xs font-medium text-[#6B7280] font-heading">
+          <Link to="/" className="text-[#111827] font-semibold hover:text-[#D4AF37]">Home</Link>
           <span>›</span>
-          <Link to="/restaurants" className="text-[#1A1A1A] font-semibold hover:text-[#D4AF37]">Dubai restaurants</Link>
+          <Link to="/restaurants" className="text-[#111827] font-semibold hover:text-[#D4AF37]">Dubai restaurants</Link>
           <span>›</span>
           <span>{r.name}</span>
         </div>
 
-        {/* ── 1. HEADER SECTION & THEFORK PHOTO GRID (Screenshot 1) ── */}
+        {/* ── 1. HEADER SECTION & PHOTO GRID ── */}
         <section className="space-y-4">
           
           {/* Title Row */}
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div className="space-y-2">
-              <h1 className="font-display text-2xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight leading-tight">
-                {r.name}
-              </h1>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="font-display text-2xl sm:text-4xl font-bold text-[#111827] tracking-tight leading-tight">
+                  {r.name}
+                </h1>
+                {r.michelin && (
+                  <MichelinBadge tier={r.michelin} size="md" />
+                )}
+              </div>
               
-              <p className="text-xs sm:text-sm text-[#757575] font-sans flex items-center gap-1.5">
+              <p className="text-xs sm:text-sm text-[#6B7280] font-sans flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
                 <span>{r.address || `${r.district}, Dubai`}</span>
               </p>
 
-              <p className="text-xs sm:text-sm text-[#1A1A1A] font-medium font-sans">
+              <p className="text-xs sm:text-sm text-[#111827] font-medium font-sans">
                 🍽️ {r.cuisine} · Average price AED {r.priceMin}
               </p>
 
-              <div className="flex items-center gap-2 pt-0.5 text-xs text-[#757575] font-sans">
-                <span className="inline-flex items-center gap-1 font-heading font-bold text-sm text-[#1A1A1A]">
+              <div className="flex items-center gap-2 pt-0.5 text-xs text-[#6B7280] font-sans">
+                <span className="inline-flex items-center gap-1 font-heading font-bold text-sm text-[#111827]">
                   ★ {(r.rating * 2).toFixed(1)}
                 </span>
-                <span className="font-semibold text-[#1A1A1A] font-heading">({r.reviews} reviews)</span>
+                <span className="font-semibold text-[#111827] font-heading">({r.reviews} reviews)</span>
                 <span>·</span>
-                <span className="text-[#757575]">71 reviews in the last 30 days</span>
+                <span className="text-[#6B7280]">Verified community rating</span>
               </div>
 
-              {/* Quick Action Header Bar: Call, Website, Google Maps */}
+              {/* Quick Action Header Bar: Call, Website, Google Maps, Claim */}
               <div className="flex flex-wrap items-center gap-2 pt-2">
                 <a
                   href={callUrl(r.phone)}
-                  className="inline-flex items-center gap-1.5 bg-white border border-[#E0E0E0] hover:border-[#1A1A1A] hover:bg-[#F5F5F5] text-[#1A1A1A] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
+                  className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] hover:border-[#111827] hover:bg-[#F3F4F6] text-[#111827] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
                 >
                   <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
                   <span>Call {r.phone}</span>
@@ -335,22 +331,31 @@ function RestaurantDetail() {
                   href={r.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 bg-white border border-[#E0E0E0] hover:border-[#1A1A1A] hover:bg-[#F5F5F5] text-[#1A1A1A] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
+                  className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] hover:border-[#111827] hover:bg-[#F3F4F6] text-[#111827] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
                 >
                   <Globe className="w-3.5 h-3.5 text-[#D4AF37]" />
                   <span>Official Website</span>
-                  <ExternalLink className="w-3 h-3 text-[#757575]" />
+                  <ExternalLink className="w-3 h-3 text-[#6B7280]" />
                 </a>
 
                 <a
                   href={mapsSearchUrl(r.name, r.address || r.district)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 bg-[#FBF6E9] border border-[#EFE2B9] hover:bg-[#F5ECD4] text-[#9C7D1A] px-3.5 py-1.5 rounded-xl text-xs font-bold font-heading shadow-2xs transition-all"
+                  className="inline-flex items-center gap-1.5 bg-[#FBF6E9] border border-[#EFE2B9] hover:bg-[#F5ECD4] text-[#8D6E18] px-3.5 py-1.5 rounded-xl text-xs font-bold font-heading shadow-2xs transition-all"
                 >
-                  <Navigation className="w-3.5 h-3.5 text-[#9C7D1A]" />
+                  <Navigation className="w-3.5 h-3.5 text-[#8D6E18]" />
                   <span>Google Maps Directions</span>
                 </a>
+
+                <button
+                  onClick={() => setClaimModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 bg-[#FFF4F2] border border-[#F5C2BA] hover:bg-[#FDE8E5] text-[#D9381E] px-3.5 py-1.5 rounded-xl text-xs font-bold font-heading shadow-2xs transition-all cursor-pointer"
+                  title="Claim listing ownership"
+                >
+                  <Building2 className="w-3.5 h-3.5 text-[#D9381E]" />
+                  <span>Claim Listing</span>
+                </button>
               </div>
             </div>
 
@@ -359,9 +364,9 @@ function RestaurantDetail() {
               <button
                 onClick={() => setBookmarked(!bookmarked)}
                 aria-label="Save to favorites"
-                className="p-3 rounded-full border border-[#E0E0E0] bg-white hover:bg-[#F5F5F5] transition-all shadow-xs cursor-pointer"
+                className="p-3 rounded-full border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] transition-all shadow-xs cursor-pointer"
               >
-                <Heart className={`w-5 h-5 ${bookmarked ? "fill-[#D4AF37] text-[#D4AF37]" : "text-[#1A1A1A]"}`} />
+                <Heart className={`w-5 h-5 ${bookmarked ? "fill-[#D9381E] text-[#D9381E]" : "text-[#111827]"}`} />
               </button>
             </div>
           </div>
@@ -489,21 +494,50 @@ function RestaurantDetail() {
                   </div>
                 </div>
 
-                {/* Privilege Card tags */}
+                {/* Privilege Card tags & Community Verification */}
                 {r.discounts && r.discounts.length > 0 && (
-                  <div className="bg-[#FBF6E9] border border-[#EFE2B9] p-4 rounded-2xl space-y-2">
-                    <span className="text-xs font-semibold font-heading text-[#9C7D1A] uppercase tracking-wider flex items-center gap-1.5">
-                      <BadgePercent className="w-4 h-4" /> Accepted Privilege Offers
+                  <div className="bg-[#FBF6E9] border border-[#EFE2B9] p-5 rounded-2xl space-y-3">
+                    <span className="text-xs font-bold font-heading text-[#8D6E18] uppercase tracking-wider flex items-center gap-1.5">
+                      <BadgePercent className="w-4 h-4 text-[#D4AF37]" /> Accepted Privilege Offers & Discounts
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {r.discounts.map(d => (
-                        <span key={d} className="bg-white border border-[#EFE2B9] text-[#9C7D1A] font-semibold text-xs px-3 py-1 rounded-xl shadow-2xs font-heading">
-                          💳 {d}
+                        <span key={d} className="badge-privilege-card shadow-2xs">
+                          {formatPrivilegeBadge(d)}
                         </span>
                       ))}
                     </div>
                   </div>
                 )}
+
+                {/* Community Verification Widget & Safety Disclaimer */}
+                <PrivilegeCommunityVerify
+                  restaurantName={r.name}
+                  initialUpvotes={r.verificationStats?.upvotes}
+                  initialDownvotes={r.verificationStats?.downvotes}
+                />
+
+                {/* Restaurant Owner Claim Growth Loop Banner */}
+                <div className="bg-gradient-to-r from-[#111827] via-[#1E293B] to-[#111827] text-white p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-[#334155] shadow-sm">
+                  <div className="space-y-1.5 max-w-lg">
+                    <span className="text-[10px] font-extrabold font-heading uppercase tracking-widest text-[#D4AF37] bg-[#D4AF37]/15 px-2.5 py-0.5 rounded-full border border-[#D4AF37]/30 inline-block">
+                      Official Growth Loop
+                    </span>
+                    <h4 className="font-heading font-black text-base sm:text-lg text-white">
+                      Are you the owner of {r.name}?
+                    </h4>
+                    <p className="text-xs text-white/70 font-sans leading-relaxed">
+                      Claim this listing to verify your privilege offers (Fazaa, Esaad, ENBD), publish seasonal menus, and manage direct zero-commission table reservations.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setClaimModalOpen(true)}
+                    className="btn-action-primary text-xs shrink-0 whitespace-nowrap cursor-pointer py-3 px-5"
+                  >
+                    <Building2 className="w-4 h-4" /> Claim This Listing
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -943,24 +977,24 @@ function RestaurantDetail() {
                 </div>
               </div>
 
-              {/* Primary Booking Action Buttons */}
+              {/* Primary Booking Action Buttons (Warm Red / Terracotta #D9381E) */}
               <div className="space-y-2.5 pt-2">
                 <a
                   href={currentBookingUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-bold font-heading text-xs py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-center cursor-pointer"
+                  className="w-full btn-action-primary text-sm font-bold font-heading py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-center cursor-pointer"
                 >
-                  <Calendar className="w-4 h-4 text-[#1A1A1A]" />
+                  <Calendar className="w-4 h-4 text-white" />
                   <span>Book Table via {selectedProvider}</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-[#1A1A1A]" />
+                  <ExternalLink className="w-3.5 h-3.5 text-white/80" />
                 </a>
 
                 {/* VIP Table Deposit Modal Trigger */}
                 <button
                   type="button"
                   onClick={() => setIsDepositOpen(true)}
-                  className="w-full bg-[#1A1A1A] hover:bg-black text-white font-semibold font-heading text-xs py-3 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full bg-[#111827] hover:bg-black text-white font-semibold font-heading text-xs py-3 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <ShieldCheck className="w-4 h-4 text-[#D4AF37]" />
                   <span>VIP Table Deposit (Stripe / Telr)</span>
@@ -970,7 +1004,7 @@ function RestaurantDetail() {
                 <div className="grid grid-cols-2 gap-2 pt-1 font-heading text-xs">
                   <a
                     href={callUrl(r.phone)}
-                    className="border border-[#E0E0E0] bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center truncate"
+                    className="border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-[#F3F4F6] text-[#111827] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center truncate"
                   >
                     <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
                     <span>Call Venue</span>
@@ -980,11 +1014,23 @@ function RestaurantDetail() {
                     href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-[#E0E0E0] bg-[#F5F5F5] hover:bg-[#EAEAEA] text-[#1A1A1A] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center"
+                    className="border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-[#F3F4F6] text-[#111827] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center"
                   >
                     <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
                     <span>WhatsApp</span>
                   </a>
+                </div>
+
+                {/* Quick Owner Claim CTA */}
+                <div className="pt-2 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setClaimModalOpen(true)}
+                    className="text-[11px] text-[#6B7280] hover:text-[#D9381E] font-heading font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <Building2 className="w-3 h-3 text-[#D9381E]" />
+                    <span>Are you the manager? Claim listing</span>
+                  </button>
                 </div>
               </div>
 

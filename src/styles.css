@@ -13,15 +13,29 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   
-  --font-sans: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Montserrat', sans-serif;
-  --font-heading: 'Montserrat', sans-serif;
-  --font-label: 'Montserrat', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-label: 'Outfit', sans-serif;
 
-  --color-mp-primary: #1A1A1A;
+  --color-action-primary: #D9381E;
+  --color-action-primary-hover: #C02F17;
+  --color-action-primary-subtle: #FDF2F0;
+  --color-action-primary-border: #F5C2BA;
+
+  --color-gold-accent: #D4AF37;
+  --color-gold-accent-hover: #C29D2C;
+  --color-gold-subtle: #FBF6E9;
+  --color-gold-border: #EFE2B9;
+
+  --color-michelin-red: #D9381E;
+
+  --color-mp-primary: #111827;
   --color-mp-secondary: #D4AF37;
-  --color-mp-tertiary: #F5F5F5;
-  --color-mp-neutral: #757575;
+  --color-mp-action: #D9381E;
+  --color-mp-tertiary: #F8F9FA;
+  --color-mp-neutral: #6B7280;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -47,64 +61,65 @@
 :root {
   --radius: 0.875rem;
 
-  /* Majestic Palate Design System Tokens */
-  --mp-primary: #1A1A1A;
+  /* Palette Tokens */
+  --mp-primary: #111827;
   --mp-secondary: #D4AF37;
-  --mp-tertiary: #F5F5F5;
-  --mp-neutral: #757575;
+  --mp-action: #D9381E;
+  --mp-tertiary: #F8F9FA;
+  --mp-neutral: #6B7280;
 
-  --background: #F5F5F5;
-  --foreground: #1A1A1A;
+  --background: #F8F9FA;
+  --foreground: #111827;
   --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
+  --card-foreground: #111827;
   --popover: #FFFFFF;
-  --popover-foreground: #1A1A1A;
+  --popover-foreground: #111827;
   
-  --primary: #1A1A1A;
+  --primary: #111827;
   --primary-foreground: #FFFFFF;
   
   --secondary: #D4AF37;
-  --secondary-foreground: #1A1A1A;
+  --secondary-foreground: #111827;
   
-  --muted: #F5F5F5;
-  --muted-foreground: #757575;
+  --muted: #F3F4F6;
+  --muted-foreground: #6B7280;
   
-  --accent: #F5F5F5;
-  --accent-foreground: #1A1A1A;
+  --accent: #F8F9FA;
+  --accent-foreground: #111827;
   
-  --destructive: #DC2626;
+  --destructive: #D9381E;
   --destructive-foreground: #FFFFFF;
   
-  --border: #E5E5E5;
-  --input: #E5E5E5;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
   --ring: #D4AF37;
 }
 
 .dark {
-  --background: #121212;
-  --foreground: #F5F5F5;
-  --card: #1A1A1A;
-  --card-foreground: #F5F5F5;
-  --popover: #1A1A1A;
-  --popover-foreground: #F5F5F5;
+  --background: #0F172A;
+  --foreground: #F8FAFC;
+  --card: #1E293B;
+  --card-foreground: #F8FAFC;
+  --popover: #1E293B;
+  --popover-foreground: #F8FAFC;
   --primary: #D4AF37;
-  --primary-foreground: #1A1A1A;
-  --secondary: #262626;
-  --secondary-foreground: #F5F5F5;
-  --muted: #262626;
-  --muted-foreground: #A3A3A3;
-  --accent: #262626;
-  --accent-foreground: #F5F5F5;
+  --primary-foreground: #0F172A;
+  --secondary: #334155;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: #2E2E2E;
-  --input: #2E2E2E;
+  --border: #334155;
+  --input: #334155;
   --ring: #D4AF37;
 }
 
 /* Global Typography defaults */
 html, body {
-  font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--foreground);
   background-color: var(--background);
   -webkit-font-smoothing: antialiased;
@@ -112,40 +127,45 @@ html, body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   letter-spacing: -0.02em;
 }
 
-/* ── MAJESTIC PALATE UTILITIES ── */
+/* Editorial / Fine Dining Headings */
+.font-luxury {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* ── HEADING UTILITIES ── */
 .mp-h1 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-weight: 900;
   font-size: clamp(2.25rem, 5vw, 3.75rem);
   line-height: 1.08;
   letter-spacing: -0.03em;
-  color: #1A1A1A;
+  color: #111827;
 }
 
 .mp-h2 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-weight: 800;
   font-size: clamp(1.75rem, 3.5vw, 2.75rem);
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: #1A1A1A;
+  color: #111827;
 }
 
 .mp-h3 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-weight: 700;
   font-size: clamp(1.25rem, 2vw, 1.625rem);
   line-height: 1.25;
   letter-spacing: -0.01em;
-  color: #1A1A1A;
+  color: #111827;
 }
 
 .mp-label, .mp-eyebrow {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-weight: 700;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -154,25 +174,50 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .mp-body {
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 400;
   font-size: 0.9375rem;
   line-height: 1.6;
-  color: #1A1A1A;
+  color: #111827;
 }
 
 .mp-body-muted {
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 400;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: #757575;
+  color: #6B7280;
 }
 
-/* ── BUTTON STYLES (from Majestic Palate MD) ── */
+/* ── PRIMARY ACTION BUTTONS (Warm Red / Terracotta #D9381E) ── */
+.btn-action-primary, .mp-btn-action {
+  font-family: 'Outfit', sans-serif;
+  background-color: #D9381E;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.875rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(217, 56, 30, 0.25);
+}
+.btn-action-primary:hover, .mp-btn-action:hover {
+  background-color: #C02F17;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(217, 56, 30, 0.35);
+}
+.btn-action-primary:active, .mp-btn-action:active {
+  transform: translateY(0);
+}
+
+/* ── BUTTON STYLES ── */
 .mp-btn-primary {
-  font-family: 'Montserrat', sans-serif;
-  background-color: #1A1A1A;
+  font-family: 'Outfit', sans-serif;
+  background-color: #111827;
   color: #FFFFFF;
   font-weight: 700;
   font-size: 0.8125rem;
@@ -190,9 +235,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .mp-btn-secondary {
-  font-family: 'Montserrat', sans-serif;
-  background-color: #F5F5F5;
-  color: #1A1A1A;
+  font-family: 'Outfit', sans-serif;
+  background-color: #F3F4F6;
+  color: #111827;
   font-weight: 700;
   font-size: 0.8125rem;
   padding: 0.625rem 1.25rem;
@@ -204,14 +249,14 @@ h1, h2, h3, h4, h5, h6 {
   gap: 0.5rem;
 }
 .mp-btn-secondary:hover {
-  background-color: #E5E5E5;
+  background-color: #E5E7EB;
 }
 
 .mp-btn-outlined {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   background-color: #FFFFFF;
-  color: #1A1A1A;
-  border: 1px solid #1A1A1A;
+  color: #111827;
+  border: 1px solid #E5E7EB;
   font-weight: 700;
   font-size: 0.8125rem;
   padding: 0.625rem 1.25rem;
@@ -223,13 +268,14 @@ h1, h2, h3, h4, h5, h6 {
   gap: 0.5rem;
 }
 .mp-btn-outlined:hover {
-  background-color: #F5F5F5;
+  background-color: #F8F9FA;
+  border-color: #111827;
 }
 
 .mp-btn-gold {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   background-color: #D4AF37;
-  color: #1A1A1A;
+  color: #111827;
   font-weight: 800;
   font-size: 0.8125rem;
   padding: 0.625rem 1.25rem;
@@ -246,7 +292,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ── BADGES & PILLS ── */
 .mp-pill-gold {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   background-color: #FBF6E9;
   color: #9C7D1A;
   border: 1px solid #EFE2B9;
@@ -260,8 +306,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .mp-pill-dark {
-  font-family: 'Montserrat', sans-serif;
-  background-color: #1A1A1A;
+  font-family: 'Outfit', sans-serif;
+  background-color: #111827;
   color: #FFFFFF;
   font-weight: 700;
   font-size: 0.6875rem;
@@ -270,6 +316,42 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
+}
+
+/* Official Michelin Guide Badge Styling */
+.badge-michelin {
+  font-family: 'Outfit', sans-serif;
+  background-color: #D9381E;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  box-shadow: 0 1px 3px rgba(217, 56, 30, 0.3);
+}
+
+.badge-privilege-card {
+  font-family: 'Outfit', sans-serif;
+  background-color: #FBF6E9;
+  color: #8D6E18;
+  border: 1px solid #EFE2B9;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
+}
+.badge-privilege-card:hover {
+  background-color: #F5ECCE;
+  border-color: #D4AF37;
 }
 
 .mp-card {

@@ -19,17 +19,126 @@ export type ExpandedEateryType =
   | "popup";
 
 export type PrivilegeCategory =
-  | "Fazaa"
+  // Government & Corporate
   | "Esaad"
+  | "Fazaa"
+  | "Homat Al Watan"
+  | "ALSAADA"
   | "Emirates Platinum"
+  // Developers & Master Estates
+  | "Tickit by Dubai Holding"
+  | "Viya by Wasl"
+  | "U By Emaar"
+  | "Nakheel Rewards"
+  // Card Networks & Banking
+  | "American Express"
+  | "Visa"
+  | "Mastercard"
+  | "Emirates NBD"
+  | "Mashreq"
+  | "FAB"
+  | "ADCB"
+  | "HSBC"
+  | "Standard Chartered"
+  | "CBD"
+  | "RAKBANK"
+  | "Citi"
+  | "DIB"
+  // Lifestyle & Discount Apps
+  | "Smiles by e&"
+  | "Careem DineOut"
   | "The Entertainer"
   | "Supperclub"
+  | "Privilee"
+  | "Talabat Pro"
+  | "Zomato"
   | "BOGO (Buy 1 Get 1)"
-  | "Emirates NBD"
-  | "HSBC"
-  | "FAB"
-  | "Mashreq"
+  // Hotel Loyalty & VIP
+  | "More Cravings by Marriott Bonvoy"
+  | "Jumeirah One"
+  | "Atlantis Circle"
+  | "ALL Accor Live Limitless"
+  | "Hilton Honors"
   | "Concierge VIP";
+
+export function formatPrivilegeBadge(privilege: string): string {
+  switch (privilege) {
+    case "Esaad":
+      return "💳 Esaad Benefit";
+    case "Fazaa":
+      return "💳 Fazaa Benefit";
+    case "Homat Al Watan":
+      return "💳 Homat Al Watan";
+    case "ALSAADA":
+      return "💳 ALSAADA Benefit";
+    case "Emirates Platinum":
+      return "💳 Emirates Platinum";
+    case "Tickit by Dubai Holding":
+      return "💳 Tickit Points";
+    case "Viya by Wasl":
+      return "💳 Viya Rewards";
+    case "U By Emaar":
+      return "💳 U By Emaar";
+    case "Nakheel Rewards":
+      return "💳 Nakheel Rewards";
+    case "American Express":
+      return "💳 Amex Dining";
+    case "Visa":
+      return "💳 Visa Infinite/Signature";
+    case "Mastercard":
+      return "💳 Mastercard World";
+    case "Emirates NBD":
+      return "💳 ENBD Offer";
+    case "Mashreq":
+      return "💳 Mashreq Privileges";
+    case "FAB":
+      return "💳 FAB Rewards";
+    case "ADCB":
+      return "💳 ADCB TouchPoints";
+    case "HSBC":
+      return "💳 HSBC Privileges";
+    case "Standard Chartered":
+      return "💳 StanChart Dining";
+    case "CBD":
+      return "💳 CBD Offer";
+    case "RAKBANK":
+      return "💳 RAKBANK Dining";
+    case "Citi":
+      return "💳 Citi Gourmet";
+    case "DIB":
+      return "💳 DIB Rewards";
+    case "Smiles by e&":
+      return "💳 Smiles by e&";
+    case "Careem DineOut":
+      return "💳 Careem DineOut";
+    case "The Entertainer":
+      return "💳 Entertainer 2-for-1";
+    case "Supperclub":
+      return "💳 Supperclub";
+    case "Privilee":
+      return "💳 Privilee F&B";
+    case "Talabat Pro":
+      return "💳 Talabat Pro Dine-in";
+    case "Zomato":
+      return "💳 Zomato Gold";
+    case "BOGO (Buy 1 Get 1)":
+      return "💳 Buy 1 Get 1 Free";
+    case "More Cravings by Marriott Bonvoy":
+      return "💳 More Cravings";
+    case "Jumeirah One":
+      return "💳 Jumeirah One";
+    case "Atlantis Circle":
+      return "💳 Atlantis Circle";
+    case "ALL Accor Live Limitless":
+      return "💳 Accor ALL Dining";
+    case "Hilton Honors":
+      return "💳 Hilton Honors";
+    case "Concierge VIP":
+      return "👑 VIP Concierge";
+    default:
+      return privilege.startsWith("💳") ? privilege : `💳 ${privilege} Offer`;
+  }
+}
 
 export type MenuItem = {
   id: string;
@@ -74,6 +183,7 @@ export type EnrichedRestaurant = Restaurant & {
   awardsList: string[];
   dietaryTags: string[];
   digitalMenu: MenuItem[];
+  verificationStats: { upvotes: number; downvotes: number; lastVerifiedDate: string };
 };
 
 // District center coordinate coordinates map
@@ -243,25 +353,7 @@ export const enrichedRestaurants: EnrichedRestaurant[] = rawRestaurants.map((r, 
     direct: r.website
   };
 
-  // 7. Discounts & Privileges (PDF Section 1 & 2: Fazaa, Esaad, Platinum, Entertainer, Supperclub, Banks)
-  const discounts: PrivilegeCategory[] = [];
-  if (r.priceMin <= 250) {
-    discounts.push("The Entertainer", "BOGO (Buy 1 Get 1)", "Fazaa", "Esaad");
-  }
-  if (r.priceMin <= 380) {
-    discounts.push("Esaad", "Fazaa", "Emirates NBD", "HSBC");
-  }
-  if (r.priceMin >= 200) {
-    discounts.push("Emirates Platinum", "FAB", "Mashreq");
-  }
-  if (r.priceMin >= 300) {
-    discounts.push("Supperclub", "Mashreq");
-  }
-  if (r.priceMin >= 400 || r.michelin) {
-    discounts.push("Concierge VIP");
-  }
-
-  // 8. Expanded Eatery Type & Lifestyle
+  // 7. Expanded Eatery Type & Scope
   let eateryType: ExpandedEateryType = "restaurant";
   if (nameLower.includes("club") || nameLower.includes("lounge") || nameLower.includes("cavalli") || nameLower.includes("blu")) {
     eateryType = "nightclub";
@@ -282,6 +374,88 @@ export const enrichedRestaurants: EnrichedRestaurant[] = rawRestaurants.map((r, 
     nameLower.includes("cafe")
   ) {
     eateryType = "cafe";
+  }
+
+  // 8. Discounts & Privileges (Comprehensive UAE Programs)
+  const discounts: PrivilegeCategory[] = [];
+  const nameHash = idx % 10;
+
+  // Government & Corporate
+  if (nameHash === 0 || nameHash === 3 || nameHash === 6 || r.priceMin <= 350) {
+    discounts.push("Esaad");
+  }
+  if (nameHash === 1 || nameHash === 4 || nameHash === 7 || r.priceMin <= 300) {
+    discounts.push("Fazaa");
+  }
+  if (nameHash === 2 || nameHash === 8) {
+    discounts.push("Homat Al Watan");
+  }
+  if (nameHash === 5 || nameHash === 9) {
+    discounts.push("ALSAADA");
+  }
+  if (r.priceMin >= 200 || nameLower.includes("hotel") || areaLower.includes("downtown") || areaLower.includes("marina")) {
+    discounts.push("Emirates Platinum");
+  }
+
+  // Developers & Master Estates
+  if (areaLower.includes("downtown") || areaLower.includes("marina") || areaLower.includes("hills") || nameLower.includes("emaar")) {
+    discounts.push("U By Emaar");
+  }
+  if (areaLower.includes("city walk") || areaLower.includes("bluewaters") || areaLower.includes("jbr") || areaLower.includes("holding")) {
+    discounts.push("Tickit by Dubai Holding");
+  }
+  if (areaLower.includes("wasl") || nameLower.includes("wasl") || nameHash === 3) {
+    discounts.push("Viya by Wasl");
+  }
+  if (areaLower.includes("palm") || areaLower.includes("jumeirah islands") || nameLower.includes("nakheel")) {
+    discounts.push("Nakheel Rewards");
+  }
+
+  // Card Networks & UAE Banks
+  if (r.priceMin <= 300) {
+    discounts.push("Emirates NBD", "HSBC", "FAB");
+  } else if (r.priceMin <= 500) {
+    discounts.push("American Express", "Visa", "Mastercard", "Mashreq", "ADCB");
+  } else {
+    discounts.push("American Express", "Visa", "Mastercard", "Concierge VIP");
+  }
+
+  if (nameHash === 1 || nameHash === 5) {
+    discounts.push("Standard Chartered", "CBD");
+  }
+  if (nameHash === 2 || nameHash === 7) {
+    discounts.push("RAKBANK", "Citi", "DIB");
+  }
+
+  // Lifestyle & Discount Apps
+  if (r.priceMin <= 250) {
+    discounts.push("The Entertainer", "BOGO (Buy 1 Get 1)", "Smiles by e&", "Careem DineOut");
+  } else if (r.priceMin <= 400) {
+    discounts.push("Smiles by e&", "Careem DineOut", "Talabat Pro");
+  }
+
+  if (r.priceMin >= 250 || r.michelin) {
+    discounts.push("Supperclub");
+  }
+  if (eateryType === "beach_club" || areaLower.includes("palm") || seatingPerks.includes("Beachfront")) {
+    discounts.push("Privilee");
+  }
+
+  // Hotel Group Loyalty
+  if (nameLower.includes("jw") || nameLower.includes("marriott") || nameLower.includes("st. regis") || nameLower.includes("ritz") || nameLower.includes("w dubai") || nameHash === 4) {
+    discounts.push("More Cravings by Marriott Bonvoy");
+  }
+  if (nameLower.includes("jumeirah") || nameLower.includes("burj al arab") || nameLower.includes("al naseem") || areaLower.includes("madinat")) {
+    discounts.push("Jumeirah One");
+  }
+  if (nameLower.includes("atlantis") || nameLower.includes("nobu") || nameLower.includes("ossiano") || nameLower.includes("fzn") || nameLower.includes("ling ling")) {
+    discounts.push("Atlantis Circle");
+  }
+  if (nameLower.includes("sofitel") || nameLower.includes("fairmont") || nameLower.includes("raffles") || nameLower.includes("sls") || nameHash === 8) {
+    discounts.push("ALL Accor Live Limitless");
+  }
+  if (nameLower.includes("hilton") || nameLower.includes("conrad") || nameLower.includes("waldorf")) {
+    discounts.push("Hilton Honors");
   }
 
   const lifestyleTags: string[] = [...seatingPerks];
@@ -345,6 +519,15 @@ export const enrichedRestaurants: EnrichedRestaurant[] = rawRestaurants.map((r, 
   const isSponsored = idx === 0 || idx === 3;
   const sponsoredBannerText = isSponsored ? "Featured Partner · Instant Confirmation & Zero Booking Fees" : undefined;
 
+  // 13. Community Verification Statistics
+  const upvotes = 18 + ((idx * 7) % 65);
+  const downvotes = (idx % 5 === 0) ? 2 : 0;
+  const verificationStats = {
+    upvotes,
+    downvotes,
+    lastVerifiedDate: "August 2026"
+  };
+
   return {
     ...r,
     slug: getRestaurantSlug(r.name),
@@ -358,7 +541,7 @@ export const enrichedRestaurants: EnrichedRestaurant[] = rawRestaurants.map((r, 
     reservationServices,
     deliveryLinks,
     eateryType,
-    discounts,
+    discounts: Array.from(new Set(discounts)),
     lifestyleTags,
     isSponsored,
     sponsoredBannerText,
@@ -370,5 +553,6 @@ export const enrichedRestaurants: EnrichedRestaurant[] = rawRestaurants.map((r, 
     awardsList,
     dietaryTags,
     digitalMenu,
+    verificationStats,
   };
 });

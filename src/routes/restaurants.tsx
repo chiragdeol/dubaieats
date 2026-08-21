@@ -1,12 +1,15 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState, useRef } from "react";
-import { enrichedRestaurants, type EnrichedRestaurant, type PrivilegeCategory } from "../lib/restaurants-enriched";
+import { enrichedRestaurants, formatPrivilegeBadge, type EnrichedRestaurant, type PrivilegeCategory } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SponsoredDirectionsModal } from "@/components/sponsored-directions-modal";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { DepositModal } from "@/components/deposit-modal";
 import { RestaurantMap } from "@/components/restaurant-map";
+import { MichelinBadge } from "@/components/michelin-badge";
+import { CardImageSlider, ImageSlideshowModal } from "@/components/image-slideshow-modal";
+import { ClaimListingModal } from "@/components/claim-listing-modal";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
 import { DUBAI_DISTRICTS, DUBAI_ZONES } from "@/lib/dubai-districts";
 import { parseIntent, matchRestaurants, hasGemini, callGemini, type ChatMessage } from "@/lib/restaurant-ai";
@@ -28,7 +31,8 @@ import {
   TrendingUp,
   ExternalLink,
   Tag,
-  Heart
+  Heart,
+  Info
 } from "lucide-react";
 
 type RestaurantsSearch = {
@@ -62,150 +66,169 @@ function shareUrl(name: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " Dubai")}`;
 }
 
+function buildGallery(name: string): string[] {
+  const allPhotos = [
+    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900",
+    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900",
+    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900",
+    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900",
+    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900",
+    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=900",
+    "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=900",
+    "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=900",
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900",
+    "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=900"
+  ];
+  const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return [...allPhotos.slice(hash % allPhotos.length), ...allPhotos.slice(0, hash % allPhotos.length)];
+}
+
 function GmbCard({
   r,
   onOpenDirections,
-  onOpenDeposit
+  onOpenDeposit,
+  onOpenSlideshow,
+  onOpenClaim
 }: {
   r: EnrichedRestaurant;
   onOpenDirections: (r: EnrichedRestaurant) => void;
   onOpenDeposit: (r: EnrichedRestaurant) => void;
+  onOpenSlideshow: (r: EnrichedRestaurant, initialIdx?: number) => void;
+  onOpenClaim: (r: EnrichedRestaurant) => void;
 }) {
   const [bookmarked, setBookmarked] = useState(false);
   const liveStatus = isCurrentlyOpenInDubai(r.hours);
-
-  const whatsappMessage = `Hi ${r.name}, I found your venue on Dubai Eat. I'd like to ask about table availability and current offers.`;
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
+  const cardGallery = useMemo(() => [r.image, ...buildGallery(r.name)], [r]);
 
   return (
-    <article className="bg-white border border-[#EAEAEA] hover:border-[#D4AF37] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col md:flex-row group text-left relative">
+    <article className="bg-white border border-[#E5E7EB] hover:border-[#D4AF37] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col md:flex-row group text-left relative">
       
-      {/* Left Image Section (Compact Height TheFork style) */}
-      <div className="relative w-full md:w-64 lg:w-72 h-48 md:h-[200px] shrink-0 overflow-hidden bg-[#F5F5F5]">
-        <img
-          src={r.image}
-          alt={r.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+      {/* Left Image Section with Interactive Slide Carousel & Lightbox Trigger */}
+      <div className="relative w-full md:w-64 lg:w-72 h-48 md:h-[200px] shrink-0 overflow-hidden bg-slate-900">
+        <CardImageSlider
+          images={cardGallery}
+          title={r.name}
+          onImageClick={(idx) => onOpenSlideshow(r, idx)}
+          className="w-full h-full"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
 
         {/* Top Badges */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10 pointer-events-none">
           {r.isSponsored && (
-            <span className="bg-[#D4AF37] text-[#1A1A1A] font-black text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm font-heading">
+            <span className="bg-[#D4AF37] text-[#111827] font-black text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm font-heading">
               [SPONSORED]
             </span>
           )}
           {r.michelin && (
-            <span className="bg-[#1A1A1A] text-[#D4AF37] border border-[#D4AF37]/40 font-bold text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm flex items-center gap-1 font-heading">
-              <Star className="w-2.5 h-2.5 fill-[#D4AF37]" /> Michelin
-            </span>
+            <MichelinBadge tier={r.michelin} size="sm" />
           )}
         </div>
 
-        {/* Top Right Heart Favorite (TheFork Style translucent circle) */}
+        {/* Top Right Heart Favorite */}
         <button
-          onClick={() => setBookmarked(!bookmarked)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setBookmarked(!bookmarked);
+          }}
           aria-label="Save to favorites"
-          className="absolute top-3 right-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xs text-white hover:bg-black/60 hover:scale-110 transition-all z-10 cursor-pointer"
+          className="absolute top-3 right-3 p-1.5 rounded-full bg-black/40 backdrop-blur-xs text-white hover:bg-black/60 hover:scale-110 transition-all z-20 cursor-pointer"
         >
-          <Heart className={`w-3.5 h-3.5 ${bookmarked ? "fill-[#D4AF37] text-[#D4AF37]" : "text-white stroke-[2]"}`} />
+          <Heart className={`w-3.5 h-3.5 ${bookmarked ? "fill-[#D9381E] text-[#D9381E]" : "text-white stroke-[2]"}`} />
         </button>
-
-        {/* Bottom Carousel Indicator Dots (TheFork style) */}
-        <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 pointer-events-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-white shadow-xs" />
-          <span className="w-1 h-1 rounded-full bg-white/60 shadow-xs" />
-          <span className="w-1 h-1 rounded-full bg-white/60 shadow-xs" />
-          <span className="w-1 h-1 rounded-full bg-white/60 shadow-xs" />
-        </div>
       </div>
 
-      {/* Right Content Section (Compact & Balanced Layout) */}
+      {/* Right Content Section */}
       <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-2.5">
         
         {/* Top Information Block */}
         <div className="space-y-1">
           {/* Row 1: Name & Rating Box */}
           <div className="flex items-start justify-between gap-3">
-            <h2 className="font-display font-black text-lg sm:text-xl text-[#1A1A1A] leading-snug group-hover:text-[#D4AF37] transition-colors">
+            <h2 className="font-display font-black text-lg sm:text-xl text-[#111827] leading-snug group-hover:text-[#D4AF37] transition-colors">
               <Link to="/restaurants/$id" params={{ id: r.slug }}>
                 {r.name}
               </Link>
             </h2>
 
-            {/* Majestic Palate Rating Badge */}
+            {/* Rating Badge */}
             <div className="text-right shrink-0">
-              <span className="inline-flex items-center justify-center bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-black text-xs sm:text-sm px-2 py-0.5 rounded-md font-heading">
+              <span className="inline-flex items-center justify-center bg-[#FBF6E9] border border-[#EFE2B9] text-[#8D6E18] font-black text-xs sm:text-sm px-2 py-0.5 rounded-md font-heading">
                 {(r.rating * 2).toFixed(1)}
               </span>
-              <p className="text-[10px] text-[#757575] font-medium mt-0.5">
+              <p className="text-[10px] text-[#6B7280] font-medium mt-0.5">
                 ({r.reviews})
               </p>
             </div>
           </div>
 
           {/* Line 2: Address */}
-          <p className="text-[#757575] text-xs font-normal">
+          <p className="text-[#6B7280] text-xs font-normal">
             {r.address || `${r.district}, Dubai`}
           </p>
 
           {/* Line 3: Cuisine & Average Price */}
-          <p className="text-[#1A1A1A] text-xs font-semibold">
+          <p className="text-[#111827] text-xs font-semibold">
             {r.cuisine} · Average price AED {r.priceMin}
           </p>
 
-          {/* Line 4: TheFork Summer / Privilege Tag Pill */}
-          <div className="pt-0.5 flex flex-wrap items-center gap-1.5">
-            {r.discounts && r.discounts.length > 0 ? (
-              <span className="inline-flex items-center gap-1 bg-[#FBF6E9] text-[#9C7D1A] border border-[#EFE2B9] font-bold text-[11px] px-2.5 py-0.5 rounded-full font-heading">
-                <Tag className="w-3 h-3 fill-[#9C7D1A]" />
-                <span>Up to -50% · {r.discounts[0]} Privilege</span>
+          {/* Line 4: Generic Text Badges (Esaad, Fazaa, Banks, etc.) */}
+          <div className="pt-1 flex flex-wrap items-center gap-1.5">
+            {r.discounts && r.discounts.slice(0, 2).map((d) => (
+              <span key={d} className="badge-privilege-card shadow-2xs">
+                {formatPrivilegeBadge(d)}
               </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 bg-[#F5F5F5] text-[#1A1A1A] border border-[#E5E5E5] font-bold text-[11px] px-2.5 py-0.5 rounded-full font-heading">
-                <Tag className="w-3 h-3 fill-[#1A1A1A]" />
-                <span>Special Dining Offers Available</span>
-              </span>
-            )}
+            ))}
 
             {/* Perks */}
             {r.liquor === "Licensed" && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F5F5F5] text-[#1A1A1A] border border-[#E0E0E0] font-heading">
-                🍷 Licensed Bar
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#111827] border border-[#E5E7EB] font-heading">
+                🍷 Licensed
               </span>
             )}
             {liveStatus.isOpen && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FBF6E9] text-[#9C7D1A] border border-[#EFE2B9] font-heading">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-heading">
                 ● Open Now
               </span>
             )}
           </div>
         </div>
 
-        {/* Bottom Booking & Show Profile Action Row (Only 2 buttons) */}
-        <div className="pt-2.5 border-t border-[#EAEAEA]">
-          <div className="flex items-center gap-2.5">
+        {/* Bottom Booking & Show Profile Action Row with Terracotta CTA */}
+        <div className="pt-2.5 border-t border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          
+          <div className="flex items-center gap-2 flex-1">
             {/* 1. Show Profile Button */}
             <Link
               to="/restaurants/$id"
               params={{ id: r.slug }}
-              className="flex-1 border border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] font-bold font-heading text-xs py-2.5 px-3 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1 cursor-pointer text-center"
+              className="flex-1 border border-[#111827] hover:bg-[#111827] hover:text-white text-[#111827] font-bold font-heading text-xs py-2.5 px-3 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1 cursor-pointer text-center"
             >
-              <span>Show Profile</span>
+              <span>View Venue</span>
             </Link>
 
-            {/* 2. Book Table Button */}
+            {/* 2. Book Table Primary Terracotta Red Button (#D9381E) */}
             <a
               href={r.bookingPlatform?.url || r.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-extrabold font-heading text-xs py-2.5 px-3 rounded-xl shadow-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer text-center"
+              className="flex-1 btn-action-primary text-xs py-2.5 px-3 rounded-xl transition-all shadow-sm inline-flex items-center justify-center gap-1 cursor-pointer text-center"
             >
-              <Calendar className="w-3.5 h-3.5 text-[#1A1A1A]" />
+              <Calendar className="w-3.5 h-3.5 text-white" />
               <span>Book Table</span>
             </a>
           </div>
+
+          {/* Subtle Owner Claim Link */}
+          <button
+            type="button"
+            onClick={() => onOpenClaim(r)}
+            className="text-[10px] text-[#6B7280] hover:text-[#D9381E] font-heading font-medium inline-flex items-center gap-1 shrink-0 cursor-pointer self-end sm:self-auto"
+            title="Are you the owner? Claim this listing"
+          >
+            <Building2 className="w-3 h-3 text-[#D9381E]" />
+            <span>Claim</span>
+          </button>
+
         </div>
 
       </div>
@@ -228,6 +251,9 @@ function Index() {
 
   const [selectedDirectionsRestaurant, setSelectedDirectionsRestaurant] = useState<EnrichedRestaurant | null>(null);
   const [selectedDepositRestaurant, setSelectedDepositRestaurant] = useState<EnrichedRestaurant | null>(null);
+  const [activeSlideshowRestaurant, setActiveSlideshowRestaurant] = useState<EnrichedRestaurant | null>(null);
+  const [activeSlideshowIndex, setActiveSlideshowIndex] = useState<number>(0);
+  const [activeClaimRestaurant, setActiveClaimRestaurant] = useState<EnrichedRestaurant | null>(null);
   const [isRandomizerOpen, setIsRandomizerOpen] = useState<boolean>(false);
 
   // ── AI Filter state ──
@@ -572,23 +598,50 @@ function Index() {
                 >
                   <option value="All">All Cards & Apps</option>
                   <optgroup label="── Government & Corporate">
-                    <option value="Esaad">Esaad Card</option>
-                    <option value="Fazaa">Fazaa Card</option>
-                    <option value="Emirates Platinum">Emirates Platinum</option>
+                    <option value="Esaad">Esaad Card (Dubai Police)</option>
+                    <option value="Fazaa">Fazaa Card (Ministry of Interior)</option>
+                    <option value="Homat Al Watan">Homat Al Watan (Armed Forces)</option>
+                    <option value="ALSAADA">ALSAADA (GDRFA Resident & Tourist)</option>
+                    <option value="Emirates Platinum">Emirates Platinum (Emirates Group)</option>
                   </optgroup>
-                  <optgroup label="── Subscriptions & Apps">
-                    <option value="The Entertainer">The Entertainer</option>
-                    <option value="Supper Club">Supper Club</option>
-                    <option value="BOGO (Buy 1 Get 1)">Buy One Get One (BOGO)</option>
+                  <optgroup label="── Developers & Master Estates">
+                    <option value="Tickit by Dubai Holding">Tickit by Dubai Holding</option>
+                    <option value="Viya by Wasl">Viya by Wasl</option>
+                    <option value="U By Emaar">U By Emaar</option>
+                    <option value="Nakheel Rewards">Nakheel Rewards</option>
                   </optgroup>
-                  <optgroup label="── Bank Credit Cards">
-                    <option value="Emirates NBD">Emirates NBD</option>
-                    <option value="HSBC">HSBC Deals</option>
-                    <option value="FAB">FAB Cards</option>
-                    <option value="Mashreq">Mashreq Privilege</option>
+                  <optgroup label="── Card Networks & UAE Banks">
+                    <option value="American Express">American Express (Selects / Centurion)</option>
+                    <option value="Visa">Visa (Infinite / Signature Dining)</option>
+                    <option value="Mastercard">Mastercard (World / World Elite)</option>
+                    <option value="Emirates NBD">Emirates NBD (BonAppetit)</option>
+                    <option value="Mashreq">Mashreq Privileges</option>
+                    <option value="FAB">FAB Rewards & Cards</option>
+                    <option value="ADCB">ADCB TouchPoints</option>
+                    <option value="HSBC">HSBC Dining</option>
+                    <option value="Standard Chartered">Standard Chartered</option>
+                    <option value="CBD">Commercial Bank of Dubai (CBD)</option>
+                    <option value="RAKBANK">RAKBANK</option>
+                    <option value="Citi">Citibank</option>
+                    <option value="DIB">Dubai Islamic Bank (DIB)</option>
                   </optgroup>
-                  <optgroup label="── VIP Concierge">
-                    <option value="Concierge VIP">Concierge VIP Perks</option>
+                  <optgroup label="── Lifestyle & Discount Apps">
+                    <option value="Smiles by e&">Smiles by e& (Etisalat BOGO)</option>
+                    <option value="Careem DineOut">Careem DineOut</option>
+                    <option value="The Entertainer">The Entertainer (2-for-1)</option>
+                    <option value="Supperclub">Supperclub (Fine Dining Privilege)</option>
+                    <option value="Privilee">Privilee (Beach Club & F&B)</option>
+                    <option value="Talabat Pro">Talabat Pro</option>
+                    <option value="Zomato">Zomato Gold</option>
+                    <option value="BOGO (Buy 1 Get 1)">Buy 1 Get 1 Free (BOGO)</option>
+                  </optgroup>
+                  <optgroup label="── Hotel Group Loyalty">
+                    <option value="More Cravings by Marriott Bonvoy">More Cravings (Marriott Bonvoy)</option>
+                    <option value="Jumeirah One">Jumeirah One</option>
+                    <option value="Atlantis Circle">Atlantis Circle</option>
+                    <option value="ALL Accor Live Limitless">ALL Accor Live Limitless</option>
+                    <option value="Hilton Honors">Hilton Honors</option>
+                    <option value="Concierge VIP">VIP Concierge Table Perks</option>
                   </optgroup>
                 </select>
               </div>
@@ -634,6 +687,14 @@ function Index() {
 
             </div>
 
+          </div>
+
+          {/* Global Safety & Privilege Verification Disclaimer */}
+          <div className="mb-6 p-4 rounded-2xl bg-white border border-[#E5E7EB] flex items-start gap-3 text-xs text-[#6B7280] shadow-2xs">
+            <Info className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
+            <p className="leading-relaxed font-sans">
+              <strong className="text-[#111827] font-bold">Safety & Privilege Verification:</strong> All privilege card listings (💳 Esaad, 💳 Fazaa, 💳 ENBD, 💳 Smiles, 💳 Entertainer, 💳 Hotel Loyalty) and ratings are based on verified public partner directories and crowd feedback. Offers are subject to merchant terms, card eligibility, and venue availability. Always confirm with venue staff upon arrival.
+            </p>
           </div>
 
           {/* Results Summary Counter */}
@@ -694,7 +755,7 @@ function Index() {
               <p className="text-xs text-muted-foreground mt-1">Try resetting your filters or adjusting search keyword.</p>
             </div>
           ) : (
-            /* Cards grid - 3 cards per row */
+            /* Cards grid */
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.82fr)]">
               <div className="space-y-3">
                 {filteredAndSorted.map((r) => (
@@ -703,10 +764,15 @@ function Index() {
                     r={r}
                     onOpenDirections={setSelectedDirectionsRestaurant}
                     onOpenDeposit={setSelectedDepositRestaurant}
+                    onOpenSlideshow={(res, idx) => {
+                      setActiveSlideshowRestaurant(res);
+                      setActiveSlideshowIndex(idx || 0);
+                    }}
+                    onOpenClaim={(res) => setActiveClaimRestaurant(res)}
                   />
                 ))}
               </div>
-              <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] overflow-hidden rounded-3xl border border-[#EAEAEA] bg-white shadow-md lg:block">
+              <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white shadow-md lg:block">
                 <RestaurantMap
                   restaurants={filteredAndSorted}
                   className="h-full w-full"
@@ -717,6 +783,23 @@ function Index() {
 
         </div>
       </div>
+
+      {/* ── PHOTO GALLERY LIGHTBOX MODAL ── */}
+      <ImageSlideshowModal
+        isOpen={!!activeSlideshowRestaurant}
+        onClose={() => setActiveSlideshowRestaurant(null)}
+        images={activeSlideshowRestaurant ? [activeSlideshowRestaurant.image, ...buildGallery(activeSlideshowRestaurant.name)] : []}
+        initialIndex={activeSlideshowIndex}
+        title={activeSlideshowRestaurant?.name}
+      />
+
+      {/* ── OWNER CLAIM LISTING MODAL ── */}
+      <ClaimListingModal
+        isOpen={!!activeClaimRestaurant}
+        onClose={() => setActiveClaimRestaurant(null)}
+        restaurantName={activeClaimRestaurant?.name || ""}
+        restaurantAddress={activeClaimRestaurant?.address || ""}
+      />
 
       <SiteFooter />
     </div>

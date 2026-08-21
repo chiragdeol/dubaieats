@@ -1,0 +1,1 @@
+import{r as e}from"./x-JOq_HEAT.js";var t=e(`chevron-right`,[[`path`,{d:`m9 18 6-6-6-6`,key:`mthhwq`}]]);export{t};
