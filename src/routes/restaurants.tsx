@@ -8,10 +8,14 @@ import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { DepositModal } from "@/components/deposit-modal";
 import { RestaurantMap } from "@/components/restaurant-map";
 import { MichelinBadge } from "@/components/michelin-badge";
-import { CardImageSlider, ImageSlideshowModal } from "@/components/image-slideshow-modal";
+import { CardImageSlider } from "@/components/image-slideshow-modal";
 import { ClaimListingModal } from "@/components/claim-listing-modal";
+import { VenuePhoto, VenuePhotoLightbox } from "@/components/venue-photo";
+import { ListingDeliveryButtons } from "@/components/order-online-card";
 import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
-import { DUBAI_DISTRICTS, DUBAI_ZONES } from "@/lib/dubai-districts";
+import { getAccurateBookHref, getAccurateBookLabel } from "@/lib/venue-actions";
+import { useGooglePlace } from "@/hooks/use-google-place";
+import { LISTING_AREAS } from "@/lib/dubai-districts";
 import { parseIntent, matchRestaurants, hasGemini, callGemini, type ChatMessage } from "@/lib/restaurant-ai";
 import { 
   Phone, 
@@ -66,23 +70,6 @@ function shareUrl(name: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " Dubai")}`;
 }
 
-function buildGallery(name: string): string[] {
-  const allPhotos = [
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900",
-    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900",
-    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900",
-    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900",
-    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900",
-    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=900",
-    "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=900",
-    "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=900",
-    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900",
-    "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=900"
-  ];
-  const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return [...allPhotos.slice(hash % allPhotos.length), ...allPhotos.slice(0, hash % allPhotos.length)];
-}
-
 function GmbCard({
   r,
   onOpenDirections,
@@ -97,8 +84,28 @@ function GmbCard({
   onOpenClaim: (r: EnrichedRestaurant) => void;
 }) {
   const [bookmarked, setBookmarked] = useState(false);
-  const liveStatus = isCurrentlyOpenInDubai(r.hours);
-  const cardGallery = useMemo(() => [r.image, ...buildGallery(r.name)], [r]);
+  const { place: googlePlaceLive } = useGooglePlace({
+    name: r.name,
+    address: r.address,
+    latitude: r.latitude,
+    longitude: r.longitude,
+  });
+  const liveRating = googlePlaceLive?.rating ?? r.rating;
+  const liveReviews = googlePlaceLive?.reviewCount
+    ? googlePlaceLive.reviewCount >= 1000
+      ? `${(googlePlaceLive.reviewCount / 1000).toFixed(1)}K`
+      : String(googlePlaceLive.reviewCount)
+    : r.reviews;
+  const liveHours = googlePlaceLive?.hoursText || r.hours;
+  const liveStatus = googlePlaceLive?.openNow === true
+    ? { isOpen: true, label: "Open Now" }
+    : googlePlaceLive?.openNow === false
+      ? { isOpen: false, label: "Closed" }
+      : isCurrentlyOpenInDubai(liveHours);
+  const cardGallery = useMemo(
+    () => (googlePlaceLive?.photos?.length ? googlePlaceLive.photos.slice(0, 6) : [r.image]),
+    [googlePlaceLive, r.image]
+  );
 
   return (
     <article className="bg-white border border-[#E5E7EB] hover:border-[#D4AF37] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col md:flex-row group text-left relative">
@@ -153,10 +160,10 @@ function GmbCard({
             {/* Rating Badge */}
             <div className="text-right shrink-0">
               <span className="inline-flex items-center justify-center bg-[#FBF6E9] border border-[#EFE2B9] text-[#8D6E18] font-black text-xs sm:text-sm px-2 py-0.5 rounded-md font-heading">
-                {(r.rating * 2).toFixed(1)}
+                {liveRating.toFixed(1)}
               </span>
               <p className="text-[10px] text-[#6B7280] font-medium mt-0.5">
-                ({r.reviews})
+                ({liveReviews})
               </p>
             </div>
           </div>
@@ -194,41 +201,43 @@ function GmbCard({
         </div>
 
         {/* Bottom Booking & Show Profile Action Row with Terracotta CTA */}
-        <div className="pt-2.5 border-t border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          
-          <div className="flex items-center gap-2 flex-1">
-            {/* 1. Show Profile Button */}
-            <Link
-              to="/restaurants/$id"
-              params={{ id: r.slug }}
-              className="flex-1 border border-[#111827] hover:bg-[#111827] hover:text-white text-[#111827] font-bold font-heading text-xs py-2.5 px-3 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1 cursor-pointer text-center"
-            >
-              <span>View Venue</span>
-            </Link>
+        <div className="pt-2.5 border-t border-[#E5E7EB] space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2 flex-1">
+              {/* 1. Show Profile Button */}
+              <Link
+                to="/restaurants/$id"
+                params={{ id: r.slug }}
+                className="flex-1 border border-[#111827] hover:bg-[#111827] hover:text-white text-[#111827] font-bold font-heading text-xs py-2.5 px-3 rounded-xl shadow-2xs transition-all inline-flex items-center justify-center gap-1 cursor-pointer text-center"
+              >
+                <span>View Venue</span>
+              </Link>
 
-            {/* 2. Book Table Primary Terracotta Red Button (#D9381E) */}
-            <a
-              href={r.bookingPlatform?.url || r.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 btn-action-primary text-xs py-2.5 px-3 rounded-xl transition-all shadow-sm inline-flex items-center justify-center gap-1 cursor-pointer text-center"
+              {/* 2. Book Table — verified booking, official site, or Google directions */}
+              <a
+                href={getAccurateBookHref(r)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 btn-action-primary text-xs py-2.5 px-3 rounded-xl transition-all shadow-sm inline-flex items-center justify-center gap-1 cursor-pointer text-center"
+              >
+                <Calendar className="w-3.5 h-3.5 text-white" />
+                <span>{getAccurateBookLabel(r)}</span>
+              </a>
+            </div>
+
+            {/* Subtle Owner Claim Link */}
+            <button
+              type="button"
+              onClick={() => onOpenClaim(r)}
+              className="text-[10px] text-[#6B7280] hover:text-[#D9381E] font-heading font-medium inline-flex items-center gap-1 shrink-0 cursor-pointer self-end sm:self-auto"
+              title="Are you the owner? Claim this listing"
             >
-              <Calendar className="w-3.5 h-3.5 text-white" />
-              <span>Book Table</span>
-            </a>
+              <Building2 className="w-3 h-3 text-[#D9381E]" />
+              <span>Claim</span>
+            </button>
           </div>
 
-          {/* Subtle Owner Claim Link */}
-          <button
-            type="button"
-            onClick={() => onOpenClaim(r)}
-            className="text-[10px] text-[#6B7280] hover:text-[#D9381E] font-heading font-medium inline-flex items-center gap-1 shrink-0 cursor-pointer self-end sm:self-auto"
-            title="Are you the owner? Claim this listing"
-          >
-            <Building2 className="w-3 h-3 text-[#D9381E]" />
-            <span>Claim</span>
-          </button>
-
+          <ListingDeliveryButtons venue={r} />
         </div>
 
       </div>
@@ -299,13 +308,7 @@ function Index() {
 
   const clearAiFilter = () => { setAiQuery(""); setAiActiveIds(null); setAiReplyText(""); };
 
-  // Districts — grouped by zone for dropdown
-  const districtsByZone = useMemo(() => {
-    return DUBAI_ZONES.map(zone => ({
-      zone,
-      districts: DUBAI_DISTRICTS.filter(d => d.zone === zone).map(d => d.name),
-    }));
-  }, []);
+  const listingAreas = LISTING_AREAS;
 
   const cuisines = useMemo(() => {
     const set = new Set<string>();
@@ -554,13 +557,9 @@ function Index() {
                   }}
                   className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20 text-foreground cursor-pointer"
                 >
-                  <option value="All">All Dubai Districts</option>
-                  {districtsByZone.map(({ zone, districts }) => (
-                    <optgroup key={zone} label={`── ${zone}`}>
-                      {districts.map(d => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </optgroup>
+                  <option value="All">All Dubai Areas</option>
+                  {listingAreas.map((d) => (
+                    <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
               </div>
@@ -729,11 +728,14 @@ function Index() {
               </div>
               {sponsoredVenues.map(s => (
                 <div key={s.slug} className="flex flex-col sm:flex-row items-center gap-4 bg-card/80 backdrop-blur-xs p-4 rounded-2xl border border-border">
-                  <img src={s.image} alt={s.name} className="w-full sm:w-32 h-24 rounded-xl object-cover" />
+                  <VenuePhoto venue={s} alt={s.name} className="w-full sm:w-32 h-24 rounded-xl object-cover" />
                   <div className="flex-1">
                     <h4 className="font-extrabold text-base text-foreground">{s.name}</h4>
                     <p className="text-xs text-muted-foreground">{s.cuisine} · {s.district} · AED {s.priceMin}–{s.priceMax}</p>
                     <p className="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1">✨ {s.sponsoredBannerText}</p>
+                    <div className="mt-2 max-w-xs">
+                      <ListingDeliveryButtons venue={s} />
+                    </div>
                   </div>
                   <Link
                     to="/restaurants/$id"
@@ -785,12 +787,11 @@ function Index() {
       </div>
 
       {/* ── PHOTO GALLERY LIGHTBOX MODAL ── */}
-      <ImageSlideshowModal
+      <VenuePhotoLightbox
+        restaurant={activeSlideshowRestaurant}
         isOpen={!!activeSlideshowRestaurant}
         onClose={() => setActiveSlideshowRestaurant(null)}
-        images={activeSlideshowRestaurant ? [activeSlideshowRestaurant.image, ...buildGallery(activeSlideshowRestaurant.name)] : []}
         initialIndex={activeSlideshowIndex}
-        title={activeSlideshowRestaurant?.name}
       />
 
       {/* ── OWNER CLAIM LISTING MODAL ── */}

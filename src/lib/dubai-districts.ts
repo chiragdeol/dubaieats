@@ -29,9 +29,9 @@ export const DUBAI_DISTRICTS: DubaiDistrict[] = [
 
   // ── Dubai Marina & JBR ──
   { name: "Dubai Marina", zone: "Dubai Marina & JBR", aliases: ["dubai marina", "marina", "pier 7", "grosvenor house", "le royal meridien", "marina mall"] },
-  { name: "JBR", zone: "Dubai Marina & JBR", aliases: ["jbr", "the beach jbr", "jumeirah beach residence", "the beach"] },
+  { name: "JBR", zone: "Dubai Marina & JBR", aliases: ["jbr", "the beach jbr", "jumeirah beach residence", "the beach", "the maine"] },
   { name: "Bluewaters Island", zone: "Dubai Marina & JBR", aliases: ["bluewaters", "caesars bluewaters"] },
-  { name: "JLT", zone: "Dubai Marina & JBR", aliases: ["jlt", "jumeirah lakes towers", "the lakes"] },
+  { name: "JLT", zone: "Dubai Marina & JBR", aliases: ["jlt", "jumeirah lakes towers"] },
   { name: "The Greens & Views", zone: "Dubai Marina & JBR", aliases: ["the greens", "the views"] },
 
   // ── Palm Jumeirah & Beachfront ──
@@ -42,11 +42,11 @@ export const DUBAI_DISTRICTS: DubaiDistrict[] = [
   // ── Old Dubai & Heritage ──
   { name: "Deira", zone: "Old Dubai & Heritage", aliases: ["deira", "al rigga", "baniyas"] },
   { name: "Bur Dubai", zone: "Old Dubai & Heritage", aliases: ["bur dubai", "al fahidi"] },
-  { name: "Al Mankhool", zone: "Old Dubai & Heritage", aliases: ["al mankhool", "mankhool"] },
+  { name: "Al Mankhool", zone: "Old Dubai & Heritage", aliases: ["al mankhool", "mankhool", "al musallah", "al mussallah"] },
   { name: "Oud Metha", zone: "Old Dubai & Heritage", aliases: ["oud metha", "lamcy"] },
   { name: "Garhoud", zone: "Old Dubai & Heritage", aliases: ["garhoud", "festival city", "dubai festival city", "intercontinental festival city"] },
   { name: "Al Quoz", zone: "Old Dubai & Heritage", aliases: ["al quoz", "alserkal avenue"] },
-  { name: "Satwa", zone: "Old Dubai & Heritage", aliases: ["satwa"] },
+  { name: "Satwa", zone: "Old Dubai & Heritage", aliases: ["satwa", "2nd december"] },
 
   // ── Jumeirah & Al Wasl ──
   { name: "Jumeirah 1", zone: "Jumeirah & Al Wasl", aliases: ["jumeirah 1"] },
@@ -102,6 +102,26 @@ export const DUBAI_ZONES: DubaiZone[] = [
   "East & Northeast Dubai",
   "North Dubai",
 ];
+
+/** Areas shown in the public restaurant search dropdown */
+export const LISTING_AREAS = [
+  "Al Mankhool",
+  "Business Bay",
+  "DIFC",
+  "Downtown Dubai",
+  "Dubai Marina",
+  "Garhoud",
+  "JBR",
+  "JLT",
+  "Jumeirah 2",
+  "Jumeirah Beach Hotel",
+  "Palm Jumeirah",
+  "Satwa",
+  "Umm Suqeim",
+  "Za'abeel",
+] as const;
+
+export type ListingArea = (typeof LISTING_AREAS)[number];
 
 /**
  * Given a restaurant's area string (hotel/venue name),

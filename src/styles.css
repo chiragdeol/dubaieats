@@ -164,12 +164,21 @@ h1, h2, h3, h4, h5, h6 {
   color: #111827;
 }
 
-.mp-label, .mp-eyebrow {
+.mp-label {
   font-family: 'Outfit', sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.15em;
+  color: #D4AF37;
+}
+
+.vd-eyebrow, .mp-eyebrow {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
   color: #D4AF37;
 }
 

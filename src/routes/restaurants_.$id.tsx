@@ -1,49 +1,45 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { enrichedRestaurants, formatPrivilegeBadge, type EnrichedRestaurant } from "../lib/restaurants-enriched";
+import { enrichedRestaurants, formatPrivilegeBadge } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { DepositModal } from "@/components/deposit-modal";
 import { RestaurantMap } from "@/components/restaurant-map";
 import { MichelinBadge } from "@/components/michelin-badge";
 import { ImageSlideshowModal } from "@/components/image-slideshow-modal";
 import { ClaimListingModal } from "@/components/claim-listing-modal";
 import { PrivilegeCommunityVerify } from "@/components/privilege-community-verify";
-import { isCurrentlyOpenInDubai } from "@/lib/opening-hours";
+import { useGooglePlace } from "@/hooks/use-google-place";
+import { VenuePhoto, LiveRatingText, ProfilePhotoGallery } from "@/components/venue-photo";
+import { OrderOnlineCard, ListingDeliveryButtons } from "@/components/order-online-card";
+import { venueOffersDelivery } from "@/lib/delivery-apps";
+import {
+  callUrl,
+  googlePlaceUrl,
+  googleDirectionsUrl,
+  googleReviewsUrl,
+  officialWebsiteOf,
+  getBookingProviders,
+  isRealWebsite,
+} from "@/lib/venue-actions";
 import {
   Star,
   MapPin,
   Phone,
   Globe,
   Calendar,
-  MessageSquare,
   UtensilsCrossed,
   Clock,
-  Award,
   Sparkles,
-  X,
-  ChevronLeft,
-  ChevronRight,
   Heart,
-  Share2,
   CheckCircle2,
-  ShieldCheck,
   BadgePercent,
-  QrCode,
   Image as ImageIcon,
-  Flame,
-  ChevronDown,
   Tag,
-  Car,
-  Shirt,
-  Baby,
-  Dog,
-  Accessibility,
-  Wine,
   ArrowRight,
   ExternalLink,
   Navigation,
-  Building2
+  Building2,
+  ShoppingBag,
 } from "lucide-react";
 
 export const Route = createFileRoute("/restaurants_/$id")({
@@ -68,63 +64,27 @@ export const Route = createFileRoute("/restaurants_/$id")({
   component: RestaurantDetail,
 });
 
-function buildGallery(name: string): string[] {
-  const allPhotos = [
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1000",
-    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1000",
-    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000",
-    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1000",
-    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1000",
-    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=1000",
-    "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1000",
-    "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=1000",
-    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000",
-    "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=1000",
-    "https://images.unsplash.com/photo-1544025162-d76694265947?w=1000",
-    "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=1000"
-  ];
-  const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return [...allPhotos.slice(hash % allPhotos.length), ...allPhotos.slice(0, hash % allPhotos.length)];
-}
-
-function callUrl(phone: string) {
-  return `tel:${phone.replace(/\s+/g, "")}`;
-}
-
-function mapsSearchUrl(name: string, address: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + address + " Dubai")}`;
-}
-
-function mapsDirectionsUrl(name: string, address: string) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(name + " " + address + " Dubai")}`;
-}
-
 function RestaurantDetail() {
   const { id } = Route.useParams();
-  const [activeTab, setActiveTab] = useState<"about" | "menu" | "reviews" | "location">("about");
-  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"about" | "photos" | "reviews" | "location">("about");
   const [bookmarked, setBookmarked] = useState(false);
 
-  // Gallery & QR Lightbox Modal state
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [qrModalOpen, setQrModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
-
-  // Booking Widget Form state
-  const [bookingDate, setBookingDate] = useState("2026-08-20");
-  const [bookingTime, setBookingTime] = useState("20:00");
-  const [bookingGuests, setBookingGuests] = useState("2");
-  const [selectedProvider, setSelectedProvider] = useState<string>("SevenRooms");
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
 
   const r = useMemo(() => {
     return enrichedRestaurants.find((item) => item.slug === id) || null;
   }, [id]);
 
-  const gallery = useMemo(() => {
-    if (!r) return [];
-    return [r.image, ...buildGallery(r.name)];
-  }, [r]);
+  const { place: googlePlaceLive, isLoading: googleLoading } = useGooglePlace({
+    name: r?.name,
+    address: r?.address,
+    latitude: r?.latitude,
+    longitude: r?.longitude,
+  });
+
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const relatedRestaurants = useMemo(() => {
     if (!r) return [];
@@ -153,57 +113,45 @@ function RestaurantDetail() {
     );
   }
 
-  const liveStatus = isCurrentlyOpenInDubai(r.hours);
-  const whatsappUrl = `https://wa.me/971562730030?text=Hi%20${encodeURIComponent(r.name)}%2C%20I%20found%20your%20venue%20on%20Dubai%20Eat.%20I%27d%20like%20to%20inquire%20about%20table%20availability.`;
-
-  // Multi-provider booking platform links
-  const bookingProviders = [
-    {
-      id: "SevenRooms",
-      name: "SevenRooms",
-      logo: "🟣",
-      badge: "Official Partner",
-      url: `https://www.sevenrooms.com/explore/${r.slug}/reservations/create/search/`,
-      isDirect: true
-    },
-    {
-      id: "EatApp",
-      name: "EatApp",
-      logo: "🟠",
-      badge: "Instant Confirm",
-      url: `https://eatapp.co/dubai-restaurants/${r.slug}`
-    },
-    {
-      id: "ReserveOut",
-      name: "ReserveOut",
-      logo: "🔵",
-      badge: "Table Booking",
-      url: `https://www.reserveout.com/dubai-en/restaurants/${r.slug}`
-    },
-    {
-      id: "OpenTable",
-      name: "OpenTable",
-      logo: "🔴",
-      badge: "Global Network",
-      url: `https://www.opentable.ae/s?term=${encodeURIComponent(r.name + " Dubai")}`
-    },
-    {
-      id: "Resy",
-      name: "Resy",
-      logo: "🍷",
-      badge: "Exclusive Tables",
-      url: `https://resy.com/cities/dxb/${r.slug}`
-    }
-  ];
-
-  const currentBookingUrl = bookingProviders.find(p => p.id === selectedProvider)?.url || r.bookingPlatform?.url || r.website;
+  const bookingProviders = getBookingProviders(r);
+  const liveWebsite = googlePlaceLive?.website && isRealWebsite(googlePlaceLive.website)
+    ? googlePlaceLive.website
+    : officialWebsiteOf(r);
+  const officialWebsite = liveWebsite;
+  const activeProvider = bookingProviders.find((p) => p.id === selectedProvider) || bookingProviders[0];
+  const currentBookingUrl = activeProvider?.url || officialWebsite || googleDirectionsUrl(r);
+  const googlePlace = googlePlaceLive?.mapsUri || googlePlaceUrl(r);
+  const googleDirections = googleDirectionsUrl(r);
+  const googleReviews = googlePlaceLive?.mapsUri || googleReviewsUrl(r);
+  const offersDelivery = Boolean(googlePlaceLive?.delivery || googlePlaceLive?.takeout) || venueOffersDelivery(r);
+  const livePhone = googlePlaceLive?.phone || r.phone;
+  const liveAddress = googlePlaceLive?.address || r.address;
+  const liveHours = googlePlaceLive?.hoursText || r.hours;
+  const liveRating = googlePlaceLive?.rating ?? r.rating;
+  const liveReviews = googlePlaceLive?.reviewCount
+    ? googlePlaceLive.reviewCount >= 1000
+      ? `${(googlePlaceLive.reviewCount / 1000).toFixed(googlePlaceLive.reviewCount >= 10000 ? 0 : 1)}K`
+      : String(googlePlaceLive.reviewCount)
+    : r.reviews;
+  const liveFeatures = [
+    googlePlaceLive?.dineIn ? "Dine-in" : null,
+    googlePlaceLive?.takeout ? "Takeaway" : null,
+    googlePlaceLive?.delivery ? "Delivery" : null,
+  ].filter(Boolean) as string[];
+  const serviceFeatures = liveFeatures.length ? liveFeatures : r.features;
+  const gallery = googlePlaceLive?.photos?.length
+    ? googlePlaceLive.photos
+    : r.image
+      ? [r.image]
+      : [];
+  const phoneHref = callUrl(livePhone);
 
   const openGallery = (idx = 0) => {
     setLightboxIndex(idx);
     setLightboxOpen(true);
   };
 
-  const scrollToSection = (tab: "about" | "menu" | "reviews" | "location") => {
+  const scrollToSection = (tab: "about" | "photos" | "reviews" | "location") => {
     setActiveTab(tab);
     const el = document.getElementById(`section-${tab}`);
     if (el) {
@@ -215,13 +163,6 @@ function RestaurantDetail() {
     <div className="min-h-screen bg-[#F8F9FA] text-[#111827] font-sans text-left">
       <SiteHeader />
 
-      <DepositModal
-        restaurant={r}
-        isOpen={isDepositOpen}
-        onClose={() => setIsDepositOpen(false)}
-      />
-
-      {/* ── PHOTO GALLERY LIGHTBOX & SLIDESHOW ── */}
       <ImageSlideshowModal
         isOpen={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
@@ -237,40 +178,6 @@ function RestaurantDetail() {
         restaurantName={r.name}
         restaurantAddress={r.address || `${r.district}, Dubai`}
       />
-
-      {/* ── DIGITAL QR CODE MODAL ── */}
-      {qrModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl relative border border-[#E5E7EB]">
-            <button
-              onClick={() => setQrModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 text-[#6B7280] hover:text-[#111827] rounded-full hover:bg-[#F3F4F6] cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-1 text-[10px] font-semibold font-heading uppercase text-[#D4AF37] bg-[#FBF6E9] px-3 py-1 rounded-full border border-[#EFE2B9]">
-                <QrCode className="w-3.5 h-3.5" /> Official Digital Menu
-              </div>
-              <h3 className="font-heading font-bold text-xl text-[#111827]">{r.name}</h3>
-              <p className="text-xs text-[#6B7280]">Scan on your phone to view live prices, ingredients, and chef specials.</p>
-            </div>
-
-            <div className="p-4 bg-[#F8F9FA] rounded-2xl border border-[#E5E7EB] inline-block shadow-inner">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(r.website || 'https://dubai-eat.com/restaurants/' + r.slug)}`}
-                alt="Digital QR Menu"
-                className="w-48 h-48 mx-auto"
-              />
-            </div>
-
-            <div className="text-[11px] text-[#6B7280] font-mono">
-              Direct Link: <a href={r.website} target="_blank" rel="noopener noreferrer" className="text-[#D4AF37] underline font-bold">Open Menu in Browser</a>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── MAIN CONTAINER ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16 space-y-8">
@@ -301,7 +208,7 @@ function RestaurantDetail() {
               
               <p className="text-xs sm:text-sm text-[#6B7280] font-sans flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-                <span>{r.address || `${r.district}, Dubai`}</span>
+                <span>{liveAddress || `${r.district}, Dubai`}</span>
               </p>
 
               <p className="text-xs sm:text-sm text-[#111827] font-medium font-sans">
@@ -310,36 +217,40 @@ function RestaurantDetail() {
 
               <div className="flex items-center gap-2 pt-0.5 text-xs text-[#6B7280] font-sans">
                 <span className="inline-flex items-center gap-1 font-heading font-bold text-sm text-[#111827]">
-                  ★ {(r.rating * 2).toFixed(1)}
+                  ★ {liveRating.toFixed(1)}
                 </span>
-                <span className="font-semibold text-[#111827] font-heading">({r.reviews} reviews)</span>
+                <span className="font-semibold text-[#111827] font-heading">({liveReviews} reviews)</span>
                 <span>·</span>
-                <span className="text-[#6B7280]">Verified community rating</span>
+                <span className="text-[#6B7280]">{googlePlaceLive ? "Google rating" : "Listed rating"}</span>
               </div>
 
               {/* Quick Action Header Bar: Call, Website, Google Maps, Claim */}
               <div className="flex flex-wrap items-center gap-2 pt-2">
-                <a
-                  href={callUrl(r.phone)}
-                  className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] hover:border-[#111827] hover:bg-[#F3F4F6] text-[#111827] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
-                >
-                  <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>Call {r.phone}</span>
-                </a>
+                {phoneHref && (
+                  <a
+                    href={phoneHref}
+                    className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] hover:border-[#111827] hover:bg-[#F3F4F6] text-[#111827] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Call {livePhone}</span>
+                  </a>
+                )}
+
+                {officialWebsite && (
+                  <a
+                    href={officialWebsite}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] hover:border-[#111827] hover:bg-[#F3F4F6] text-[#111827] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Official Website</span>
+                    <ExternalLink className="w-3 h-3 text-[#6B7280]" />
+                  </a>
+                )}
 
                 <a
-                  href={r.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] hover:border-[#111827] hover:bg-[#F3F4F6] text-[#111827] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all"
-                >
-                  <Globe className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>Official Website</span>
-                  <ExternalLink className="w-3 h-3 text-[#6B7280]" />
-                </a>
-
-                <a
-                  href={mapsSearchUrl(r.name, r.address || r.district)}
+                  href={googleDirections}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 bg-[#FBF6E9] border border-[#EFE2B9] hover:bg-[#F5ECD4] text-[#8D6E18] px-3.5 py-1.5 rounded-xl text-xs font-bold font-heading shadow-2xs transition-all"
@@ -347,6 +258,30 @@ function RestaurantDetail() {
                   <Navigation className="w-3.5 h-3.5 text-[#8D6E18]" />
                   <span>Google Maps Directions</span>
                 </a>
+
+                <button
+                  type="button"
+                  onClick={() => (gallery.length ? openGallery(0) : scrollToSection("photos"))}
+                  className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] hover:border-[#111827] hover:bg-[#F3F4F6] text-[#111827] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all cursor-pointer"
+                >
+                  <ImageIcon className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>Photos</span>
+                </button>
+
+                {offersDelivery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nodes = document.querySelectorAll<HTMLElement>("[data-order-online]");
+                      const visible = [...nodes].find((node) => node.offsetParent !== null) || nodes[0];
+                      visible?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] hover:border-[#111827] hover:bg-[#F3F4F6] text-[#111827] px-3.5 py-1.5 rounded-xl text-xs font-semibold font-heading shadow-2xs transition-all cursor-pointer"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Order online</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => setClaimModalOpen(true)}
@@ -371,65 +306,22 @@ function RestaurantDetail() {
             </div>
           </div>
 
-          {/* 4-Photo Grid Gallery (TheFork Layout with +150 Photos) */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 h-[300px] sm:h-[400px] rounded-3xl overflow-hidden shadow-sm">
-            
-            {/* Left Large Photo */}
-            <div
-              onClick={() => openGallery(0)}
-              className="md:col-span-5 h-full relative cursor-pointer group overflow-hidden bg-slate-100"
-            >
-              <img
-                src={gallery[0]}
-                alt={`${r.name} facade`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-            </div>
+          {/* Compact photo gallery */}
+          <ProfilePhotoGallery
+            images={gallery}
+            title={r.name}
+            loading={googleLoading && !googlePlaceLive?.photos?.length}
+            onOpen={(idx) => openGallery(idx)}
+          />
 
-            {/* Middle Interior Photo */}
-            <div
-              onClick={() => openGallery(1)}
-              className="hidden md:block md:col-span-4 h-full relative cursor-pointer group overflow-hidden bg-slate-100"
-            >
-              <img
-                src={gallery[1]}
-                alt={`${r.name} dining room`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          {offersDelivery && (
+            <div className="mt-4 lg:hidden">
+              <OrderOnlineCard
+                venue={r}
+                live={{ delivery: googlePlaceLive?.delivery, takeout: googlePlaceLive?.takeout }}
               />
             </div>
-
-            {/* Right 2 Stacked Photos */}
-            <div className="hidden md:grid md:col-span-3 grid-rows-2 gap-3 h-full">
-              <div
-                onClick={() => openGallery(2)}
-                className="relative cursor-pointer group overflow-hidden bg-slate-100 rounded-2xl"
-              >
-                <img
-                  src={gallery[2]}
-                  alt={`${r.name} food dish`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-
-              {/* Bottom Right Photo with +150 Photos Badge */}
-              <div
-                onClick={() => openGallery(3)}
-                className="relative cursor-pointer group overflow-hidden bg-slate-100 rounded-2xl"
-              >
-                <img
-                  src={gallery[3]}
-                  alt={`${r.name} gallery preview`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-black/55 hover:bg-black/70 transition-colors flex items-center justify-center text-white font-bold text-sm font-heading gap-1.5">
-                  <ImageIcon className="w-4 h-4" />
-                  <span>+150 photos</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
+          )}
 
         </section>
 
@@ -443,7 +335,7 @@ function RestaurantDetail() {
             <div className="flex items-center gap-6 sm:gap-8 border-b border-[#EAEAEA] text-sm font-semibold font-heading sticky top-20 bg-[#F5F5F5] pt-2 z-20 overflow-x-auto">
               {[
                 { id: "about", label: "About" },
-                { id: "menu", label: "Menu" },
+                { id: "photos", label: "Photos" },
                 { id: "reviews", label: "Reviews" },
                 { id: "location", label: "Map & Location" }
               ].map(t => (
@@ -477,21 +369,25 @@ function RestaurantDetail() {
                 {/* Practical Info Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 font-sans text-xs">
                   <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
-                    <span className="text-[#757575] font-medium flex items-center gap-1.5"><Car className="w-3.5 h-3.5 text-[#D4AF37]" /> Valet Parking</span>
-                    <strong className="text-[#1A1A1A] font-semibold block">{r.valetInfo.type} ({r.valetInfo.cost})</strong>
-                  </div>
-                  <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
-                    <span className="text-[#757575] font-medium flex items-center gap-1.5"><Shirt className="w-3.5 h-3.5 text-[#D4AF37]" /> Dress Code</span>
-                    <strong className="text-[#1A1A1A] font-semibold block">{r.dressCode}</strong>
-                  </div>
-                  <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
                     <span className="text-[#757575] font-medium flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#D4AF37]" /> Hours</span>
-                    <strong className="text-[#1A1A1A] font-semibold block">{r.hours}</strong>
+                    <strong className="text-[#1A1A1A] font-semibold block">{liveHours}</strong>
                   </div>
                   <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
-                    <span className="text-[#757575] font-medium flex items-center gap-1.5"><Wine className="w-3.5 h-3.5 text-[#D4AF37]" /> Alcohol License</span>
-                    <strong className="text-[#1A1A1A] font-semibold block">{r.liquor}</strong>
+                    <span className="text-[#757575] font-medium flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#D4AF37]" /> Address</span>
+                    <strong className="text-[#1A1A1A] font-semibold block">{liveAddress}</strong>
                   </div>
+                  {livePhone && (
+                    <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
+                      <span className="text-[#757575] font-medium flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-[#D4AF37]" /> Phone</span>
+                      <strong className="text-[#1A1A1A] font-semibold block">{livePhone}</strong>
+                    </div>
+                  )}
+                  {serviceFeatures?.length > 0 && (
+                    <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#E0E0E0] space-y-1">
+                      <span className="text-[#757575] font-medium flex items-center gap-1.5"><UtensilsCrossed className="w-3.5 h-3.5 text-[#D4AF37]" /> Services</span>
+                      <strong className="text-[#1A1A1A] font-semibold block">{serviceFeatures.join(" · ")}</strong>
+                    </div>
+                  )}
                 </div>
 
                 {/* Privilege Card tags & Community Verification */}
@@ -541,58 +437,38 @@ function RestaurantDetail() {
               </div>
             </div>
 
-            {/* ── SECTION: RESTAURANT MENU ── */}
-            <div id="section-menu" className="space-y-6 scroll-mt-28">
+            {/* ── SECTION: PHOTOS ── */}
+            <div id="section-photos" className="space-y-6 scroll-mt-28">
               <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
                 
                 <h3 className="font-heading font-bold text-xl sm:text-2xl text-[#1A1A1A]">
-                  Restaurant menu
+                  Photos
                 </h3>
 
-                {/* 2-Card Row: Menu Photo (QR Code) & Food Photo */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  
-                  {/* Card 1: Menu photo with QR Code */}
-                  <div
-                    onClick={() => setQrModalOpen(true)}
-                    className="p-5 rounded-2xl border border-[#EAEAEA] bg-[#F5F5F5] hover:bg-[#EAEAEA] transition-all cursor-pointer flex items-center gap-4 group"
-                  >
-                    <div className="w-20 h-20 rounded-xl bg-white border border-[#E0E0E0] p-2 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                      <QrCode className="w-12 h-12 text-[#1A1A1A]" />
-                    </div>
-                    <div className="space-y-0.5">
-                      <h4 className="font-heading font-bold text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors">
-                        Menu photo
-                      </h4>
-                      <p className="text-xs text-[#757575] font-sans font-normal">8 photos · Scan QR Code</p>
-                      <span className="inline-block text-[11px] font-semibold font-heading text-[#D4AF37] pt-1">
-                        View Digital Menu →
-                      </span>
-                    </div>
+                {googleLoading && !googlePlaceLive?.photos?.length ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="aspect-[4/3] rounded-2xl bg-slate-200 animate-pulse" />
+                    ))}
                   </div>
-
-                  {/* Card 2: Food photo gallery */}
-                  <div
-                    onClick={() => openGallery(0)}
-                    className="p-5 rounded-2xl border border-[#EAEAEA] bg-[#F5F5F5] hover:bg-[#EAEAEA] transition-all cursor-pointer flex items-center gap-4 group"
-                  >
-                    <img
-                      src={gallery[2] || r.image}
-                      alt="Food photo"
-                      className="w-20 h-20 rounded-xl object-cover shrink-0 shadow-xs group-hover:scale-105 transition-transform bg-slate-200"
-                    />
-                    <div className="space-y-0.5">
-                      <h4 className="font-heading font-bold text-base text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors">
-                        Food photo
-                      </h4>
-                      <p className="text-xs text-[#757575] font-sans font-normal">+150 photos</p>
-                      <span className="inline-block text-[11px] font-semibold font-heading text-[#D4AF37] pt-1">
-                        View Food Gallery →
-                      </span>
-                    </div>
+                ) : gallery.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {gallery.map((src, idx) => (
+                      <button
+                        key={`${src}-${idx}`}
+                        type="button"
+                        onClick={() => openGallery(idx)}
+                        className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 border border-[#EAEAEA] hover:border-[#D4AF37] transition-all"
+                      >
+                        <img src={src} alt={`${r.name} photo ${idx + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
                   </div>
-
-                </div>
+                ) : (
+                  <p className="text-sm text-[#757575]">
+                    Photos for this venue are still loading from Google.
+                  </p>
+                )}
 
                 {/* Practical Cuisine & Price Info Box */}
                 <div className="border border-[#EAEAEA] rounded-2xl divide-y divide-[#EAEAEA] font-sans text-xs bg-white">
@@ -616,38 +492,22 @@ function RestaurantDetail() {
                     <Sparkles className="w-4 h-4 text-[#757575] shrink-0" />
                     <div>
                       <div className="font-semibold text-[#1A1A1A]">Dietary options</div>
-                      <div className="text-[#757575]">Halal certified, Vegetarian dishes, Gluten-Free available</div>
+                      <div className="text-[#757575]">Check the Google listing for current dietary details</div>
                     </div>
                   </div>
                 </div>
 
-                {/* A La Carte Dishes List */}
-                <div className="space-y-4 pt-4 border-t border-[#EAEAEA]">
-                  <h4 className="font-heading font-bold text-base sm:text-lg text-[#1A1A1A]">
-                    Signature Dishes & À La Carte
-                  </h4>
-
-                  <div className="divide-y divide-[#EAEAEA]">
-                    {(r.digitalMenu && r.digitalMenu.length > 0 ? r.digitalMenu : [
-                      { id: "1", name: "Black Cod Miso (Gindara)", price: 245, description: "Sweet miso marinated black cod wrapped in hoba leaf" },
-                      { id: "2", name: "Thinly Sliced Seabass with Yuzu & Truffle", price: 135, description: "Fresh seabass carpaccio with salmon roe, yuzu oil, and winter truffle" },
-                      { id: "3", name: "Japanese Wagyu Ribeye Tataki (Grade A5)", price: 320, description: "Seared A5 Wagyu beef slices with ponzu and crispy garlic chips" },
-                      { id: "4", name: "Artisanal Chocolate Fondant with Green Tea Ice Cream", price: 75, description: "Warm molten chocolate dome with premium Uji matcha green tea ice cream" }
-                    ]).map((dish: any) => (
-                      <div key={dish.id} className="py-3 flex justify-between items-start gap-4">
-                        <div className="space-y-0.5">
-                          <h5 className="font-heading font-semibold text-sm text-[#1A1A1A]">{dish.name}</h5>
-                          {dish.description && (
-                            <p className="text-xs text-[#757575] leading-relaxed font-normal">{dish.description}</p>
-                          )}
-                        </div>
-                        <span className="font-heading font-bold text-sm text-[#1A1A1A] shrink-0">
-                          AED {dish.price}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {officialWebsite && (
+                  <a
+                    href={officialWebsite}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 bg-[#111827] text-white px-4 py-2.5 rounded-xl text-xs font-bold font-heading"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    Open official menu / website
+                  </a>
+                )}
 
               </div>
             </div>
@@ -665,12 +525,12 @@ function RestaurantDetail() {
                   <div className="flex items-center gap-3">
                     <span className="font-display font-bold text-3xl sm:text-4xl text-[#1A1A1A] flex items-center">
                       <Star className="w-7 h-7 fill-[#1A1A1A] inline mr-1" />
-                      {(r.rating * 2).toFixed(1)}
+                      {liveRating.toFixed(1)}
                       <span className="text-base text-[#757575] font-normal">/10</span>
                     </span>
                     <div className="space-y-0.5">
                       <div className="font-heading font-bold text-sm text-[#1A1A1A]">Excellent</div>
-                      <div className="text-xs text-[#757575]">{r.reviews} reviews</div>
+                      <div className="text-xs text-[#757575]">{liveReviews} reviews</div>
                     </div>
                   </div>
 
@@ -726,66 +586,24 @@ function RestaurantDetail() {
                   ))}
                 </div>
 
-                {/* Verified Diner Review Cards */}
+                {/* Google reviews — we do not invent diner comments */}
                 <div className="space-y-4 pt-4">
-                  {[
-                    {
-                      name: "Jennifer E.",
-                      tenure: "3 months on Dubai Eats",
-                      rating: 10,
-                      date: "5 days ago",
-                      comment: "Lovely dining room away from the busy streets. Excellent service from the hostess to table staff, and the Wagyu tartare was incredible! Will definitely book again.",
-                      photos: [
-                        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300",
-                        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=300",
-                        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=300"
-                      ]
-                    },
-                    {
-                      name: "Rashid Al Mansoori",
-                      tenure: "1 year on Dubai Eats",
-                      rating: 9.8,
-                      date: "2 weeks ago",
-                      comment: "One of our go-to spots in Dubai. The ambiance on the terrace is unmatched with views of the skyline. Fazaa card discount was honored smoothly at checkout.",
-                      photos: [
-                        "https://images.unsplash.com/photo-1544025162-d76694265947?w=300",
-                        "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=300"
-                      ]
-                    }
-                  ].map((review, i) => (
-                    <div key={i} className="p-5 rounded-2xl border border-[#EAEAEA] bg-[#F9FAFB] space-y-2.5 text-xs">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-[#E0E0E0] flex items-center justify-center font-heading font-bold text-xs text-[#1A1A1A]">
-                            {review.name[0]}
-                          </div>
-                          <div>
-                            <div className="font-heading font-semibold text-sm text-[#1A1A1A]">{review.name}</div>
-                            <div className="text-[10px] text-[#757575] font-normal">{review.tenure}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-heading font-bold text-sm text-[#1A1A1A]">★ {review.rating}</span>
-                          <span className="text-[10px] text-[#757575] font-normal block">{review.date}</span>
-                        </div>
+                  <a
+                    href={googleReviews}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-5 rounded-2xl border border-[#EAEAEA] bg-[#F9FAFB] hover:bg-[#F3F4F6] transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-heading font-semibold text-sm text-[#1A1A1A]">Read reviews on Google</div>
+                        <p className="text-xs text-[#757575] mt-1">
+                          {liveRating.toFixed(1)} stars · {liveReviews} Google reviews. Open the listing for photos, delivery partners, and the latest comments.
+                        </p>
                       </div>
-
-                      <p className="text-xs text-[#4A4A4A] leading-relaxed font-sans font-normal">{review.comment}</p>
-
-                      {/* Review Photos Thumbnails */}
-                      <div className="flex gap-2 pt-1">
-                        {review.photos.map((p, pIdx) => (
-                          <img
-                            key={pIdx}
-                            src={p}
-                            alt="Diner photo"
-                            onClick={() => openGallery(pIdx)}
-                            className="w-14 h-14 rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity border border-[#E0E0E0]"
-                          />
-                        ))}
-                      </div>
+                      <ExternalLink className="w-4 h-4 text-[#D4AF37] shrink-0" />
                     </div>
-                  ))}
+                  </a>
                 </div>
 
               </div>
@@ -824,10 +642,10 @@ function RestaurantDetail() {
                       📍 Verified Address
                     </span>
                     <strong className="text-[#1A1A1A] font-semibold block leading-tight">
-                      {r.address || `${r.name}, ${r.district}, Dubai, UAE`}
+                      {liveAddress || `${r.name}, ${r.district}, Dubai, UAE`}
                     </strong>
                     <a
-                      href={mapsSearchUrl(r.name, r.address || r.district)}
+                      href={googlePlace}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[#D4AF37] font-bold font-heading text-[11px] hover:underline inline-block pt-1"
@@ -842,31 +660,31 @@ function RestaurantDetail() {
                       📞 Phone Line
                     </span>
                     <strong className="text-[#1A1A1A] font-semibold block">
-                      {r.phone}
+                      {livePhone}
                     </strong>
                     <a
-                      href={callUrl(r.phone)}
+                      href={phoneHref}
                       className="text-[#D4AF37] font-bold font-heading text-[11px] hover:underline inline-block pt-1"
                     >
                       Click to Call Now →
                     </a>
                   </div>
 
-                  {/* Official Website */}
+                  {/* Official Website or Google listing */}
                   <div className="p-4 rounded-2xl bg-[#F5F5F5] border border-[#E0E0E0] space-y-1">
                     <span className="text-[11px] font-semibold text-[#757575] font-heading uppercase tracking-wider block">
-                      🌐 Official Website
+                      {officialWebsite ? "🌐 Official Website" : "📍 Google listing"}
                     </span>
                     <strong className="text-[#1A1A1A] font-semibold block truncate">
-                      {r.website.replace(/^https?:\/\//, '')}
+                      {officialWebsite ? officialWebsite.replace(/^https?:\/\//, "") : "Photos, hours & phone on Google"}
                     </strong>
                     <a
-                      href={r.website}
+                      href={officialWebsite || googlePlace}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[#D4AF37] font-bold font-heading text-[11px] hover:underline inline-block pt-1"
                     >
-                      Visit Official Portal →
+                      {officialWebsite ? "Visit Official Website →" : "Open Google listing →"}
                     </a>
                   </div>
 
@@ -877,151 +695,141 @@ function RestaurantDetail() {
 
           </div>
 
-          {/* ── RIGHT COLUMN: STICKY MULTI-PROVIDER BOOKING WIDGET ── */}
+          {/* ── RIGHT COLUMN: LET'S DUBAI EAT — verified booking + Google actions ── */}
           <div className="lg:col-span-4 sticky top-24 space-y-4">
             
             <div className="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-xl space-y-5 text-left">
               
               <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#D4AF37] mb-1">
+                  Let's Dubai Eat
+                </p>
                 <h3 className="font-heading font-bold text-xl text-[#1A1A1A]">
                   Book a table
                 </h3>
                 <p className="text-xs text-[#757575] font-sans font-normal">
-                  Multi-provider verified reservations with instant confirmation
+                  Only live booking links — no guessed SevenRooms, EatApp, or ReserveOut pages
                 </p>
               </div>
 
-              {/* Hot Activity Banner */}
-              <div className="bg-[#FFF4E5] border border-[#FFE2B8] p-3 rounded-2xl flex items-center gap-2 text-xs font-semibold text-[#B25E00] font-heading">
-                <Flame className="w-4 h-4 text-orange-500 shrink-0 fill-orange-500" />
-                <span>Already 13 bookings for today</span>
-              </div>
-
-              {/* 🌟 MULTI-PROVIDER SELECTOR (SevenRooms, EatApp, ReserveOut, OpenTable, Resy) */}
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold font-heading text-[#757575] uppercase tracking-wider">
-                  Select Reservation Engine
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                  {bookingProviders.map(prov => (
-                    <button
-                      key={prov.id}
-                      type="button"
-                      onClick={() => setSelectedProvider(prov.id)}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                        selectedProvider === prov.id
-                          ? "bg-[#1A1A1A] text-white border-[#1A1A1A] shadow-xs"
-                          : "bg-[#F5F5F5] hover:bg-[#EAEAEA] border-[#E0E0E0] text-[#1A1A1A]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs">{prov.logo}</span>
-                        <span className="font-heading font-bold text-[11px] truncate">{prov.name}</span>
-                      </div>
-                      <span className={`text-[9px] block truncate mt-0.5 ${selectedProvider === prov.id ? "text-[#D4AF37]" : "text-[#757575]"}`}>
-                        {prov.badge}
-                      </span>
-                    </button>
-                  ))}
+              {r.walkInOnly && (
+                <div className="bg-[#FFF4E5] border border-[#FFE2B8] p-3 rounded-2xl text-xs font-semibold text-[#B25E00] font-heading">
+                  Walk-in only. This venue does not take online reservations.
                 </div>
-              </div>
+              )}
 
-              {/* Date & Guest Selectors */}
-              <div className="space-y-3 font-sans text-xs pt-1">
-                <div>
-                  <label className="block text-[11px] font-semibold font-heading text-[#757575] uppercase mb-1">
-                    Select Date
+              {bookingProviders.length > 0 && !r.walkInOnly && (
+                <div className="space-y-2">
+                  <label className="block text-[11px] font-bold font-heading text-[#757575] uppercase tracking-wider">
+                    Book with
                   </label>
-                  <input
-                    type="date"
-                    value={bookingDate}
-                    onChange={e => setBookingDate(e.target.value)}
-                    className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-[#1A1A1A] outline-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold font-heading text-[#757575] uppercase mb-1">
-                      Time Slot
-                    </label>
-                    <select
-                      value={bookingTime}
-                      onChange={e => setBookingTime(e.target.value)}
-                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3 py-2.5 text-xs font-medium text-[#1A1A1A] outline-none font-heading cursor-pointer"
-                    >
-                      <option value="19:00">19:00 (-20%)</option>
-                      <option value="19:30">19:30 (-20%)</option>
-                      <option value="20:00">20:00 (Standard)</option>
-                      <option value="20:30">20:30 (Standard)</option>
-                      <option value="21:00">21:00 (-15%)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold font-heading text-[#757575] uppercase mb-1">
-                      Guests
-                    </label>
-                    <select
-                      value={bookingGuests}
-                      onChange={e => setBookingGuests(e.target.value)}
-                      className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3 py-2.5 text-xs font-medium text-[#1A1A1A] outline-none font-heading cursor-pointer"
-                    >
-                      <option value="1">1 Person</option>
-                      <option value="2">2 Guests</option>
-                      <option value="4">4 Guests</option>
-                      <option value="6">6 Guests</option>
-                      <option value="8">8+ Guests (VIP Table)</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {bookingProviders.map(prov => (
+                      <button
+                        key={prov.id}
+                        type="button"
+                        onClick={() => setSelectedProvider(prov.id)}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          (activeProvider?.id === prov.id)
+                            ? "bg-[#1A1A1A] text-white border-[#1A1A1A] shadow-xs"
+                            : "bg-[#F5F5F5] hover:bg-[#EAEAEA] border-[#E0E0E0] text-[#1A1A1A]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs">{prov.logo}</span>
+                          <span className="font-heading font-bold text-[11px] truncate">{prov.name}</span>
+                        </div>
+                        <span className={`text-[9px] block truncate mt-0.5 ${activeProvider?.id === prov.id ? "text-[#D4AF37]" : "text-[#757575]"}`}>
+                          {prov.badge}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Primary Booking Action Buttons (Warm Red / Terracotta #D9381E) */}
-              <div className="space-y-2.5 pt-2">
-                <a
-                  href={currentBookingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full btn-action-primary text-sm font-bold font-heading py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-center cursor-pointer"
-                >
-                  <Calendar className="w-4 h-4 text-white" />
-                  <span>Book Table via {selectedProvider}</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-white/80" />
-                </a>
-
-                {/* VIP Table Deposit Modal Trigger */}
-                <button
-                  type="button"
-                  onClick={() => setIsDepositOpen(true)}
-                  className="w-full bg-[#111827] hover:bg-black text-white font-semibold font-heading text-xs py-3 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <ShieldCheck className="w-4 h-4 text-[#D4AF37]" />
-                  <span>VIP Table Deposit (Stripe / Telr)</span>
-                </button>
-
-                {/* Direct Phone & Website Quick Buttons */}
-                <div className="grid grid-cols-2 gap-2 pt-1 font-heading text-xs">
+              <div className="space-y-2.5 pt-1">
+                {!r.walkInOnly && (activeProvider || officialWebsite) ? (
                   <a
-                    href={callUrl(r.phone)}
-                    className="border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-[#F3F4F6] text-[#111827] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center truncate"
+                    href={currentBookingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full btn-action-primary text-sm font-bold font-heading py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-center cursor-pointer"
                   >
-                    <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>Call Venue</span>
+                    <Calendar className="w-4 h-4 text-white" />
+                    <span>
+                      {activeProvider?.name === "Direct Website"
+                        ? "Book on official website"
+                        : `Book Table via ${activeProvider?.name || "Website"}`}
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5 text-white/80" />
                   </a>
+                ) : (
+                  <a
+                    href={googleDirections}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full btn-action-primary text-sm font-bold font-heading py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-center cursor-pointer"
+                  >
+                    <Navigation className="w-4 h-4 text-white" />
+                    <span>Get directions on Google Maps</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-white/80" />
+                  </a>
+                )}
+
+                <div className="grid grid-cols-2 gap-2 font-heading text-xs">
+                  {phoneHref && (
+                    <a
+                      href={phoneHref}
+                      className="border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-[#F3F4F6] text-[#111827] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center truncate"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>Call</span>
+                    </a>
+                  )}
 
                   <a
-                    href={whatsappUrl}
+                    href={googleDirections}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-[#F3F4F6] text-[#111827] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center"
                   >
-                    <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
-                    <span>WhatsApp</span>
+                    <Navigation className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Directions</span>
                   </a>
+
+                  <button
+                    type="button"
+                    onClick={() => (gallery.length ? openGallery(0) : scrollToSection("photos"))}
+                    className="border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-[#F3F4F6] text-[#111827] font-semibold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 text-center cursor-pointer"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Photos</span>
+                  </button>
                 </div>
 
-                {/* Quick Owner Claim CTA */}
+                {offersDelivery && (
+                  <div className="hidden lg:block">
+                    <OrderOnlineCard
+                      venue={r}
+                      live={{ delivery: googlePlaceLive?.delivery, takeout: googlePlaceLive?.takeout }}
+                    />
+                  </div>
+                )}
+
+                {officialWebsite && (
+                  <a
+                    href={officialWebsite}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full border border-[#111827] text-[#111827] font-semibold font-heading text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>Official website</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+
                 <div className="pt-2 text-center">
                   <button
                     type="button"
@@ -1031,32 +839,6 @@ function RestaurantDetail() {
                     <Building2 className="w-3 h-3 text-[#D9381E]" />
                     <span>Are you the manager? Claim listing</span>
                   </button>
-                </div>
-              </div>
-
-              {/* Online Food Delivery Hub */}
-              <div className="border-t border-[#EAEAEA] pt-4 space-y-2">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#757575] font-heading">
-                  🛵 Online Food Delivery
-                </p>
-                <div className="grid grid-cols-5 gap-1.5 text-center text-[9px] font-semibold font-heading">
-                  {[
-                    { href: r.deliveryLinks?.keeta, label: "Keeta", bg: "bg-sky-50 text-sky-700 border-sky-200" },
-                    { href: r.deliveryLinks?.deliveroo, label: "Deliveroo", bg: "bg-teal-50 text-teal-700 border-teal-200" },
-                    { href: r.deliveryLinks?.talabat, label: "Talabat", bg: "bg-orange-50 text-orange-700 border-orange-200" },
-                    { href: r.deliveryLinks?.careem, label: "Careem", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-                    { href: r.deliveryLinks?.noon, label: "Noon", bg: "bg-amber-50 text-amber-800 border-amber-200" },
-                  ].map(d => (
-                    <a
-                      key={d.label}
-                      href={d.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${d.bg} border py-1.5 rounded-lg hover:scale-105 transition-transform`}
-                    >
-                      {d.label}
-                    </a>
-                  ))}
                 </div>
               </div>
 
@@ -1090,30 +872,37 @@ function RestaurantDetail() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {relatedRestaurants.map((rel) => (
-              <Link
+              <article
                 key={rel.slug}
-                to="/restaurants/$id"
-                params={{ id: rel.slug || "" }}
-                className="group bg-white border border-[#EAEAEA] hover:border-[#D4AF37] rounded-2xl overflow-hidden hover:shadow-md transition-all block shadow-2xs"
+                className="group bg-white border border-[#EAEAEA] hover:border-[#D4AF37] rounded-2xl overflow-hidden hover:shadow-md transition-all shadow-2xs"
               >
-                <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-                  <img
-                    src={rel.image}
-                    alt={rel.name}
-                    className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
-                  />
-                  <div className="absolute bottom-2 right-2 bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-bold text-xs px-2 py-0.5 rounded-md font-heading">
-                    {(rel.rating * 2).toFixed(1)}
+                <Link
+                  to="/restaurants/$id"
+                  params={{ id: rel.slug || "" }}
+                  className="block"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                    <VenuePhoto
+                      venue={rel}
+                      alt={rel.name}
+                      className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                    />
+                    <div className="absolute bottom-2 right-2 bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-bold text-xs px-2 py-0.5 rounded-md font-heading">
+                      <LiveRatingText venue={rel} scale={2} />
+                    </div>
                   </div>
+                  <div className="p-4 pb-2 space-y-1">
+                    <h3 className="font-heading font-semibold text-sm text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors line-clamp-1">
+                      {rel.name}
+                    </h3>
+                    <p className="text-xs text-[#757575] font-sans font-normal">{rel.cuisine}</p>
+                    <p className="text-xs font-semibold text-[#1A1A1A] font-heading">AED {rel.priceMin}–{rel.priceMax} pp</p>
+                  </div>
+                </Link>
+                <div className="px-4 pb-4">
+                  <ListingDeliveryButtons venue={rel} />
                 </div>
-                <div className="p-4 space-y-1">
-                  <h3 className="font-heading font-semibold text-sm text-[#1A1A1A] group-hover:text-[#D4AF37] transition-colors line-clamp-1">
-                    {rel.name}
-                  </h3>
-                  <p className="text-xs text-[#757575] font-sans font-normal">{rel.cuisine}</p>
-                  <p className="text-xs font-semibold text-[#1A1A1A] font-heading">AED {rel.priceMin}–{rel.priceMax} pp</p>
-                </div>
-              </Link>
+              </article>
             ))}
           </div>
         </section>

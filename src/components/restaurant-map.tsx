@@ -1,7 +1,10 @@
 import { useEffect, useRef } from "react";
+import { useQueries } from "@tanstack/react-query";
 import L from "leaflet";
 import { type EnrichedRestaurant } from "@/lib/restaurants-enriched";
-import { Link } from "@tanstack/react-router";
+import { getAccurateBookHref, getAccurateBookLabel } from "@/lib/venue-actions";
+import { getDeliveryPartners } from "@/lib/delivery-apps";
+import { fetchGooglePlace, googlePlaceQueryKey, hasGooglePlacesKey, venueGallery } from "@/lib/google-places";
 
 // Fix default leaflet marker icon assets if needed
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -29,6 +32,23 @@ export function RestaurantMap({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
+  const placeResults = useQueries({
+    queries: restaurants.map((r) => ({
+      queryKey: googlePlaceQueryKey(r.name, r.address),
+      queryFn: () =>
+        fetchGooglePlace({
+          name: r.name,
+          address: r.address,
+          latitude: r.latitude,
+          longitude: r.longitude,
+        }),
+      staleTime: 1000 * 60 * 60,
+      enabled: hasGooglePlacesKey(),
+    })),
+  });
+  const placeSignature = placeResults
+    .map((result) => `${result.data?.id || ""}:${result.data?.photos?.[0] || ""}:${result.data?.rating || ""}`)
+    .join("|");
 
   // Initialize Map instance
   useEffect(() => {
@@ -69,10 +89,13 @@ export function RestaurantMap({
 
     group.clearLayers();
 
-    restaurants.forEach((r) => {
+    restaurants.forEach((r, index) => {
       if (!r.coordinates || !r.coordinates.lat || !r.coordinates.lng) return;
 
       const isSelected = activeRestaurant?.slug === r.slug;
+      const place = placeResults[index]?.data;
+      const photo = venueGallery(r.image, place)[0] || r.image;
+      const rating = place?.rating ?? r.rating;
 
       // Custom HTML Pin Marker with price & gold accent
       const pinHtml = `
@@ -112,7 +135,7 @@ export function RestaurantMap({
       const popupContent = `
         <div style="font-family: 'Hanken Grotesk', sans-serif; max-width: 260px; padding: 2px;">
           <div style="width: 100%; height: 120px; border-radius: 12px; overflow: hidden; position: relative; background: #eee;">
-            <img src="${r.image}" alt="${r.name}" style="width: 100%; height: 100%; object-fit: cover;" />
+            <img src="${photo}" alt="${r.name}" style="width: 100%; height: 100%; object-fit: cover;" />
             <span style="position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.7); color: #fff; font-size: 9px; font-weight: 800; font-family: 'Montserrat', sans-serif; padding: 2px 6px; border-radius: 6px; text-transform: uppercase;">
               ${r.cuisine}
             </span>
@@ -123,7 +146,7 @@ export function RestaurantMap({
                 ${r.name}
               </h4>
               <span style="background: #FBF6E9; border: 1px solid #EFE2B9; color: #9C7D1A; font-weight: 900; font-size: 11px; padding: 2px 5px; border-radius: 6px; shrink: 0;">
-                ★ ${(r.rating * 2).toFixed(1)}
+                ★ ${(rating * 2).toFixed(1)}
               </span>
             </div>
             <p style="font-size: 11px; color: #757575; margin: 4px 0 6px 0;">
@@ -137,12 +160,19 @@ export function RestaurantMap({
                 🏷️ ${r.discounts[0]} Privilege
               </div>
             ` : ""}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+              ${getDeliveryPartners(r, "delivery").map((partner) => `
+                <a href="${partner.webUrl}" target="_blank" rel="noopener noreferrer" style="text-align: center; background: #fff; color: #111827; text-decoration: none; font-size: 11px; font-weight: 700; font-family: 'Montserrat', sans-serif; padding: 6px 8px; border-radius: 8px; border: 1px solid #E5E7EB;">
+                  ${partner.name}
+                </a>
+              `).join("")}
+            </div>
             <div style="display: flex; gap: 6px; margin-top: 4px;">
               <a href="/restaurants/${r.slug}" style="flex: 1; text-align: center; background: #1A1A1A; color: #fff; text-decoration: none; font-size: 11px; font-weight: 700; font-family: 'Montserrat', sans-serif; padding: 6px 8px; border-radius: 8px;">
                 View Details
               </a>
-              <a href="${r.bookingPlatform?.url || r.website}" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background: #D4AF37; color: #1A1A1A; text-decoration: none; font-size: 11px; font-weight: 800; font-family: 'Montserrat', sans-serif; padding: 6px 8px; border-radius: 8px;">
-                Book Table
+              <a href="${getAccurateBookHref(r)}" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background: #D4AF37; color: #1A1A1A; text-decoration: none; font-size: 11px; font-weight: 800; font-family: 'Montserrat', sans-serif; padding: 6px 8px; border-radius: 8px;">
+                ${getAccurateBookLabel(r)}
               </a>
             </div>
           </div>
@@ -159,7 +189,7 @@ export function RestaurantMap({
 
       group.addLayer(marker);
     });
-  }, [restaurants, activeRestaurant, onSelectRestaurant]);
+  }, [restaurants, activeRestaurant, onSelectRestaurant, placeSignature]);
 
   // Pan to active restaurant when selected
   useEffect(() => {

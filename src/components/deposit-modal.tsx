@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, ShieldCheck, CreditCard, CheckCircle2, Lock, Sparkles } from "lucide-react";
 import { EnrichedRestaurant } from "@/lib/restaurants-enriched";
+import { VenuePhoto } from "@/components/venue-photo";
 
 interface DepositModalProps {
   restaurant: EnrichedRestaurant | null;
@@ -80,7 +81,7 @@ export function DepositModal({ restaurant, isOpen, onClose }: DepositModalProps)
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div className="flex items-center gap-3 p-3 bg-muted/40 rounded-2xl border border-border">
-              <img src={restaurant.image} alt={restaurant.name} className="w-12 h-12 rounded-xl object-cover" />
+              <VenuePhoto venue={restaurant} alt={restaurant.name} className="w-12 h-12 rounded-xl object-cover" />
               <div>
                 <p className="font-extrabold text-sm text-foreground">{restaurant.name}</p>
                 <p className="text-xs text-muted-foreground">{restaurant.cuisine} · {restaurant.district}</p>

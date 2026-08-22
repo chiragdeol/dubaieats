@@ -3,8 +3,11 @@ import { useState, useMemo } from "react";
 import { enrichedRestaurants, type EnrichedRestaurant } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { DUBAI_DISTRICTS, DUBAI_ZONES } from "@/lib/dubai-districts";
+import { LISTING_AREAS } from "@/lib/dubai-districts";
 import { RestaurantMap } from "@/components/restaurant-map";
+import { VenuePhoto, LiveRatingText, LiveHoursText } from "@/components/venue-photo";
+import { getAccurateBookHref, getAccurateBookLabel } from "@/lib/venue-actions";
+import { ListingDeliveryButtons } from "@/components/order-online-card";
 import { 
   MapPin, 
   Star, 
@@ -103,13 +106,9 @@ function InteractiveMapPage() {
                 onChange={e => setSelectedDistrict(e.target.value)}
                 className="w-full bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl px-3 py-2 text-xs font-semibold text-[#1A1A1A] outline-none cursor-pointer font-heading"
               >
-                <option value="All">All Dubai Districts</option>
-                {DUBAI_ZONES.map(zone => (
-                  <optgroup key={zone} label={`── ${zone}`}>
-                    {DUBAI_DISTRICTS.filter(d => d.zone === zone).map(d => (
-                      <option key={d.name} value={d.name}>{d.name}</option>
-                    ))}
-                  </optgroup>
+                <option value="All">All Dubai Areas</option>
+                {LISTING_AREAS.map((d) => (
+                  <option key={d} value={d}>{d}</option>
                 ))}
               </select>
             </div>
@@ -148,8 +147,8 @@ function InteractiveMapPage() {
               {activeVenue ? (
                 <div className="bg-white border border-[#EAEAEA] rounded-3xl overflow-hidden shadow-md space-y-4">
                   <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
-                    <img
-                      src={activeVenue.image}
+                    <VenuePhoto
+                      venue={activeVenue}
                       alt={activeVenue.name}
                       className="w-full h-full object-cover"
                     />
@@ -168,7 +167,7 @@ function InteractiveMapPage() {
                     <div className="flex items-center justify-between text-xs font-sans">
                       <div className="flex items-center gap-1">
                         <span className="bg-[#FBF6E9] border border-[#EFE2B9] text-[#9C7D1A] font-black text-xs px-2 py-0.5 rounded-md font-heading">
-                          {(activeVenue.rating * 2).toFixed(1)}
+                          <LiveRatingText venue={activeVenue} scale={2} />
                         </span>
                         <span className="font-bold text-[#1A1A1A] font-heading">({activeVenue.reviews} reviews)</span>
                       </div>
@@ -181,7 +180,7 @@ function InteractiveMapPage() {
                     <div className="bg-[#F5F5F5] p-3.5 rounded-2xl border border-[#EAEAEA] text-xs space-y-1.5 font-sans">
                       <p className="flex justify-between"><span className="text-[#757575] font-semibold">Dress Code:</span> <strong className="text-[#1A1A1A]">{activeVenue.dressCode}</strong></p>
                       <p className="flex justify-between"><span className="text-[#757575] font-semibold">Valet:</span> <strong className="text-[#1A1A1A]">{activeVenue.valetInfo.type}</strong></p>
-                      <p className="flex justify-between"><span className="text-[#757575] font-semibold">Hours:</span> <strong className="text-[#1A1A1A] truncate max-w-[140px]">{activeVenue.hours}</strong></p>
+                      <p className="flex justify-between"><span className="text-[#757575] font-semibold">Hours:</span> <strong className="text-[#1A1A1A] truncate max-w-[140px]"><LiveHoursText venue={activeVenue} /></strong></p>
                     </div>
 
                     {/* Accepted Deals */}
@@ -202,6 +201,7 @@ function InteractiveMapPage() {
 
                     {/* Action buttons */}
                     <div className="space-y-2 pt-2">
+                      <ListingDeliveryButtons venue={activeVenue} />
                       <Link
                         to="/restaurants/$id"
                         params={{ id: activeVenue.slug }}
@@ -212,13 +212,13 @@ function InteractiveMapPage() {
                       </Link>
 
                       <a
-                        href={activeVenue.bookingPlatform?.url || activeVenue.website}
+                        href={getAccurateBookHref(activeVenue)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full bg-[#D4AF37] hover:bg-[#C29D2C] text-[#1A1A1A] font-bold font-heading text-xs py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
                       >
                         <Calendar className="w-3.5 h-3.5 text-[#1A1A1A]" />
-                        <span>Instant Reservation</span>
+                        <span>{getAccurateBookLabel(activeVenue)}</span>
                       </a>
                     </div>
                   </div>

@@ -1,8 +1,10 @@
-import { Restaurant, sponsoredRestaurants } from "../data/restaurants";
+import { sponsoredRestaurants } from "../data/restaurants";
+import { type EnrichedRestaurant } from "@/lib/restaurants-enriched";
+import { VenuePhoto, LiveRatingText } from "@/components/venue-photo";
 import { X, MapPin, Phone, Globe, Star, MoreVertical, ExternalLink, Navigation } from "lucide-react";
 
 interface Props {
-  targetRestaurant: Restaurant | null;
+  targetRestaurant: EnrichedRestaurant | null;
   onClose: () => void;
 }
 
@@ -36,8 +38,8 @@ export function SponsoredDirectionsModal({ targetRestaurant, onClose }: Props) {
           {/* Main Target Restaurant Directions Card */}
           <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 shadow-sm space-y-3">
             <div className="flex gap-3 items-center">
-              <img
-                src={targetRestaurant.image}
+              <VenuePhoto
+                venue={targetRestaurant}
                 alt={targetRestaurant.name}
                 className="w-16 h-16 rounded-xl object-cover shrink-0 border border-border"
               />
@@ -48,7 +50,7 @@ export function SponsoredDirectionsModal({ targetRestaurant, onClose }: Props) {
                 <p className="text-xs text-muted-foreground truncate">{targetRestaurant.address}</p>
                 <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-bold">
                   <Star className="w-3.5 h-3.5 fill-current" />
-                  <span>{targetRestaurant.rating.toFixed(1)}</span>
+                  <LiveRatingText venue={targetRestaurant} />
                   <span className="text-muted-foreground font-normal">({targetRestaurant.reviews})</span>
                   <span className="text-muted-foreground font-normal">· {targetRestaurant.cuisine}</span>
                 </div>

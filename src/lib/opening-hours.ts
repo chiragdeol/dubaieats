@@ -11,6 +11,10 @@ export function isCurrentlyOpenInDubai(hoursString: string): { isOpen: boolean; 
     return { isOpen: true, label: "Open 24 Hours" };
   }
 
+  if (/google/i.test(hoursString)) {
+    return { isOpen: false, label: "Hours on Google" };
+  }
+
   try {
     // Get current time in Dubai (UTC+4)
     const now = new Date();

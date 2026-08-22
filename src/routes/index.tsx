@@ -21,10 +21,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DubaiItRandomizerModal } from "@/components/dubai-it-randomizer-modal";
 import { OwnerCta } from "@/components/owner-cta";
-import { CardImageSlider, ImageSlideshowModal } from "@/components/image-slideshow-modal";
+import { VenueCardGallery, VenuePhotoLightbox, LiveRatingText } from "@/components/venue-photo";
 import { ClaimListingModal } from "@/components/claim-listing-modal";
 import { MichelinBadge } from "@/components/michelin-badge";
-import { enrichedRestaurants, formatPrivilegeBadge, type EnrichedRestaurant } from "@/lib/restaurants-enriched";
+import { LISTING_AREAS } from "@/lib/dubai-districts";
+import { enrichedRestaurants, formatPrivilegeBadge, type EnrichedRestaurant } from "../lib/restaurants-enriched";
+import { getAccurateBookHref, getAccurateBookLabel } from "@/lib/venue-actions";
+import { ListingDeliveryButtons } from "@/components/order-online-card";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -45,18 +48,6 @@ const moods = [
 
 const districts = ["Downtown Dubai", "DIFC", "Palm Jumeirah", "Dubai Marina", "Jumeirah", "Old Dubai / Deira"];
 
-function buildGallery(name: string): string[] {
-  const allPhotos = [
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900",
-    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900",
-    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900",
-    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900",
-    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900"
-  ];
-  const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return [...allPhotos.slice(hash % allPhotos.length), ...allPhotos.slice(0, hash % allPhotos.length)];
-}
-
 function Landing() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
@@ -67,7 +58,7 @@ function Landing() {
   const [activeSlideshowIndex, setActiveSlideshowIndex] = useState<number>(0);
   const [activeClaimRestaurant, setActiveClaimRestaurant] = useState<EnrichedRestaurant | null>(null);
 
-  const areas = useMemo(() => Array.from(new Set(enrichedRestaurants.map((r) => r.district))).sort(), []);
+  const areas = LISTING_AREAS;
   const featured = useMemo(() => enrichedRestaurants.filter((r) => !r.isSponsored).slice(0, 4), []);
   const dealsList = useMemo(() => enrichedRestaurants.filter((r) => r.discounts && r.discounts.length > 0).slice(0, 4), []);
 
@@ -91,7 +82,7 @@ function Landing() {
         
         {/* ── MAJESTIC PALATE HERO BANNER WITH BACKGROUND VIDEO ── */}
         <section className="relative mx-auto max-w-[1440px] px-4 pb-12 pt-8 sm:px-6 lg:px-10">
-          <div className="relative min-h-[480px] sm:min-h-[580px] overflow-hidden rounded-[32px] bg-[#111827] text-white shadow-2xl border border-[#1E293B]">
+          <div className="relative min-h-[420px] sm:min-h-[500px] overflow-hidden rounded-[32px] bg-[#111827] text-white shadow-2xl border border-[#1E293B]">
             
             {/* Background Autoplay Looping Video */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -114,19 +105,19 @@ function Landing() {
             <div className="absolute top-0 right-0 w-96 h-96 bg-[#D4AF37]/15 rounded-full blur-3xl pointer-events-none z-1" />
             <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none z-1" />
 
-            <div className="relative z-10 mx-auto flex min-h-[480px] sm:min-h-[580px] max-w-5xl items-center px-6 py-14 sm:px-14 lg:px-16">
+            <div className="relative z-10 mx-auto flex min-h-[420px] sm:min-h-[500px] max-w-5xl items-center px-6 py-14 sm:px-14 lg:px-16">
               <div className="w-full max-w-2xl space-y-6">
                 
-                <div className="inline-flex items-center gap-2 bg-[#D4AF37]/15 border border-[#D4AF37]/30 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-[#D4AF37] font-heading">
+                <div className="inline-flex items-center gap-2 bg-[#D4AF37]/15 border border-[#D4AF37]/30 px-3.5 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-widest text-[#D4AF37] font-heading">
                   <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
                   Majestic Palate Dubai Dining Guide
                 </div>
 
-                <h1 className="font-display max-w-2xl text-4xl sm:text-6xl lg:text-[4rem] font-black leading-[1.08] tracking-tight text-white drop-shadow-md">
+                <h1 className="font-display max-w-2xl text-4xl sm:text-5xl lg:text-[3.4rem] font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-md">
                   Discover and book the best restaurants in Dubai
                 </h1>
 
-                <p className="text-[#E5E7EB] text-sm sm:text-base leading-relaxed max-w-xl font-normal drop-shadow-sm font-sans">
+                <p className="text-[#E5E7EB] text-sm sm:text-[0.95rem] leading-relaxed max-w-xl font-normal drop-shadow-sm font-sans">
                   Explore thousands of verified venues, authentic Emirati flavours, Michelin dining, and exclusive Fazaa & Esaad privileges.
                 </p>
 
@@ -140,7 +131,7 @@ function Landing() {
                     <select
                       value={area}
                       onChange={(e) => setArea(e.target.value)}
-                      className="w-full bg-transparent text-xs font-bold text-[#111827] outline-none cursor-pointer font-heading"
+                      className="w-full bg-transparent text-xs font-semibold text-[#111827] outline-none cursor-pointer font-heading"
                     >
                       <option value="All">All Dubai Areas</option>
                       {areas.map((item) => (
@@ -155,27 +146,27 @@ function Landing() {
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       placeholder="Cuisine, restaurant, or dish (e.g. Italian, Sushi, Wagyu)..."
-                      className="w-full text-xs font-semibold text-[#111827] outline-none placeholder:text-[#6B7280] font-sans"
+                      className="w-full text-xs font-medium text-[#111827] outline-none placeholder:text-[#6B7280] font-sans"
                     />
                   </label>
 
                   <button
                     type="submit"
-                    className="rounded-full btn-action-primary px-8 py-3.5 text-xs font-extrabold uppercase tracking-wider transition-all shadow-md shrink-0 cursor-pointer"
+                    className="rounded-full btn-action-primary px-8 py-3.5 text-xs font-bold uppercase tracking-wider transition-all shadow-md shrink-0 cursor-pointer"
                   >
                     SEARCH
                   </button>
                 </form>
 
                 {/* Quick discovery pills */}
-                <div className="flex flex-wrap items-center gap-2 pt-2 text-xs font-semibold text-white/90 font-heading">
-                  <span className="text-white/70">Trending:</span>
+                <div className="flex flex-wrap items-center gap-2 pt-2 text-xs font-medium text-white/90 font-heading">
+                  <span className="text-white/70 font-normal">Trending:</span>
                   {["DIFC Fine Dining", "Burj Khalifa View", "Fazaa Deals", "Beach Clubs"].map(t => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => navigate({ to: "/restaurants", search: { q: t } })}
-                      className="bg-black/40 hover:bg-[#D4AF37] hover:text-[#1A1A1A] text-white px-3 py-1 rounded-full text-[11px] font-bold border border-white/20 transition-all cursor-pointer backdrop-blur-sm"
+                      className="bg-black/40 hover:bg-[#D4AF37] hover:text-[#1A1A1A] text-white px-3 py-1 rounded-full text-[11px] font-medium border border-white/20 transition-all cursor-pointer backdrop-blur-sm"
                     >
                       {t}
                     </button>
@@ -192,13 +183,13 @@ function Landing() {
           <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <p className="vd-eyebrow mb-2">CURATED EXPERIENCES</p>
-              <h2 className="font-display text-3xl sm:text-5xl font-black text-[#0f172a]">
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0f172a] tracking-tight">
                 Find your kind of Dubai vibe
               </h2>
             </div>
             <Link
               to="/restaurants"
-              className="inline-flex items-center gap-1 text-xs font-extrabold uppercase tracking-wider text-[#005971] hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#005971] hover:underline"
             >
               See all experiences <ArrowUpRight className="h-4 w-4" />
             </Link>
@@ -219,7 +210,7 @@ function Landing() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#005971]/95 via-[#005971]/20 to-transparent" />
                 <div className="absolute bottom-0 p-6 space-y-1">
                   <Icon className="mb-4 h-6 w-6 text-amber-300" />
-                  <h3 className="font-display font-extrabold text-xl leading-snug">{title}</h3>
+                  <h3 className="font-display font-semibold text-xl leading-snug">{title}</h3>
                   <p className="text-xs text-white/80 font-normal">{copy}</p>
                 </div>
               </button>
@@ -233,13 +224,13 @@ function Landing() {
             <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
                 <p className="vd-eyebrow mb-2">THE DUBAI EDIT</p>
-                <h2 className="font-display text-3xl sm:text-5xl font-black text-[#111827]">
+                <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#111827] tracking-tight">
                   Iconic Places Worth Knowing
                 </h2>
               </div>
               <Link
                 to="/restaurants"
-                className="inline-flex items-center gap-1 text-xs font-bold font-heading uppercase tracking-wider text-[#D9381E] hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-semibold font-heading uppercase tracking-wider text-[#D9381E] hover:underline"
               >
                 Browse all venues <ChevronRight className="h-4 w-4" />
               </Link>
@@ -247,8 +238,6 @@ function Landing() {
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {featured.map((restaurant) => {
-                const cardGallery = [restaurant.image, ...buildGallery(restaurant.name)];
-
                 return (
                   <article
                     key={restaurant.slug}
@@ -256,9 +245,8 @@ function Landing() {
                   >
                     <div>
                       <div className="relative aspect-[4/3] overflow-hidden bg-slate-900">
-                        <CardImageSlider
-                          images={cardGallery}
-                          title={restaurant.name}
+                        <VenueCardGallery
+                          venue={restaurant}
                           onImageClick={(idx) => {
                             setActiveSlideshowRestaurant(restaurant);
                             setActiveSlideshowIndex(idx || 0);
@@ -269,7 +257,7 @@ function Landing() {
                           {restaurant.michelin && (
                             <MichelinBadge tier={restaurant.michelin} size="sm" />
                           )}
-                          <span className="rounded-full bg-[#111827] text-white px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider shadow-sm font-heading">
+                          <span className="rounded-full bg-[#111827] text-white px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider shadow-sm font-heading">
                             {restaurant.cuisine}
                           </span>
                         </div>
@@ -277,13 +265,13 @@ function Landing() {
 
                       <div className="p-5 space-y-2.5">
                         <div className="flex items-start justify-between gap-3">
-                          <h3 className="font-display font-extrabold text-lg text-[#111827] group-hover:text-[#D4AF37] transition-colors leading-tight">
+                          <h3 className="font-display font-semibold text-lg text-[#111827] group-hover:text-[#D4AF37] transition-colors leading-tight">
                             <Link to="/restaurants/$id" params={{ id: restaurant.slug }}>
                               {restaurant.name}
                             </Link>
                           </h3>
-                          <span className="flex items-center gap-1 rounded-lg bg-[#FBF6E9] border border-[#EFE2B9] px-2 py-0.5 text-xs font-black text-[#8D6E18] shrink-0 font-heading">
-                            <Star className="h-3 w-3 fill-[#D4AF37] text-[#D4AF37]" /> {(restaurant.rating * 2).toFixed(1)}
+                          <span className="flex items-center gap-1 rounded-lg bg-[#FBF6E9] border border-[#EFE2B9] px-2 py-0.5 text-xs font-bold text-[#8D6E18] shrink-0 font-heading">
+                            <Star className="h-3 w-3 fill-[#D4AF37] text-[#D4AF37]" /> <LiveRatingText venue={restaurant} scale={2} />
                           </span>
                         </div>
 
@@ -292,11 +280,11 @@ function Landing() {
                         </p>
 
                         <div className="pt-2 flex items-center justify-between text-xs border-t border-[#F3F4F6]">
-                          <span className="text-[11px] font-bold text-[#6B7280]">{restaurant.valetInfo.type} Valet</span>
+                          <span className="text-[11px] font-medium text-[#6B7280]">{restaurant.valetInfo.type} Valet</span>
                           <Link
                             to="/restaurants/$id"
                             params={{ id: restaurant.slug }}
-                            className="font-bold text-[#D9381E] flex items-center gap-0.5 hover:underline font-heading"
+                            className="font-semibold text-[#D9381E] flex items-center gap-0.5 hover:underline font-heading"
                           >
                             View menu <ChevronRight className="h-3.5 w-3.5" />
                           </Link>
@@ -304,15 +292,16 @@ function Landing() {
                       </div>
                     </div>
 
-                    <div className="p-5 pt-0">
+                    <div className="p-5 pt-0 space-y-2">
+                      <ListingDeliveryButtons venue={restaurant} />
                       <a
-                        href={restaurant.bookingPlatform?.url || restaurant.website}
+                        href={getAccurateBookHref(restaurant)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full btn-action-primary text-xs py-2.5 rounded-xl text-center flex items-center justify-center gap-1 transition-all shadow-sm cursor-pointer"
                       >
                         <Calendar className="w-3.5 h-3.5 text-white" />
-                        <span>Book Table</span>
+                        <span>{getAccurateBookLabel(restaurant)}</span>
                       </a>
                     </div>
                   </article>
@@ -327,13 +316,13 @@ function Landing() {
           <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <p className="vd-eyebrow mb-2">EXCLUSIVE OFFERS & DISCOUNTS</p>
-              <h2 className="font-display text-3xl sm:text-5xl font-black text-[#111827]">
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#111827] tracking-tight">
                 Fazaa, Esaad & Card Privileges
               </h2>
             </div>
             <Link
               to="/deals"
-              className="inline-flex items-center gap-1 text-xs font-bold font-heading uppercase tracking-wider text-[#D9381E] hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-semibold font-heading uppercase tracking-wider text-[#D9381E] hover:underline"
             >
               See all privileges directory <ChevronRight className="h-4 w-4" />
             </Link>
@@ -341,8 +330,6 @@ function Landing() {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {dealsList.map((restaurant) => {
-              const cardGallery = [restaurant.image, ...buildGallery(restaurant.name)];
-
               return (
                 <article
                   key={`offer-${restaurant.slug}`}
@@ -350,9 +337,8 @@ function Landing() {
                 >
                   <div>
                     <div className="relative aspect-[1.35] overflow-hidden bg-slate-900">
-                      <CardImageSlider
-                        images={cardGallery}
-                        title={restaurant.name}
+                      <VenueCardGallery
+                        venue={restaurant}
                         onImageClick={(idx) => {
                           setActiveSlideshowRestaurant(restaurant);
                           setActiveSlideshowIndex(idx || 0);
@@ -360,14 +346,14 @@ function Landing() {
                         className="w-full h-full"
                       />
                       <div className="absolute bottom-3 left-3 flex flex-wrap gap-1 z-10 pointer-events-none">
-                        <span className="rounded-full bg-[#D4AF37] text-[#111827] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider shadow-sm font-heading">
+                        <span className="rounded-full bg-[#D4AF37] text-[#111827] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider shadow-sm font-heading">
                           Accepted Privileges
                         </span>
                       </div>
                     </div>
 
                     <div className="p-5 space-y-2">
-                      <h3 className="font-display font-extrabold text-base text-[#111827] group-hover:text-[#D4AF37] transition-colors leading-snug">
+                      <h3 className="font-display font-semibold text-base text-[#111827] group-hover:text-[#D4AF37] transition-colors leading-snug">
                         <Link to="/restaurants/$id" params={{ id: restaurant.slug }}>
                           {restaurant.name}
                         </Link>
@@ -386,24 +372,27 @@ function Landing() {
                   </div>
 
                   <div className="p-5 pt-0">
-                    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[#E5E7EB]">
+                    <div className="space-y-2 pt-3 border-t border-[#E5E7EB]">
+                      <ListingDeliveryButtons venue={restaurant} />
+                      <div className="grid grid-cols-2 gap-2">
                       <Link
                         to="/restaurants/$id"
                         params={{ id: restaurant.slug }}
-                        className="border border-[#111827] hover:bg-[#111827] hover:text-white text-[#111827] font-bold font-heading text-xs py-2 rounded-xl transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
+                        className="border border-[#111827] hover:bg-[#111827] hover:text-white text-[#111827] font-semibold font-heading text-xs py-2 rounded-xl transition-all text-center flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <span>Details</span>
                       </Link>
 
                       <a
-                        href={restaurant.bookingPlatform?.url || restaurant.website}
+                        href={getAccurateBookHref(restaurant)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn-action-primary text-xs py-2 rounded-xl text-center flex items-center justify-center gap-1 transition-all shadow-sm cursor-pointer"
                       >
                         <Calendar className="w-3.5 h-3.5 text-white" />
-                        <span>Book</span>
+                        <span>{getAccurateBookLabel(restaurant)}</span>
                       </a>
+                      </div>
                     </div>
                   </div>
                 </article>
@@ -418,7 +407,7 @@ function Landing() {
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
               <div className="space-y-4">
                 <p className="vd-eyebrow">NEIGHBOURHOOD DISCOVERY</p>
-                <h2 className="font-display text-4xl sm:text-6xl font-black text-[#111827] leading-tight">
+                <h2 className="font-display text-3xl sm:text-5xl font-bold text-[#111827] leading-tight tracking-tight">
                   Every corner of Dubai has a culinary story.
                 </h2>
                 <p className="text-[#6B7280] text-sm sm:text-base leading-relaxed max-w-md font-normal font-sans">
@@ -426,7 +415,7 @@ function Landing() {
                 </p>
                 <Link
                   to="/map"
-                  className="inline-flex items-center gap-2 rounded-full btn-action-primary px-7 py-3.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-md transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-full btn-action-primary px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-md transition-all cursor-pointer"
                 >
                   <Compass className="w-4 h-4" /> Open Interactive Dubai Map
                 </Link>
@@ -444,7 +433,7 @@ function Landing() {
                         : "bg-[#F8F9FA] border border-[#E5E7EB] text-[#111827] hover:bg-[#F3F4F6] hover:border-[#D4AF37]"
                     }`}
                   >
-                    <span className="relative z-10 font-display font-extrabold text-base leading-snug">
+                    <span className="relative z-10 font-display font-semibold text-base leading-snug">
                       {district}
                     </span>
                     <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 opacity-60 transition group-hover:translate-x-1 group-hover:-translate-y-1" />
@@ -460,10 +449,10 @@ function Landing() {
           <div className="mx-auto max-w-[1440px] lg:px-10">
             <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:items-center">
               <div className="space-y-4">
-                <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#D4AF37] font-heading">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37] font-heading">
                   OUR TRANSPARENT COMMITMENT
                 </p>
-                <h2 className="font-display text-4xl sm:text-6xl font-black leading-tight">
+                <h2 className="font-display text-3xl sm:text-5xl font-bold leading-tight tracking-tight">
                   100% Unbiased Search.<br />
                   <span className="text-[#D4AF37]">No Pay-To-Play.</span>
                 </h2>
@@ -477,7 +466,7 @@ function Landing() {
                   <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-xl">
                     ⚖️
                   </div>
-                  <h3 className="font-display font-extrabold text-xl">Objective Algorithm</h3>
+                  <h3 className="font-display font-semibold text-xl">Objective Algorithm</h3>
                   <p className="text-xs leading-relaxed text-[#94A3B8] font-normal font-sans">
                     Verified guest reviews, pricing accuracy, and DET trade licensing shape every organic listing.
                   </p>
@@ -487,7 +476,7 @@ function Landing() {
                   <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-xl">
                     💳
                   </div>
-                  <h3 className="font-display font-extrabold text-xl">Local Privileges</h3>
+                  <h3 className="font-display font-semibold text-xl">Local Privileges</h3>
                   <p className="text-xs leading-relaxed text-[#94A3B8] font-normal font-sans">
                     Filter thousands of Dubai spots by Fazaa, Esaad, Emirates Platinum, and UAE bank cards.
                   </p>
@@ -502,12 +491,11 @@ function Landing() {
       </main>
 
       {/* ── PHOTO GALLERY LIGHTBOX MODAL ── */}
-      <ImageSlideshowModal
+      <VenuePhotoLightbox
+        restaurant={activeSlideshowRestaurant}
         isOpen={!!activeSlideshowRestaurant}
         onClose={() => setActiveSlideshowRestaurant(null)}
-        images={activeSlideshowRestaurant ? [activeSlideshowRestaurant.image, ...buildGallery(activeSlideshowRestaurant.name)] : []}
         initialIndex={activeSlideshowIndex}
-        title={activeSlideshowRestaurant?.name}
       />
 
       {/* ── OWNER CLAIM LISTING MODAL ── */}

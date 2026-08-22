@@ -11,6 +11,8 @@ import {
   type EnrichedRestaurant,
 } from "@/lib/restaurant-ai";
 import { enrichedRestaurants } from "@/lib/restaurants-enriched";
+import { VenuePhoto, LiveRatingText } from "@/components/venue-photo";
+import { ListingDeliveryButtons } from "@/components/order-online-card";
 import { 
   Star, 
   Send, 
@@ -41,39 +43,42 @@ type BotMessage = {
 ──────────────────────────────────────────────── */
 function ChatRestaurantCard({ r }: { r: EnrichedRestaurant }) {
   return (
-    <Link
-      to="/restaurants/$id"
-      params={{ id: r.slug || "" }}
-      className="flex gap-3 p-3 bg-white/5 hover:bg-white/12 border border-white/10 hover:border-[#D4AF37]/40 rounded-2xl transition-all group shadow-sm text-left"
-    >
-      <div className="w-20 h-16 rounded-xl overflow-hidden shrink-0 bg-white/10">
-        <img src={r.image} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="font-bold text-sm text-white leading-tight truncate group-hover:text-[#D4AF37] transition-colors font-heading">
-          {r.name}
-        </p>
-        <p className="text-xs text-white/60 mt-0.5 truncate font-sans">{r.cuisine} · {r.district}</p>
-        <div className="flex items-center gap-2.5 mt-1.5 font-sans">
-          <span className="flex items-center gap-1 text-xs text-[#D4AF37] font-bold font-heading">
-            <Star className="w-3 h-3 fill-[#D4AF37]" />
-            {r.rating.toFixed(1)}
-          </span>
-          <span className="text-xs text-white/50">AED {r.priceMin}–{r.priceMax}</span>
-          {r.michelin && (
-            <span className="text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded-full font-bold font-heading">
-              Michelin
-            </span>
-          )}
-          {r.liquor === "Licensed" && (
-            <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded-full font-bold font-heading">
-              Licensed
-            </span>
-          )}
+    <div className="p-3 bg-white/5 hover:bg-white/12 border border-white/10 hover:border-[#D4AF37]/40 rounded-2xl transition-all group shadow-sm text-left space-y-2">
+      <Link
+        to="/restaurants/$id"
+        params={{ id: r.slug || "" }}
+        className="flex gap-3"
+      >
+        <div className="w-20 h-16 rounded-xl overflow-hidden shrink-0 bg-white/10">
+          <VenuePhoto venue={r} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
-      </div>
-      <ExternalLink className="w-3.5 h-3.5 text-white/30 group-hover:text-[#D4AF37] shrink-0 mt-1 transition-colors" />
-    </Link>
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-sm text-white leading-tight truncate group-hover:text-[#D4AF37] transition-colors font-heading">
+            {r.name}
+          </p>
+          <p className="text-xs text-white/60 mt-0.5 truncate font-sans">{r.cuisine} · {r.district}</p>
+          <div className="flex items-center gap-2.5 mt-1.5 font-sans">
+            <span className="flex items-center gap-1 text-xs text-[#D4AF37] font-bold font-heading">
+              <Star className="w-3 h-3 fill-[#D4AF37]" />
+              <LiveRatingText venue={r} />
+            </span>
+            <span className="text-xs text-white/50">AED {r.priceMin}–{r.priceMax}</span>
+            {r.michelin && (
+              <span className="text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded-full font-bold font-heading">
+                Michelin
+              </span>
+            )}
+            {r.liquor === "Licensed" && (
+              <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded-full font-bold font-heading">
+                Licensed
+              </span>
+            )}
+          </div>
+        </div>
+        <ExternalLink className="w-3.5 h-3.5 text-white/30 group-hover:text-[#D4AF37] shrink-0 mt-1 transition-colors" />
+      </Link>
+      <ListingDeliveryButtons venue={r} />
+    </div>
   );
 }
 

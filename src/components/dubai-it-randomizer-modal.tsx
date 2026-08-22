@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { restaurants, Restaurant } from "../data/restaurants";
+import { officialWebsiteOf, googlePlaceUrl, googleDirectionsUrl } from "@/lib/venue-actions";
+import { VenuePhoto, LiveRatingText } from "@/components/venue-photo";
+import { ListingDeliveryButtons } from "@/components/order-online-card";
 import { X, Sparkles, MapPin, Phone, ExternalLink, Star } from "lucide-react";
 
 interface Props {
@@ -135,14 +138,14 @@ export function DubaiItRandomizerModal({ isOpen, onClose }: Props) {
                   className="bg-card border border-border rounded-xl p-3 flex flex-col justify-between hover:shadow-md transition-shadow"
                 >
                   <div>
-                    <img
-                      src={item.image}
+                    <VenuePhoto
+                      venue={item}
                       alt={item.name}
                       className="w-full h-28 object-cover rounded-lg mb-2"
                     />
                     <div className="flex items-center gap-1 text-xs font-bold text-amber-500 mb-1">
                       <Star className="w-3.5 h-3.5 fill-current" />
-                      <span>{item.rating}</span>
+                      <LiveRatingText venue={item} />
                       <span className="text-muted-foreground font-normal">({item.reviews})</span>
                     </div>
                     <h4 className="font-bold text-sm leading-tight text-foreground line-clamp-1">
@@ -151,11 +154,12 @@ export function DubaiItRandomizerModal({ isOpen, onClose }: Props) {
                     <p className="text-xs text-muted-foreground mt-0.5">{item.cuisine} · {item.area}</p>
                   </div>
 
+                  <div className="mt-3">
+                    <ListingDeliveryButtons venue={item} />
+                  </div>
                   <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-xs">
                     <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                        item.name + " " + item.address
-                      )}`}
+                      href={googleDirectionsUrl(item)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline flex items-center gap-1 font-medium"
@@ -169,12 +173,12 @@ export function DubaiItRandomizerModal({ isOpen, onClose }: Props) {
                       <Phone className="w-3 h-3" /> Call
                     </a>
                     <a
-                      href={item.website}
+                      href={officialWebsiteOf(item) || googlePlaceUrl(item)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-muted-foreground hover:text-foreground flex items-center gap-1"
                     >
-                      <ExternalLink className="w-3 h-3" /> Web
+                      <ExternalLink className="w-3 h-3" /> {officialWebsiteOf(item) ? "Web" : "Google"}
                     </a>
                   </div>
                 </div>

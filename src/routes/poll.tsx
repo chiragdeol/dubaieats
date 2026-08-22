@@ -3,6 +3,9 @@ import { useState, useMemo } from "react";
 import { enrichedRestaurants, type EnrichedRestaurant } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { getAccurateBookHref, getAccurateBookLabel } from "@/lib/venue-actions";
+import { ListingDeliveryButtons } from "@/components/order-online-card";
+import { VenuePhoto } from "@/components/venue-photo";
 import { 
   Users, 
   Sparkles, 
@@ -172,7 +175,7 @@ function GroupPollPage() {
                             <span className="w-6 h-6 rounded-full bg-primary/10 text-primary font-black text-xs flex items-center justify-center shrink-0">
                               {idx + 1}
                             </span>
-                            <img src={r.image} alt={r.name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
+                            <VenuePhoto venue={r} alt={r.name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
                             <div className="min-w-0">
                               <p className="font-extrabold text-xs text-foreground truncate">{r.name}</p>
                               <p className="text-[10px] text-muted-foreground truncate">{r.cuisine} · {r.district}</p>
@@ -233,21 +236,24 @@ function GroupPollPage() {
                     <Trophy className="w-4 h-4" /> Leading Group Choice
                   </div>
                   <div className="flex items-center gap-4 bg-card/80 p-4 rounded-2xl border border-border">
-                    <img src={winningVenue.image} alt={winningVenue.name} className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                    <VenuePhoto venue={winningVenue} alt={winningVenue.name} className="w-16 h-16 rounded-xl object-cover shrink-0" />
                     <div className="min-w-0 flex-1">
                       <h4 className="font-extrabold text-base text-foreground truncate">{winningVenue.name}</h4>
                       <p className="text-xs text-muted-foreground">{winningVenue.cuisine} · {winningVenue.district}</p>
                       <p className="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1">
                         🏆 Highest Voted with {votes[winningVenue.slug] || 0} votes!
                       </p>
+                      <div className="mt-2">
+                        <ListingDeliveryButtons venue={winningVenue} />
+                      </div>
                     </div>
                     <a
-                      href={winningVenue.bookingPlatform?.url || winningVenue.website}
+                      href={getAccurateBookHref(winningVenue)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-primary text-primary-foreground font-extrabold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity shrink-0 flex items-center gap-1.5"
                     >
-                      <Calendar className="w-3.5 h-3.5" /> Book Table
+                      <Calendar className="w-3.5 h-3.5" /> {getAccurateBookLabel(winningVenue)}
                     </a>
                   </div>
                 </div>

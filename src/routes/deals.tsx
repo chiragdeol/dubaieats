@@ -3,10 +3,12 @@ import { useState, useMemo } from "react";
 import { enrichedRestaurants, formatPrivilegeBadge, type EnrichedRestaurant, type PrivilegeCategory } from "../lib/restaurants-enriched";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { CardImageSlider, ImageSlideshowModal } from "@/components/image-slideshow-modal";
 import { ClaimListingModal } from "@/components/claim-listing-modal";
 import { MichelinBadge } from "@/components/michelin-badge";
+import { VenueCardGallery, VenuePhotoLightbox, LiveRatingText } from "@/components/venue-photo";
 import { toast } from "sonner";
+import { getAccurateBookHref, getAccurateBookLabel } from "@/lib/venue-actions";
+import { ListingDeliveryButtons } from "@/components/order-online-card";
 import { 
   BadgePercent, 
   Sparkles, 
@@ -34,19 +36,6 @@ export const Route = createFileRoute("/deals")({
   }),
   component: DealsDirectoryPage,
 });
-
-function buildGallery(name: string): string[] {
-  const allPhotos = [
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900",
-    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900",
-    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900",
-    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900",
-    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900",
-    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=900"
-  ];
-  const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return [...allPhotos.slice(hash % allPhotos.length), ...allPhotos.slice(0, hash % allPhotos.length)];
-}
 
 const PRIVILEGE_CATEGORIES: {
   groupName: string;
@@ -253,7 +242,6 @@ function DealsDirectoryPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredDeals.map(r => {
                 const userVoted = communityVotes[r.slug];
-                const cardGallery = [r.image, ...buildGallery(r.name)];
 
                 return (
                   <article
@@ -263,9 +251,8 @@ function DealsDirectoryPage() {
                     <div>
                       {/* Image Slider */}
                       <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
-                        <CardImageSlider
-                          images={cardGallery}
-                          title={r.name}
+                        <VenueCardGallery
+                          venue={r}
                           onImageClick={(idx) => {
                             setActiveSlideshowRestaurant(r);
                             setActiveSlideshowIndex(idx || 0);
@@ -300,7 +287,7 @@ function DealsDirectoryPage() {
                             <p className="text-xs text-[#6B7280] font-sans">{r.cuisine} · Average AED {r.priceMin}</p>
                           </div>
                           <span className="bg-[#FBF6E9] border border-[#EFE2B9] text-[#8D6E18] font-black text-xs px-2 py-0.5 rounded-md font-heading shrink-0">
-                            {(r.rating * 2).toFixed(1)}
+                            <LiveRatingText venue={r} scale={2} />
                           </span>
                         </div>
 
@@ -359,7 +346,9 @@ function DealsDirectoryPage() {
 
                     {/* Card Actions */}
                     <div className="p-5 pt-0">
-                      <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[#E5E7EB]">
+                      <div className="space-y-2 pt-3 border-t border-[#E5E7EB]">
+                        <ListingDeliveryButtons venue={r} />
+                        <div className="grid grid-cols-2 gap-2">
                         <Link
                           to="/restaurants/$id"
                           params={{ id: r.slug }}
@@ -369,14 +358,15 @@ function DealsDirectoryPage() {
                         </Link>
 
                         <a
-                          href={r.bookingPlatform?.url || r.website}
+                          href={getAccurateBookHref(r)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn-action-primary text-xs py-2.5 rounded-xl text-center flex items-center justify-center gap-1 transition-all shadow-sm cursor-pointer"
                         >
                           <Calendar className="w-3.5 h-3.5 text-white" />
-                          <span>Book Table</span>
+                          <span>{getAccurateBookLabel(r)}</span>
                         </a>
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -389,12 +379,11 @@ function DealsDirectoryPage() {
       </div>
 
       {/* ── PHOTO GALLERY LIGHTBOX MODAL ── */}
-      <ImageSlideshowModal
+      <VenuePhotoLightbox
+        restaurant={activeSlideshowRestaurant}
         isOpen={!!activeSlideshowRestaurant}
         onClose={() => setActiveSlideshowRestaurant(null)}
-        images={activeSlideshowRestaurant ? [activeSlideshowRestaurant.image, ...buildGallery(activeSlideshowRestaurant.name)] : []}
         initialIndex={activeSlideshowIndex}
-        title={activeSlideshowRestaurant?.name}
       />
 
       {/* ── OWNER CLAIM LISTING MODAL ── */}

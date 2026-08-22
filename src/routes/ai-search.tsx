@@ -2,8 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { enrichedRestaurants, type EnrichedRestaurant } from "../lib/restaurants-enriched";
 import { parseIntent, matchRestaurants, hasGemini, callGemini, type ChatMessage } from "@/lib/restaurant-ai";
+import { getAccurateBookHref, getAccurateBookLabel } from "@/lib/venue-actions";
+import { ListingDeliveryButtons } from "@/components/order-online-card";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { VenuePhoto, LiveRatingText } from "@/components/venue-photo";
 import { 
   Sparkles, 
   Search, 
@@ -192,8 +195,8 @@ function AiSearchHubPage() {
                   >
                     <div>
                       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-                        <img
-                          src={r.image}
+                        <VenuePhoto
+                          venue={r}
                           alt={r.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
@@ -216,7 +219,7 @@ function AiSearchHubPage() {
                             </Link>
                           </h4>
                           <span className="bg-emerald-500 text-white font-bold text-xs px-2 py-0.5 rounded-md">
-                            {(r.rating * 2).toFixed(1)}
+                            <LiveRatingText venue={r} scale={2} />
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">{r.cuisine} · ~AED {r.priceMin}–{r.priceMax}</p>
@@ -234,7 +237,9 @@ function AiSearchHubPage() {
                     </div>
 
                     <div className="p-5 pt-0">
-                      <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border">
+                      <div className="space-y-2 pt-3 border-t border-border">
+                        <ListingDeliveryButtons venue={r} />
+                        <div className="grid grid-cols-2 gap-2">
                         <Link
                           to="/restaurants/$id"
                           params={{ id: r.slug }}
@@ -245,14 +250,15 @@ function AiSearchHubPage() {
                         </Link>
 
                         <a
-                          href={r.bookingPlatform?.url || r.website}
+                          href={getAccurateBookHref(r)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-secondary text-foreground font-bold text-xs py-2 rounded-xl text-center border border-border flex items-center justify-center gap-1"
                         >
                           <Calendar className="w-3.5 h-3.5 text-primary" />
-                          <span>Reserve</span>
+                          <span>{getAccurateBookLabel(r)}</span>
                         </a>
+                        </div>
                       </div>
                     </div>
                   </article>

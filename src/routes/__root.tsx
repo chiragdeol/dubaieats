@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { AiChatWidget } from "@/components/ai-chat-widget";
+import { prefetchCatalogGooglePlaces } from "@/hooks/use-google-place";
 
 
 import appCss from "../styles.css?url";
@@ -130,6 +131,10 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    prefetchCatalogGooglePlaces(queryClient);
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
